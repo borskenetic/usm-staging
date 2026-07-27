@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BookLog;
 use App\Models\RoomReservation;
 use App\Models\Student;
+use App\Models\StudentNotification;
 use App\Models\User;
 use App\Services\Auth\ModuleAccessService;
 use Carbon\Carbon;
@@ -29,6 +30,7 @@ class NotificationController extends Controller
         $notifications = collect()
             ->merge($this->borrowNotifications($student))
             ->merge($this->roomReservationNotifications($request, $student))
+            ->merge($this->systemNotifications($student))
             ->sortByDesc(fn (array $notification) => $notification['sort_at'])
             ->values()
             ->map(function (array $notification) {
@@ -41,6 +43,31 @@ class NotificationController extends Controller
             'message' => 'Notifications retrieved.',
             'data' => $notifications,
         ]);
+    }
+
+    private function systemNotifications(Student $student): Collection
+    {
+        return StudentNotification::query()
+            ->where('student_id', $student->id)
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(function (StudentNotification $note) {
+                return [
+                    'id' => 'system-'.$note->id,
+                    'type' => $note->type,
+                    'title' => $note->title,
+                    'message' => $note->message,
+                    'severity' => 'info',
+                    'source' => [
+                        'kind' => 'system_notification',
+                        'id' => $note->id,
+                    ],
+                    'date' => $note->created_at?->toDateString(),
+                    'created_at' => $note->created_at?->toDateTimeString(),
+                    'sort_at' => $note->created_at?->timestamp ?? 0,
+                ];
+            });
     }
 
     private function borrowNotifications(Student $student): Collection

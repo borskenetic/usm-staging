@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureAttendanceAdmin;
 use App\Http\Middleware\EnsureDeveloper;
 use App\Http\Middleware\EnsureLibraryAccess;
 use App\Http\Middleware\EnsureLibraryAdmin;
+use App\Http\Middleware\CheckSanctumAbility;
 use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'library.access' => EnsureLibraryAccess::class,
             'library.admin' => EnsureLibraryAdmin::class,
             'super-admin' => EnsureSuperAdmin::class,
+            'sanctum.ability' => CheckSanctumAbility::class,
         ]);
     })
     ->withSchedule(function (Schedule $schedule) {

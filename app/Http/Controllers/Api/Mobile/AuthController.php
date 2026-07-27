@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\Mobile\StudentChangePasswordRequest;
 use App\Models\Student;
+use App\Models\StudentNotification;
+use App\Models\StudentPasswordResetLog;
 use App\Models\User;
 use App\Services\Auth\ModuleAccessService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,10 +19,16 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /**
+     * POST /mobile/login
+     *
+     * Authenticate a student using student_id + password.
+     */
     public function login(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'student_id' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string'],
         ]);
 
         $student = Student::query()
@@ -31,10 +41,69 @@ class AuthController extends Controller
             ]);
         }
 
-        $token = $student->createToken('pantas-mobile')->plainTextToken;
+        // Check account lock state
+        if ($student->isLocked()) {
+            $minutesRemaining = Carbon::now()->diffInMinutes($student->locked_until, true);
+            $minutesRemaining = max(1, (int) ceil($minutesRemaining));
+
+            throw ValidationException::withMessages([
+                'student_id' => [
+                    "Account is temporarily locked due to too many failed login attempts. Please try again in {$minutesRemaining} minute(s).",
+                ],
+            ]);
+        }
+
+        // Determine the effective password to verify against
+        $storedHash = $student->password;
+        $effectivePassword = $validated['password'];
+
+        // If no password set yet, derive from birthday
+        if ($storedHash === null) {
+            if (! $student->birthday) {
+                throw ValidationException::withMessages([
+                    'student_id' => ['This account has no password configured. Please contact the library staff.'],
+                ]);
+            }
+            $storedHash = Hash::make($student->deriveDefaultPassword());
+            $student->forceFill(['password' => $storedHash])->save();
+        }
+
+        // Verify password
+        if (! Hash::check($effectivePassword, $storedHash)) {
+            $student->recordFailedAttempt();
+
+            throw ValidationException::withMessages([
+                'password' => ['The provided password is incorrect.'],
+            ]);
+        }
+
+        // Password correct — reset failed attempts
+        $student->resetFailedAttempts();
+
+        // Check if password change is required
+        $needsChange = $student->needsPasswordChange();
+
+        if ($needsChange) {
+            // Issue limited-scope token (only valid for change-password)
+            $token = $student->createToken('pantas-mobile-pending', ['password-change'])->plainTextToken;
+
+            return response()->json([
+                'message' => 'Login successful. Password change required.',
+                'must_change_password' => true,
+                'data' => [
+                    'token' => $token,
+                    'user' => $this->formatUser($student),
+                    'student' => $this->formatStudent($student),
+                ],
+            ]);
+        }
+
+        // Issue full-access token
+        $token = $student->createToken('pantas-mobile', ['full-access'])->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful.',
+            'must_change_password' => false,
             'data' => [
                 'token' => $token,
                 'user' => $this->formatUser($student),
@@ -43,38 +112,79 @@ class AuthController extends Controller
         ]);
     }
 
-    public function me(Request $request): JsonResponse
+    /**
+     * POST /mobile/student/change-password
+     *
+     * Student-facing password change (requires password-change scoped token).
+     */
+    public function studentChangePassword(StudentChangePasswordRequest $request): JsonResponse
     {
-        $student = $this->resolveStudent($request);
+        $student = $request->user();
 
-        if ($student instanceof JsonResponse) {
-            return $student;
+        if (! $student instanceof Student) {
+            return response()->json([
+                'message' => 'Only students can change their password through this endpoint.',
+                'data' => null,
+            ], 403);
         }
 
+        $validated = $request->validated();
+
+        // Verify current password against stored hash
+        $storedHash = $student->password;
+        if ($storedHash === null && $student->birthday) {
+            $storedHash = Hash::make($student->deriveDefaultPassword());
+            $student->forceFill(['password' => $storedHash])->save();
+        }
+
+        if (! Hash::check($validated['current_password'], $storedHash)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['The current password is incorrect.'],
+            ]);
+        }
+
+        // Update password
+        $student->forceFill([
+            'password' => Hash::make($validated['password']),
+            'password_setup_completed' => true,
+            'force_password_reset' => false,
+        ])->save();
+
+        // Invalidate all existing tokens for this student
+        $student->tokens()->delete();
+
+        // Issue a fresh full-access token
+        $newToken = $student->createToken('pantas-mobile', ['full-access'])->plainTextToken;
+
+        // Create in-app notification
+        StudentNotification::create([
+            'student_id' => $student->id,
+            'type' => 'password_changed',
+            'title' => 'Password changed',
+            'message' => 'Your password was changed successfully.',
+        ]);
+
         return response()->json([
-            'message' => 'Authenticated user retrieved.',
+            'message' => 'Password changed successfully.',
+            'must_change_password' => false,
             'data' => [
+                'token' => $newToken,
                 'user' => $this->formatUser($student),
                 'student' => $this->formatStudent($student),
             ],
         ]);
     }
 
-    public function logout(Request $request): JsonResponse
-    {
-        $request->user()->currentAccessToken()?->delete();
-
-        return response()->json([
-            'message' => 'Logout successful.',
-            'data' => null,
-        ]);
-    }
-
+    /**
+     * POST /mobile/change-password
+     *
+     * Staff-only password change (kept for backward compatibility with User model).
+     */
     public function changePassword(Request $request): JsonResponse
     {
         if ($request->user() instanceof Student) {
             return response()->json([
-                'message' => 'Password changes are not supported for student ID mobile login.',
+                'message' => 'Please use the student change-password endpoint.',
                 'data' => null,
             ], 409);
         }
@@ -101,6 +211,93 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Password changed successfully. Please log in again.',
             'data' => null,
+        ]);
+    }
+
+    /**
+     * POST /mobile/students/{student}/reset-password
+     *
+     * Staff-initiated password reset for a student.
+     */
+    public function staffResetPassword(Request $request, Student $student): JsonResponse
+    {
+        $staff = $request->user();
+
+        if (! $staff instanceof User) {
+            return response()->json([
+                'message' => 'Only staff users can reset student passwords.',
+                'data' => null,
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        // Clear self-set password — reverts to derived default
+        $student->forceFill([
+            'password' => null,
+            'password_setup_completed' => false,
+            'force_password_reset' => true,
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
+        ])->save();
+
+        // Invalidate all existing tokens
+        $student->tokens()->delete();
+
+        // Log the reset
+        StudentPasswordResetLog::create([
+            'student_id' => $student->id,
+            'staff_id' => $staff->id,
+            'reason' => $validated['reason'] ?? null,
+        ]);
+
+        // Notify the student
+        StudentNotification::create([
+            'student_id' => $student->id,
+            'type' => 'password_reset',
+            'title' => 'Password reset by staff',
+            'message' => 'Your password was reset by library staff. Please use your birthdate as the default password and change it on your next login.',
+        ]);
+
+        return response()->json([
+            'message' => "Password for student {$student->id_number} has been reset.",
+            'data' => null,
+        ]);
+    }
+
+    /**
+     * POST /mobile/logout
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->currentAccessToken()?->delete();
+
+        return response()->json([
+            'message' => 'Logout successful.',
+            'data' => null,
+        ]);
+    }
+
+    /**
+     * GET /mobile/me
+     * GET /mobile/profile
+     */
+    public function me(Request $request): JsonResponse
+    {
+        $student = $this->resolveStudent($request);
+
+        if ($student instanceof JsonResponse) {
+            return $student;
+        }
+
+        return response()->json([
+            'message' => 'Authenticated user retrieved.',
+            'data' => [
+                'user' => $this->formatUser($student),
+                'student' => $this->formatStudent($student),
+            ],
         ]);
     }
 

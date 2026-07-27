@@ -20,7 +20,9 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
         ]);
     })->name('health');
 
-    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:10,1')
+        ->name('login');
 
     Route::prefix('catalog')->name('catalog.')->group(function () {
         Route::get('/search', [CatalogController::class, 'search'])->name('search');
@@ -30,25 +32,37 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
         Route::get('/ebooks/{ebook}', [CatalogController::class, 'ebook'])->name('ebooks.show');
     });
 
+    // Student-facing change-password — requires password-change scoped token
+    Route::post('/student/change-password', [AuthController::class, 'studentChangePassword'])
+        ->middleware(['auth:sanctum', 'sanctum.ability:password-change'])
+        ->name('student.change-password');
+
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/home', [AggregateController::class, 'home'])->name('home');
-        Route::get('/borrow-overview', [AggregateController::class, 'borrowOverview'])->name('borrow-overview');
-        Route::get('/rooms/dashboard', [AggregateController::class, 'roomsDashboard'])->name('rooms.dashboard');
-        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-        Route::post('/change-password', [AuthController::class, 'changePassword'])->name('change-password');
-        Route::get('/me', [AuthController::class, 'me'])->name('me');
-        Route::get('/profile', [AuthController::class, 'me'])->name('profile');
-        Route::get('/borrowed-books', [BorrowingController::class, 'active'])->name('borrowed-books');
-        Route::get('/borrow-history', [BorrowingController::class, 'history'])->name('borrow-history');
-        Route::get('/borrow-limits', [BorrowingController::class, 'limits'])->name('borrow-limits');
-        Route::post('/borrow-cart/submit', [BorrowingController::class, 'submitCart'])->name('borrow-cart.submit');
-        Route::get('/rooms', [RoomReservationController::class, 'rooms'])->name('rooms.index');
-        Route::get('/rooms/availability', [RoomReservationController::class, 'availability'])->name('rooms.availability');
-        Route::get('/rooms/reservations', [RoomReservationController::class, 'index'])->name('rooms.reservations.index');
-        Route::post('/rooms/reservations', [RoomReservationController::class, 'store'])->name('rooms.reservations.store');
-        Route::get('/rooms/reservations/{reservation}', [RoomReservationController::class, 'show'])->name('rooms.reservations.show');
-        Route::delete('/rooms/reservations/{reservation}', [RoomReservationController::class, 'destroy'])->name('rooms.reservations.destroy');
-        Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
-        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        // All routes in this group require full-access ability
+        Route::middleware('sanctum.ability:full-access')->group(function () {
+            Route::get('/home', [AggregateController::class, 'home'])->name('home');
+            Route::get('/borrow-overview', [AggregateController::class, 'borrowOverview'])->name('borrow-overview');
+            Route::get('/rooms/dashboard', [AggregateController::class, 'roomsDashboard'])->name('rooms.dashboard');
+            Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+            Route::post('/change-password', [AuthController::class, 'changePassword'])->name('change-password');
+            Route::get('/me', [AuthController::class, 'me'])->name('me');
+            Route::get('/profile', [AuthController::class, 'me'])->name('profile');
+            Route::get('/borrowed-books', [BorrowingController::class, 'active'])->name('borrowed-books');
+            Route::get('/borrow-history', [BorrowingController::class, 'history'])->name('borrow-history');
+            Route::get('/borrow-limits', [BorrowingController::class, 'limits'])->name('borrow-limits');
+            Route::post('/borrow-cart/submit', [BorrowingController::class, 'submitCart'])->name('borrow-cart.submit');
+            Route::get('/rooms', [RoomReservationController::class, 'rooms'])->name('rooms.index');
+            Route::get('/rooms/availability', [RoomReservationController::class, 'availability'])->name('rooms.availability');
+            Route::get('/rooms/reservations', [RoomReservationController::class, 'index'])->name('rooms.reservations.index');
+            Route::post('/rooms/reservations', [RoomReservationController::class, 'store'])->name('rooms.reservations.store');
+            Route::get('/rooms/reservations/{reservation}', [RoomReservationController::class, 'show'])->name('rooms.reservations.show');
+            Route::delete('/rooms/reservations/{reservation}', [RoomReservationController::class, 'destroy'])->name('rooms.reservations.destroy');
+            Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+            Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        });
+
+        // Staff-initiated student password reset
+        Route::post('/students/{student}/reset-password', [AuthController::class, 'staffResetPassword'])
+            ->name('students.reset-password');
     });
 });
