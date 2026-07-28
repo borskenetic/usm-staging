@@ -8,6 +8,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\BookLog;
+use App\Models\Program;
 use App\Models\Room;
 use App\Models\RoomReservation;
 use App\Models\Student;
@@ -19,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class AggregateController extends Controller
 {
@@ -32,6 +34,8 @@ class AggregateController extends Controller
 
         $activeLoans = $this->activeLoans($student);
         $newArrivals = $this->newArrivals();
+        $recommendationContext = $this->recommendationContextForStudent($student);
+        $recommendedBooks = $this->recommendationsForStudent($student);
 
         return $this->etagResponse($request, [
             'message' => 'Mobile home data retrieved.',
@@ -39,6 +43,8 @@ class AggregateController extends Controller
                 'new_arrivals' => $newArrivals,
                 'active_loans' => $activeLoans,
                 'loan_stats' => $this->loanStats($activeLoans),
+                'recommended_books' => $recommendedBooks,
+                'recommendation_context' => $recommendationContext,
             ],
         ]);
     }
@@ -152,6 +158,20 @@ class AggregateController extends Controller
                     'booked_slots' => $bookedSlots,
                 ],
             ],
+        ]);
+    }
+
+    public function recommendations(Request $request): JsonResponse
+    {
+        $student = $this->resolveStudent($request);
+
+        if ($student instanceof JsonResponse) {
+            return $student;
+        }
+
+        return $this->etagResponse($request, [
+            'message' => 'Recommendations retrieved.',
+            'data' => $this->recommendationsForStudent($student),
         ]);
     }
 
@@ -284,6 +304,110 @@ class AggregateController extends Controller
             'loan_duration_days' => $fineSetting->loan_duration_days,
             'grace_period_days' => $fineSetting->grace_period_days,
         ];
+    }
+
+    private function recommendationContextForStudent(Student $student): array
+    {
+        $course = trim((string) $student->course);
+
+        if ($course === '') {
+            return [
+                'course' => null,
+                'program_name' => null,
+            ];
+        }
+
+        $program = $this->resolveProgramForCourse($course);
+
+        return [
+            'course' => $course,
+            'program_name' => $program?->program_name,
+        ];
+    }
+
+    private function resolveProgramForCourse(string $course): ?Program
+    {
+        $normalizedCourse = mb_strtolower($course);
+
+        return Program::query()
+            ->where(function ($query) use ($course, $normalizedCourse) {
+                $query->whereRaw('LOWER(program_code) = ?', [$normalizedCourse])
+                    ->orWhereRaw('LOWER(program_name) = ?', [$normalizedCourse])
+                    ->orWhere('program_code', $course)
+                    ->orWhere('program_name', $course);
+            })
+            ->first();
+    }
+
+    private function recommendationsForStudent(Student $student): array
+    {
+        $course = trim((string) $student->course);
+        $normalizedCourse = mb_strtolower($course);
+        $cacheKey = 'mobile:recommendations:'.$student->id.':'.$normalizedCourse;
+
+        return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($student, $course) {
+            if ($course === '') {
+                return [];
+            }
+
+            $program = $this->resolveProgramForCourse($course);
+            $programIds = $program ? [$program->id] : [];
+
+            if ($programIds === [] && ! Schema::hasColumn('library_books', 'program')) {
+                return [];
+            }
+
+            $grouped = Book::query()
+                ->whereNull('archived_at')
+                ->where(function ($query) use ($programIds, $course) {
+                    if ($programIds !== []) {
+                        $query->whereHas('programs', function ($programQuery) use ($programIds) {
+                            $programQuery->whereIn('library_programs.id', $programIds);
+                        });
+                    }
+
+                    if (Schema::hasColumn('library_books', 'program')) {
+                        $query->orWhere('program', $course);
+                    }
+                })
+                ->select(
+                    'title_statement',
+                    'main_author',
+                    'pub_year',
+                    DB::raw('COUNT(*) AS copies'),
+                    DB::raw('MIN(id) AS sample_id'),
+                    DB::raw("MAX(CASE WHEN availability = 'Available' THEN 1 ELSE 0 END) AS is_available"),
+                    DB::raw('MAX(created_at) AS newest_copy_at')
+                )
+                ->groupBy('title_statement', 'main_author', 'pub_year');
+
+            $books = DB::query()
+                ->fromSub($grouped, 'grouped')
+                ->join('library_books', 'library_books.id', '=', 'grouped.sample_id')
+                ->select(
+                    'grouped.title_statement',
+                    'grouped.main_author',
+                    'grouped.pub_year',
+                    'grouped.copies',
+                    'grouped.sample_id as id',
+                    'grouped.is_available',
+                    'library_books.call_number',
+                    'library_books.cover_image',
+                    'library_books.content_type',
+                    'library_books.library_name',
+                    'library_books.course',
+                    'library_books.section'
+                )
+                ->orderByDesc('grouped.is_available')
+                ->orderByDesc('grouped.newest_copy_at')
+                ->limit(10)
+                ->get()
+                ->map(fn (object $book) => $this->formatBookSearchRow($book))
+                ->values()
+                ->all();
+
+            return $books;
+        });
     }
 
     private function hasOverdueLoans(Student $student): bool

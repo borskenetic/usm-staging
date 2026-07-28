@@ -6,6 +6,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\Book;
 use App\Models\BookLog;
+use App\Models\Program;
 use App\Models\ReservationStudent;
 use App\Models\Room;
 use App\Models\RoomReservation;
@@ -43,7 +44,7 @@ class MobileAggregateControllerTest extends TestCase
             'fine_incurred' => 0,
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['full-access']);
 
         $this->getJson('/api/mobile/home')
             ->assertOk()
@@ -70,7 +71,7 @@ class MobileAggregateControllerTest extends TestCase
             'fine_incurred' => 0,
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['full-access']);
 
         $this->getJson('/api/mobile/borrow-overview')
             ->assertOk()
@@ -102,7 +103,7 @@ class MobileAggregateControllerTest extends TestCase
             'name' => 'Test Student',
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['full-access']);
 
         $this->getJson('/api/mobile/rooms/dashboard?date=2026-06-19')
             ->assertOk()
@@ -117,7 +118,7 @@ class MobileAggregateControllerTest extends TestCase
         $student = $this->student();
         $book = $this->book();
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['full-access']);
 
         $this->postJson('/api/mobile/borrow-cart/submit', [
             'book_ids' => [$book->id],
@@ -149,7 +150,7 @@ class MobileAggregateControllerTest extends TestCase
             'capacity' => 4,
         ]);
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['full-access']);
 
         $this->postJson('/api/mobile/rooms/reservations', [
             'room_id' => $room->id,
@@ -182,7 +183,7 @@ class MobileAggregateControllerTest extends TestCase
     {
         $student = $this->student();
 
-        Sanctum::actingAs($student);
+        Sanctum::actingAs($student, ['full-access']);
 
         $this->postJson('/api/mobile/feedback', [
             'comments' => 'The mobile library flow is working.',
@@ -212,6 +213,170 @@ class MobileAggregateControllerTest extends TestCase
         Sanctum::actingAs($user);
 
         $this->getJson('/api/mobile/home')->assertForbidden();
+    }
+
+    public function test_home_returns_recommended_books_for_student_program(): void
+    {
+        $program = Program::query()->create([
+            'program_code' => 'BSCS',
+            'program_name' => 'Bachelor of Science in Computer Science',
+            'total_years' => 4,
+        ]);
+
+        $student = Student::query()->create([
+            'id_number' => 'S-200',
+            'lastname' => 'Student',
+            'firstname' => 'Program',
+            'qrcode' => 'S-200',
+            'course' => 'BSCS',
+        ]);
+
+        $recommendedBook = Book::query()->create([
+            'title_statement' => 'Algorithms for Program Students',
+            'main_author' => 'Knuth',
+            'pub_year' => '2024',
+            'availability' => 'Available',
+            'accession_no' => 'ACC-200',
+            'call_number' => 'QA 200',
+            'content_type' => 'Book',
+            'library_name' => 'Main',
+            'section' => 'Technology',
+            'course' => 'Data Structures',
+        ]);
+        $recommendedBook->programs()->attach($program->id);
+
+        Book::query()->create([
+            'title_statement' => 'Unrelated Title',
+            'main_author' => 'Other Author',
+            'pub_year' => '2020',
+            'availability' => 'Available',
+            'accession_no' => 'ACC-201',
+            'call_number' => 'QA 201',
+            'content_type' => 'Book',
+            'library_name' => 'Main',
+            'section' => 'General',
+        ]);
+
+        Sanctum::actingAs($student, ['full-access']);
+
+        $this->getJson('/api/mobile/home')
+            ->assertOk()
+            ->assertJsonPath('data.recommendation_context.course', 'BSCS')
+            ->assertJsonPath(
+                'data.recommendation_context.program_name',
+                'Bachelor of Science in Computer Science'
+            )
+            ->assertJsonCount(1, 'data.recommended_books')
+            ->assertJsonPath('data.recommended_books.0.title', 'Algorithms for Program Students');
+    }
+
+    public function test_home_returns_empty_recommendations_when_student_has_no_course(): void
+    {
+        $student = $this->student();
+
+        Sanctum::actingAs($student, ['full-access']);
+
+        $this->getJson('/api/mobile/home')
+            ->assertOk()
+            ->assertJsonPath('data.recommendation_context.course', null)
+            ->assertJsonPath('data.recommendation_context.program_name', null)
+            ->assertJsonCount(0, 'data.recommended_books');
+    }
+
+    public function test_home_returns_empty_recommendations_for_unknown_course(): void
+    {
+        $student = Student::query()->create([
+            'id_number' => 'S-300',
+            'lastname' => 'Student',
+            'firstname' => 'Unknown',
+            'qrcode' => 'S-300',
+            'course' => 'UNKNOWN',
+        ]);
+
+        Sanctum::actingAs($student, ['full-access']);
+
+        $this->getJson('/api/mobile/home')
+            ->assertOk()
+            ->assertJsonPath('data.recommendation_context.course', 'UNKNOWN')
+            ->assertJsonPath('data.recommendation_context.program_name', null)
+            ->assertJsonCount(0, 'data.recommended_books');
+    }
+
+    public function test_recommendations_endpoint_matches_home_recommendations(): void
+    {
+        $program = Program::query()->create([
+            'program_code' => 'BSIT',
+            'program_name' => 'Bachelor of Science in Information Technology',
+            'total_years' => 4,
+        ]);
+
+        $student = Student::query()->create([
+            'id_number' => 'S-400',
+            'lastname' => 'Student',
+            'firstname' => 'Dedicated',
+            'qrcode' => 'S-400',
+            'course' => 'BSIT',
+        ]);
+
+        $book = Book::query()->create([
+            'title_statement' => 'Networking Essentials',
+            'main_author' => 'Tanenbaum',
+            'pub_year' => '2023',
+            'availability' => 'Available',
+            'accession_no' => 'ACC-400',
+            'call_number' => 'TK 400',
+            'content_type' => 'Book',
+            'library_name' => 'Main',
+            'section' => 'Technology',
+        ]);
+        $book->programs()->attach($program->id);
+
+        Sanctum::actingAs($student, ['full-access']);
+
+        $homeResponse = $this->getJson('/api/mobile/home')->assertOk();
+        $recommendationsResponse = $this->getJson('/api/mobile/home/recommendations')->assertOk();
+
+        $this->assertSame(
+            $homeResponse->json('data.recommended_books'),
+            $recommendationsResponse->json('data')
+        );
+    }
+
+    public function test_recommendations_match_books_when_student_course_uses_program_name(): void
+    {
+        $program = Program::query()->create([
+            'program_code' => 'BSCS',
+            'program_name' => 'Bachelor of Science in Computer Science',
+            'total_years' => 4,
+        ]);
+
+        $student = Student::query()->create([
+            'id_number' => 'S-500',
+            'lastname' => 'Student',
+            'firstname' => 'Legacy',
+            'qrcode' => 'S-500',
+            'course' => 'Bachelor of Science in Computer Science',
+        ]);
+
+        $book = Book::query()->create([
+            'title_statement' => 'Program Name Match',
+            'main_author' => 'Author',
+            'pub_year' => '2022',
+            'availability' => 'Available',
+            'accession_no' => 'ACC-500',
+            'call_number' => 'QA 500',
+            'content_type' => 'Book',
+            'library_name' => 'Main',
+            'section' => 'Technology',
+        ]);
+        $book->programs()->attach($program->id);
+
+        Sanctum::actingAs($student, ['full-access']);
+
+        $this->getJson('/api/mobile/home/recommendations')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.title', 'Program Name Match');
     }
 
     private function student(): Student

@@ -42,6 +42,7 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
         // All routes in this group require full-access ability
         Route::middleware('sanctum.ability:full-access')->group(function () {
             Route::get('/home', [AggregateController::class, 'home'])->name('home');
+            Route::get('/home/recommendations', [AggregateController::class, 'recommendations'])->name('home.recommendations');
             Route::get('/borrow-overview', [AggregateController::class, 'borrowOverview'])->name('borrow-overview');
             Route::get('/rooms/dashboard', [AggregateController::class, 'roomsDashboard'])->name('rooms.dashboard');
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
