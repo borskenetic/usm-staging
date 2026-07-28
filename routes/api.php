@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Mobile\AggregateController;
+use App\Http\Controllers\Api\Mobile\AttendanceController;
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\BorrowingController;
 use App\Http\Controllers\Api\Mobile\CatalogController;
@@ -59,6 +60,7 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
             Route::delete('/rooms/reservations/{reservation}', [RoomReservationController::class, 'destroy'])->name('rooms.reservations.destroy');
             Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
             Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+            Route::get('/attendance/preview', [AttendanceController::class, 'preview'])->name('attendance.preview');
         });
 
         // Staff-initiated student password reset
