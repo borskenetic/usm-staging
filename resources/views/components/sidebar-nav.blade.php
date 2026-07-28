@@ -22,6 +22,9 @@
     $showDeveloperNav = $canDeveloper && $activeModule === \App\Services\Auth\ModuleAccessService::DEVELOPER;
     $showLibraryNav = $canLibrary && $activeModule === \App\Services\Auth\ModuleAccessService::LIBRARY;
     $showAttendanceNav = $canAttendance && $activeModule === \App\Services\Auth\ModuleAccessService::ATTENDANCE;
+    $unreadFeedbackCount = $canLibraryAdmin
+        ? \App\Models\Feedback::query()->unread()->count()
+        : 0;
 
     $activeModuleLabel = $activeModule ? str_replace('-', ' ', ucfirst($activeModule)) : 'No module';
 @endphp
@@ -332,6 +335,9 @@
                 <li>
                     <a href="{{ route('feedback.index') }}" class="sidebar-link {{ request()->routeIs('feedback.index') ? 'active' : '' }}">
                         <i class="bi bi-star"></i> Library Feedback
+                        @if ($unreadFeedbackCount > 0)
+                            <span class="badge bg-danger ms-1">{{ $unreadFeedbackCount }}</span>
+                        @endif
                     </a>
                 </li>
                 <li>

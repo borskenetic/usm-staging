@@ -186,17 +186,43 @@ class MobileAggregateControllerTest extends TestCase
         Sanctum::actingAs($student, ['full-access']);
 
         $this->postJson('/api/mobile/feedback', [
+            'category' => 'App Issue',
             'comments' => 'The mobile library flow is working.',
         ])
             ->assertCreated()
+            ->assertJsonPath('data.category', 'App Issue')
+            ->assertJsonPath('data.source', 'mobile')
             ->assertJsonPath('data.comments', 'The mobile library flow is working.');
 
         $this->assertDatabaseHas('library_feedback', [
             'name' => 'Test Student',
+            'category' => 'App Issue',
+            'source' => 'mobile',
+            'student_id' => $student->id,
             'comments' => 'The mobile library flow is working.',
+            'read_at' => null,
         ]);
         $this->assertDatabaseMissing('feedback', [
             'comments' => 'The mobile library flow is working.',
+        ]);
+    }
+
+    public function test_mobile_feedback_parses_legacy_category_from_comments(): void
+    {
+        $student = $this->student();
+
+        Sanctum::actingAs($student, ['full-access']);
+
+        $this->postJson('/api/mobile/feedback', [
+            'comments' => '[Library Service] Legacy formatted feedback.',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.category', 'Library Service');
+
+        $this->assertDatabaseHas('library_feedback', [
+            'student_id' => $student->id,
+            'category' => 'Library Service',
+            'comments' => '[Library Service] Legacy formatted feedback.',
         ]);
     }
 

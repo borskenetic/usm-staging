@@ -69,10 +69,12 @@ class AttendanceController extends Controller
         $currentIn = null;
 
         foreach ($logs as $log) {
-            if ($log->status === 'IN') {
+            $status = strtoupper(trim((string) $log->status));
+
+            if ($status === 'IN') {
                 // Start a new visit
                 $currentIn = $log;
-            } elseif ($log->status === 'OUT' && $currentIn !== null) {
+            } elseif ($status === 'OUT' && $currentIn !== null) {
                 // Complete the current visit
                 $timeIn = Carbon::parse($currentIn->scanned_at);
                 $timeOut = Carbon::parse($log->scanned_at);

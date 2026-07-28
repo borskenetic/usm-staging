@@ -16,14 +16,22 @@ class FeedbackController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'category' => ['nullable', 'string', 'max:100'],
             'comments' => ['required', 'string', 'max:5000'],
         ]);
 
-        [$name, $email] = $this->feedbackIdentity($request);
+        [$name, $email, $studentId] = $this->feedbackIdentity($request);
+        $category = $this->resolveCategory(
+            $validated['category'] ?? null,
+            $validated['comments']
+        );
 
         $feedback = Feedback::query()->create([
             'name' => $name !== '' ? $name : null,
             'email' => $email,
+            'category' => $category,
+            'source' => 'mobile',
+            'student_id' => $studentId,
             'comments' => $validated['comments'],
         ]);
 
@@ -33,6 +41,8 @@ class FeedbackController extends Controller
                 'id' => $feedback->id,
                 'name' => $feedback->name,
                 'email' => $feedback->email,
+                'category' => $feedback->category,
+                'source' => $feedback->source,
                 'comments' => $feedback->comments,
                 'created_at' => $feedback->created_at?->toDateTimeString(),
             ],
@@ -47,6 +57,7 @@ class FeedbackController extends Controller
             return [
                 trim((string) $tokenable->firstname.' '.(string) $tokenable->lastname),
                 null,
+                $tokenable->id,
             ];
         }
 
@@ -60,9 +71,23 @@ class FeedbackController extends Controller
                 $name = trim((string) $student->firstname.' '.(string) $student->lastname);
             }
 
-            return [$name, $tokenable->email];
+            return [$name, $tokenable->email, $student?->id];
         }
 
-        return ['', null];
+        return ['', null, null];
+    }
+
+    private function resolveCategory(?string $category, string $comments): ?string
+    {
+        $category = trim((string) $category);
+        if ($category !== '') {
+            return $category;
+        }
+
+        if (preg_match('/^\[(.+?)\]\s*/', $comments, $matches) === 1) {
+            return trim($matches[1]) !== '' ? trim($matches[1]) : null;
+        }
+
+        return null;
     }
 }

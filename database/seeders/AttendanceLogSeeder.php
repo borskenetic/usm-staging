@@ -47,11 +47,11 @@ class AttendanceLogSeeder extends Seeder
                     $scanIn = $this->scanInTime($now, $index, $visit);
                     $scanOut = $scanIn->copy()->addMinutes(30 + (($index + $visit) % 10) * 20);
 
-                    $rows[] = $this->logRow(studentId: $student->id, status: 'IN', scannedAt: $scanIn);
+                    $rows[] = $this->logRow($scanIn, 'IN', studentId: $student->id);
 
                     // ~90% of visits have an OUT record
                     if (($visit + $index) % 10 !== 0) {
-                        $rows[] = $this->logRow(studentId: $student->id, status: 'OUT', scannedAt: $scanOut);
+                        $rows[] = $this->logRow($scanOut, 'OUT', studentId: $student->id);
                     }
                 }
             }
@@ -87,11 +87,11 @@ class AttendanceLogSeeder extends Seeder
                     $scanIn = $this->scanInTime($now, $index + 100, $visit);
                     $scanOut = $scanIn->copy()->addMinutes(60 + (($index + $visit) % 8) * 30);
 
-                    $rows[] = $this->logRow(employeeId: $employee->id, status: 'IN', scannedAt: $scanIn);
+                    $rows[] = $this->logRow($scanIn, 'IN', employeeId: $employee->id);
 
                     // ~85% of visits have an OUT record
                     if (($visit + $index) % 7 !== 0) {
-                        $rows[] = $this->logRow(employeeId: $employee->id, status: 'OUT', scannedAt: $scanOut);
+                        $rows[] = $this->logRow($scanOut, 'OUT', employeeId: $employee->id);
                     }
                 }
             }
@@ -124,10 +124,10 @@ class AttendanceLogSeeder extends Seeder
      * @return array<string, string|null>
      */
     private function logRow(
+        Carbon $scannedAt,
+        string $status = 'IN',
         ?int $studentId = null,
         ?int $employeeId = null,
-        string $status = 'IN',
-        Carbon $scannedAt,
     ): array {
         $timestamp = $scannedAt->toDateTimeString();
 

@@ -108,6 +108,8 @@ Route::middleware(['auth', 'library.access'])->group(function (): void {
     Route::post('/catalog/copy/openlibrary/store', [OpenLibraryCopyCatalogController::class, 'store'])->name('catalog.copy.openlibrary.store');
 
     Route::get('/feedbacks', [FeedbackController::class, 'index'])->name('feedback.index');
+    Route::post('/feedbacks/{feedback}/read', [FeedbackController::class, 'markRead'])->name('feedback.read');
+    Route::post('/feedbacks/read-all', [FeedbackController::class, 'markAllRead'])->name('feedback.read-all');
     Route::get('/holidays/list', [HolidayController::class, 'list'])->name('holidays.list');
     Route::post('/holidays/toggle', [HolidayController::class, 'toggle'])->name('holidays.toggle');
     Route::get('/holidays/all', [HolidayController::class, 'all'])->name('holidays.all');

@@ -15,7 +15,7 @@ class LibraryAttendanceLog extends Model
 
     public function student(): BelongsTo
     {
-        return $this->belongsTo(LibraryStudent::class, 'student_id');
+        return $this->belongsTo(Student::class, 'student_id');
     }
 
     public function employee(): BelongsTo

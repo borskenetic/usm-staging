@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\AttendancePendingEmployee;
 use App\Models\AttendancePendingStudent;
 use App\Models\BookLog;
+use App\Models\Feedback;
 use App\Models\PendingEmployee;
 use App\Models\PendingStudent;
 use App\Models\RoomReservation;
@@ -68,6 +69,15 @@ final class TopbarNotificationService
                 'Overdue loans',
                 'overdue loan',
                 route('logs.index'),
+            );
+
+            $unreadFeedback = Feedback::query()->unread()->count();
+            $this->addCountNotification(
+                $notifications,
+                $unreadFeedback,
+                'New library feedback',
+                'feedback submission',
+                route('feedback.index'),
             );
         }
 
