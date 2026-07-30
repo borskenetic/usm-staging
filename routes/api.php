@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Mobile\BorrowingController;
 use App\Http\Controllers\Api\Mobile\CatalogController;
 use App\Http\Controllers\Api\Mobile\FeedbackController;
 use App\Http\Controllers\Api\Mobile\IdCardController;
+use App\Http\Controllers\Api\Mobile\NotificationController;
 use App\Http\Controllers\Api\Mobile\ProfileController;
 use App\Http\Controllers\Api\Mobile\RoomReservationController;
 use Illuminate\Support\Facades\Route;
