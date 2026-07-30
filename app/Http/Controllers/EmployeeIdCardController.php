@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\ComposesLibraryIdCard;
 use App\Models\Employee;
+use App\Services\LibraryIdCardService;
 use ZipArchive;
 
 /**
@@ -11,51 +11,30 @@ use ZipArchive;
  */
 class EmployeeIdCardController extends Controller
 {
-    use ComposesLibraryIdCard;
+    public function __construct(
+        private readonly LibraryIdCardService $idCardService,
+    ) {}
 
     public function front($id)
     {
         $employee = Employee::findOrFail($id);
-        $img = $this->idCardTemplate('front');
 
-        $subtitle = $employee->department
-            ?: $employee->program
-            ?: $employee->designation
-            ?: $employee->position;
-
-        $this->composeIdCardFront($img, [
-            'photo' => $employee->formal_picture,
-            'full_name' => trim("{$employee->firstname} {$employee->lastname}"),
-            'subtitle' => $subtitle,
-            'id_number' => $employee->employee_id ?: $employee->employee_number,
-        ]);
-
-        return $img->response('png');
+        return $this->idCardService->frontImageForEmployee($employee)->response('png');
     }
 
     public function back($id)
     {
         $employee = Employee::findOrFail($id);
-        $img = $this->idCardTemplate('back');
 
-        $this->composeIdCardBack($img, [
-            'qrcode' => $employee->qrcode ?: ('E-'.$employee->id),
-            'signature' => $employee->employee_signature,
-            'emergency_person' => $employee->emergency_contact_name,
-            'emergency_relationship' => $employee->emergency_contact_relationship,
-            'emergency_number' => $employee->emergency_contact_number,
-            'birth_date' => $employee->birth_date,
-        ]);
-
-        return $img->response('png');
+        return $this->idCardService->backImageForEmployee($employee)->response('png');
     }
 
     public function download($id)
     {
         $employee = Employee::findOrFail($id);
 
-        $front = $this->front($id)->getContent();
-        $back = $this->back($id)->getContent();
+        $front = (string) $this->idCardService->frontImageForEmployee($employee)->encode('png');
+        $back = (string) $this->idCardService->backImageForEmployee($employee)->encode('png');
 
         $zipPath = storage_path("app/temp_emp_id_{$id}.zip");
         $frontPath = storage_path("app/emp_front_{$id}.png");

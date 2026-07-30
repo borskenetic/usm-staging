@@ -16,6 +16,7 @@ class StudentEditRequest extends Model
         'middle_initial',
         'birthday',
         'program_id',
+        'course',
         'year',
         'mobile_number',
         'address',

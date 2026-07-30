@@ -2,52 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\ComposesLibraryIdCard;
 use App\Models\Student;
+use App\Services\LibraryIdCardService;
 use ZipArchive;
 
 class IdCardController extends Controller
 {
-    use ComposesLibraryIdCard;
+    public function __construct(
+        private readonly LibraryIdCardService $idCardService,
+    ) {}
 
     public function front($id)
     {
         $student = Student::findOrFail($id);
-        $img = $this->idCardTemplate('front');
 
-        $this->composeIdCardFront($img, [
-            'photo' => $student->profile_picture,
-            'full_name' => trim("{$student->firstname} {$student->lastname}"),
-            'subtitle' => $student->course,
-            'id_number' => $student->id_number,
-        ]);
-
-        return $img->response('png');
+        return $this->idCardService->frontImageForStudent($student)->response('png');
     }
 
     public function back($id)
     {
         $student = Student::findOrFail($id);
-        $img = $this->idCardTemplate('back');
 
-        $this->composeIdCardBack($img, [
-            'qrcode' => $student->qrcode,
-            'signature' => $student->student_signature,
-            'emergency_person' => $student->emergency_person,
-            'emergency_relationship' => $student->emergency_relationship,
-            'emergency_number' => $student->emergency_number,
-            'birth_date' => $student->birthday,
-        ]);
-
-        return $img->response('png');
+        return $this->idCardService->backImageForStudent($student)->response('png');
     }
 
     public function download($id)
     {
         $student = Student::findOrFail($id);
 
-        $front = $this->front($id)->getContent();
-        $back = $this->back($id)->getContent();
+        $front = $this->idCardService->frontPngForStudent($student);
+        $back = $this->idCardService->backPngForStudent($student);
 
         $zipPath = storage_path("app/temp_id_{$id}.zip");
         $frontPath = storage_path("app/front_{$id}.png");

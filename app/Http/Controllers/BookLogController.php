@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Api\Mobile\BookReservationController;
 use App\Models\Book;
 use App\Models\BookLog;
 use App\Models\FineSetting;
@@ -307,6 +308,10 @@ class BookLogController extends Controller
         ]);
 
         $book->save();
+
+        if ($action === 'checked_in' && $book->availability === 'Available') {
+            BookReservationController::fulfilNextInQueue($book);
+        }
 
         if ($action === 'room_use') {
             return back()->with('success', 'Room use recorded (in library only). Remind the patron to check in when finished.');

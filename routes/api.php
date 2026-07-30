@@ -7,7 +7,8 @@ use App\Http\Controllers\Api\Mobile\BookReservationController;
 use App\Http\Controllers\Api\Mobile\BorrowingController;
 use App\Http\Controllers\Api\Mobile\CatalogController;
 use App\Http\Controllers\Api\Mobile\FeedbackController;
-use App\Http\Controllers\Api\Mobile\NotificationController;
+use App\Http\Controllers\Api\Mobile\IdCardController;
+use App\Http\Controllers\Api\Mobile\ProfileController;
 use App\Http\Controllers\Api\Mobile\RoomReservationController;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +51,8 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
             Route::post('/change-password', [AuthController::class, 'changePassword'])->name('change-password');
             Route::get('/me', [AuthController::class, 'me'])->name('me');
             Route::get('/profile', [AuthController::class, 'me'])->name('profile');
+            Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+            Route::post('/profile/update-picture', [ProfileController::class, 'updatePicture'])->name('profile.update-picture');
             Route::get('/borrowed-books', [BorrowingController::class, 'active'])->name('borrowed-books');
             Route::get('/borrow-history', [BorrowingController::class, 'history'])->name('borrow-history');
             Route::get('/borrow-limits', [BorrowingController::class, 'limits'])->name('borrow-limits');
@@ -67,6 +70,7 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
             Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
             Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
             Route::get('/attendance/preview', [AttendanceController::class, 'preview'])->name('attendance.preview');
+            Route::get('/id-card', [IdCardController::class, 'show'])->name('id-card.show');
         });
 
         // Staff-initiated student password reset

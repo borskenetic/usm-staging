@@ -367,8 +367,16 @@ class AuthController extends Controller
             'middle_initial' => $student->middle_initial,
             'course' => $student->course,
             'year' => $student->year,
+            'birthday' => $student->birthday?->toDateString(),
             'mobile_number' => $student->mobile_number,
             'address' => $student->address,
+            'emergency_person' => $student->emergency_person,
+            'emergency_relationship' => $student->emergency_relationship,
+            'emergency_number' => $student->emergency_number,
+            'emergency_address' => $student->emergency_address,
+            'profile_picture' => filled($student->profile_picture)
+                ? asset($student->profile_picture)
+                : null,
         ];
     }
 }

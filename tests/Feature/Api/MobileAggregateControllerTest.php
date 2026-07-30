@@ -76,6 +76,7 @@ class MobileAggregateControllerTest extends TestCase
         $this->getJson('/api/mobile/borrow-overview')
             ->assertOk()
             ->assertJsonPath('data.limits.current_active_loans', 1)
+            ->assertJsonPath('data.outstanding_fines_total', 0)
             ->assertJsonCount(1, 'data.active_loans')
             ->assertJsonCount(1, 'data.history');
     }

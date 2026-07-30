@@ -62,6 +62,10 @@ class AggregateController extends Controller
         $activeLoans = $this->activeLoans($student);
         $currentLoans = count($activeLoans);
         $hasOverdue = collect($activeLoans)->where('is_overdue', true)->isNotEmpty();
+        $outstandingFinesTotal = round(
+            collect($activeLoans)->sum(fn (array $loan) => (float) ($loan['fine'] ?? 0)),
+            2,
+        );
 
         $history = BookLog::query()
             ->with('book:id,title_statement,main_author,call_number,accession_no,barcode')
@@ -76,6 +80,7 @@ class AggregateController extends Controller
                 'active_loans' => $activeLoans,
                 'history' => $history->getCollection()->map(fn (BookLog $log) => $this->formatLoan($log))->values(),
                 'history_meta' => $this->paginationMeta($history),
+                'outstanding_fines_total' => $outstandingFinesTotal,
                 'limits' => $this->borrowLimitsFromCache($student, $currentLoans, $hasOverdue),
             ],
         ]);
