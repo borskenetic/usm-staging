@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\BookLog;
+use App\Models\BookReservation;
 use App\Models\RoomReservation;
 use App\Models\Student;
 use App\Models\StudentNotification;
@@ -30,6 +31,7 @@ class NotificationController extends Controller
         $notifications = collect()
             ->merge($this->borrowNotifications($student))
             ->merge($this->roomReservationNotifications($request, $student))
+            ->merge($this->bookReservationNotifications($student))
             ->merge($this->systemNotifications($student))
             ->sortByDesc(fn (array $notification) => $notification['sort_at'])
             ->values()
@@ -146,6 +148,52 @@ class NotificationController extends Controller
                         'room_id' => $reservation->room_id,
                     ],
                     'date' => $date,
+                    'created_at' => $reservation->updated_at?->toDateTimeString() ?? $reservation->created_at?->toDateTimeString(),
+                    'sort_at' => $reservation->updated_at?->timestamp ?? $reservation->created_at?->timestamp ?? 0,
+                ];
+            });
+    }
+
+    private function bookReservationNotifications(Student $student): Collection
+    {
+        return BookReservation::query()
+            ->with('book:id,title_statement,main_author,call_number')
+            ->where('student_id', $student->id)
+            ->whereIn('status', ['ready', 'expired', 'cancelled'])
+            ->latest('updated_at')
+            ->limit(20)
+            ->get()
+            ->map(function (BookReservation $reservation) {
+                $status = (string) $reservation->status;
+                $title = $reservation->book?->title_statement ?? 'Reserved book';
+
+                return [
+                    'id' => 'book-reservation-'.$reservation->id.'-'.$status,
+                    'type' => 'book_reservation_'.$status,
+                    'title' => match ($status) {
+                        'ready' => 'Reserved book available',
+                        'expired' => 'Reservation expired',
+                        'cancelled' => 'Reservation cancelled',
+                        default => 'Book reservation',
+                    },
+                    'message' => match ($status) {
+                        'ready' => "Your reserved book \"{$title}\" is now available. Please claim it at the library.",
+                        'expired' => "Your reservation for \"{$title}\" has expired.",
+                        'cancelled' => "Your reservation for \"{$title}\" was cancelled.",
+                        default => "Reservation for \"{$title}\" is {$status}.",
+                    },
+                    'severity' => match ($status) {
+                        'ready' => 'success',
+                        'expired' => 'warning',
+                        'cancelled' => 'danger',
+                        default => 'info',
+                    },
+                    'source' => [
+                        'kind' => 'book_reservation',
+                        'id' => $reservation->id,
+                        'book_id' => $reservation->book_id,
+                    ],
+                    'date' => $reservation->updated_at?->toDateString() ?? $reservation->created_at?->toDateString(),
                     'created_at' => $reservation->updated_at?->toDateTimeString() ?? $reservation->created_at?->toDateTimeString(),
                     'sort_at' => $reservation->updated_at?->timestamp ?? $reservation->created_at?->timestamp ?? 0,
                 ];
