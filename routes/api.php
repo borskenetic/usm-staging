@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Mobile\AggregateController;
 use App\Http\Controllers\Api\Mobile\AttendanceController;
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\BookReservationController;
+use App\Http\Controllers\Api\Mobile\BorrowRequestController;
 use App\Http\Controllers\Api\Mobile\BorrowingController;
 use App\Http\Controllers\Api\Mobile\CatalogController;
 use App\Http\Controllers\Api\Mobile\FeedbackController;
@@ -58,6 +59,9 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
             Route::get('/borrow-history', [BorrowingController::class, 'history'])->name('borrow-history');
             Route::get('/borrow-limits', [BorrowingController::class, 'limits'])->name('borrow-limits');
             Route::post('/borrow-cart/submit', [BorrowingController::class, 'submitCart'])->name('borrow-cart.submit');
+            Route::get('/borrow-requests', [BorrowRequestController::class, 'index'])->name('borrow-requests.index');
+            Route::get('/borrow-requests/{borrowRequest}', [BorrowRequestController::class, 'show'])->name('borrow-requests.show');
+            Route::delete('/borrow-requests/{borrowRequest}', [BorrowRequestController::class, 'destroy'])->name('borrow-requests.destroy');
             Route::get('/books/reservations', [BookReservationController::class, 'index'])->name('books.reservations.index');
             Route::post('/books/reservations', [BookReservationController::class, 'store'])->name('books.reservations.store');
             Route::get('/books/reservations/{reservation}', [BookReservationController::class, 'show'])->name('books.reservations.show');

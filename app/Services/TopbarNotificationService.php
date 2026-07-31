@@ -7,6 +7,8 @@ namespace App\Services;
 use App\Models\AttendancePendingEmployee;
 use App\Models\AttendancePendingStudent;
 use App\Models\BookLog;
+use App\Models\BookReservation;
+use App\Models\BorrowRequest;
 use App\Models\Feedback;
 use App\Models\PendingEmployee;
 use App\Models\PendingStudent;
@@ -48,6 +50,24 @@ final class TopbarNotificationService
                 'Pending room reservations',
                 'room reservation',
                 route('rooms.pending'),
+            );
+
+            $readyBookReservations = BookReservation::query()->where('status', BookReservation::STATUS_READY)->count();
+            $this->addCountNotification(
+                $notifications,
+                $readyBookReservations,
+                'Ready book reservations',
+                'book reservation ready for desk claim',
+                route('books.reservations.pending'),
+            );
+
+            $pendingBorrowRequests = BorrowRequest::query()->where('status', BorrowRequest::STATUS_PENDING)->count();
+            $this->addCountNotification(
+                $notifications,
+                $pendingBorrowRequests,
+                'Pending mobile borrow requests',
+                'mobile borrow request',
+                route('checkout.requests.pending'),
             );
 
             $pendingEdits = StudentEditRequest::query()->where('status', 'pending')->count();

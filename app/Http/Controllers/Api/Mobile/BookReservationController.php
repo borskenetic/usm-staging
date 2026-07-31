@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Mobile;
 
+use App\Http\Controllers\Api\Mobile\Concerns\ResolvesMobileStudent;
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\BookReservation;
-use App\Models\Student;
 use App\Models\StudentNotification;
 use App\Models\User;
-use App\Services\Auth\ModuleAccessService;
+use App\Services\CirculationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,15 +18,10 @@ use Illuminate\Support\Facades\DB;
 
 class BookReservationController extends Controller
 {
-    /**
-     * Hold duration: how long a "ready" reservation stays valid before it
-     * expires and the next student in the queue is notified.
-     */
+    use ResolvesMobileStudent;
+
     private const HOLD_DURATION_HOURS = 48;
 
-    /**
-     * Reserve a book (join the queue) when no copies are available.
-     */
     public function store(Request $request): JsonResponse
     {
         $student = $this->resolveStudent($request);
@@ -43,21 +38,19 @@ class BookReservationController extends Controller
             ->whereNull('archived_at')
             ->findOrFail($validated['book_id']);
 
-        // Check that the book group is actually unavailable.
         $copies = $this->bookGroupCopies($book);
 
-        if ($copies->contains(fn (Book $copy) => $copy->availability === 'Available')) {
+        if ($copies->contains(fn (Book $copy) => $copy->availability === Book::AVAILABILITY_AVAILABLE)) {
             return response()->json([
                 'message' => 'This book has available copies — no reservation needed.',
                 'data' => null,
             ], 409);
         }
 
-        // Prevent duplicate active reservations by the same student for the same group.
         $existing = BookReservation::query()
             ->where('student_id', $student->id)
             ->whereIn('book_id', $copies->pluck('id'))
-            ->whereIn('status', ['pending', 'ready'])
+            ->whereIn('status', [BookReservation::STATUS_PENDING, BookReservation::STATUS_READY])
             ->exists();
 
         if ($existing) {
@@ -67,30 +60,33 @@ class BookReservationController extends Controller
             ], 409);
         }
 
-        // Calculate queue position: count existing pending reservations for
-        // the same book group + 1.
         $queuePosition = BookReservation::query()
             ->whereIn('book_id', $copies->pluck('id'))
-            ->where('status', 'pending')
+            ->where('status', BookReservation::STATUS_PENDING)
             ->count() + 1;
 
         $reservation = BookReservation::query()->create([
             'student_id' => $student->id,
             'book_id' => $book->id,
-            'status' => 'pending',
+            'status' => BookReservation::STATUS_PENDING,
             'queue_position' => $queuePosition,
             'reserved_at' => Carbon::now('Asia/Manila'),
         ]);
 
+        $title = $book->title_statement ?? 'Reserved book';
+        StudentNotification::query()->create([
+            'student_id' => $student->id,
+            'type' => 'book_reservation_pending',
+            'title' => 'Reservation queued',
+            'message' => "You are #{$queuePosition} in the queue for \"{$title}\".",
+        ]);
+
         return response()->json([
             'message' => "Book reserved. You are #{$queuePosition} in the queue.",
-            'data' => $this->formatReservation($reservation->load('book')),
+            'data' => $this->formatReservation($reservation->load(['book', 'heldBook'])),
         ], 201);
     }
 
-    /**
-     * List the current student's reservations.
-     */
     public function index(Request $request): JsonResponse
     {
         $student = $this->resolveStudent($request);
@@ -103,7 +99,9 @@ class BookReservationController extends Controller
             ->where('student_id', $student->id)
             ->latest('reserved_at')
             ->get()
-            ->map(fn (BookReservation $reservation) => $this->formatReservation($reservation->load('book')));
+            ->map(fn (BookReservation $reservation) => $this->formatReservation(
+                $reservation->load(['book', 'heldBook'])
+            ));
 
         return response()->json([
             'message' => 'Book reservations retrieved.',
@@ -111,9 +109,6 @@ class BookReservationController extends Controller
         ]);
     }
 
-    /**
-     * Show a single reservation.
-     */
     public function show(Request $request, BookReservation $reservation): JsonResponse
     {
         $owned = $this->ownedReservation($request, $reservation);
@@ -124,13 +119,10 @@ class BookReservationController extends Controller
 
         return response()->json([
             'message' => 'Book reservation retrieved.',
-            'data' => $this->formatReservation($owned->load('book')),
+            'data' => $this->formatReservation($owned->load(['book', 'heldBook'])),
         ]);
     }
 
-    /**
-     * Cancel an active reservation (leave the queue).
-     */
     public function destroy(Request $request, BookReservation $reservation): JsonResponse
     {
         $owned = $this->ownedReservation($request, $reservation);
@@ -139,45 +131,49 @@ class BookReservationController extends Controller
             return $owned;
         }
 
-        if (! in_array($owned->status, ['pending', 'ready'], true)) {
+        if (! in_array($owned->status, [BookReservation::STATUS_PENDING, BookReservation::STATUS_READY], true)) {
             return response()->json([
                 'message' => 'Only active reservations can be cancelled.',
                 'data' => null,
             ], 409);
         }
 
+        $wasReady = $owned->status === BookReservation::STATUS_READY;
+        $heldBook = $owned->heldBook;
+        $title = $owned->book?->title_statement ?? 'Reserved book';
+
         $owned->update([
-            'status' => 'cancelled',
+            'status' => BookReservation::STATUS_CANCELLED,
             'cancelled_at' => Carbon::now('Asia/Manila'),
         ]);
 
-        // Re-calculate queue positions for remaining pending reservations.
+        if ($wasReady && $heldBook) {
+            app(CirculationService::class)->releaseHold($heldBook);
+            self::fulfilNextInQueue($heldBook->fresh());
+        }
+
         $this->recalculateQueuePositions($owned->book);
+
+        StudentNotification::query()->create([
+            'student_id' => $owned->student_id,
+            'type' => 'book_reservation_cancelled',
+            'title' => 'Reservation cancelled',
+            'message' => "Your reservation for \"{$title}\" was cancelled.",
+        ]);
 
         return response()->json([
             'message' => 'Reservation cancelled.',
-            'data' => $this->formatReservation($owned->load('book')),
+            'data' => $this->formatReservation($owned->load(['book', 'heldBook'])),
         ]);
     }
 
-    /**
-     * Called when a book is returned (checked in) to notify the next student
-     * in the reservation queue that their reserved book is available.
-     *
-     * This method is intended to be called from the BookController check-in
-     * flow or a scheduled job. It:
-     * 1. Finds the next pending reservation for the book group.
-     * 2. Marks it as "ready" with a hold expiry.
-     * 3. Creates an in-app notification (and triggers email/SMS if configured).
-     */
     public static function fulfilNextInQueue(Book $returnedBook): void
     {
         $copies = self::bookGroupCopiesStatic($returnedBook);
 
-        // Only proceed if there are pending reservations.
         $nextReservation = BookReservation::query()
             ->whereIn('book_id', $copies->pluck('id'))
-            ->where('status', 'pending')
+            ->where('status', BookReservation::STATUS_PENDING)
             ->orderBy('reserved_at')
             ->first();
 
@@ -186,90 +182,133 @@ class BookReservationController extends Controller
         }
 
         $now = Carbon::now('Asia/Manila');
+        $holdExpires = $now->copy()->addHours(self::HOLD_DURATION_HOURS);
+
+        app(CirculationService::class)->placeHold($returnedBook);
 
         $nextReservation->update([
-            'status' => 'ready',
+            'status' => BookReservation::STATUS_READY,
+            'held_book_id' => $returnedBook->id,
             'available_at' => $now,
-            'hold_expires_at' => $now->copy()->addHours(self::HOLD_DURATION_HOURS),
+            'hold_expires_at' => $holdExpires,
         ]);
 
-        // Re-calculate queue positions for remaining pending reservations.
         self::recalculateQueuePositionsStatic($returnedBook);
 
-        // Create in-app notification.
+        $title = $returnedBook->title_statement ?? 'Reserved book';
         StudentNotification::query()->create([
             'student_id' => $nextReservation->student_id,
             'type' => 'book_reservation_ready',
             'title' => 'Reserved book available',
-            'message' => "Your reserved book \"{$returnedBook->title_statement}\" is now available. Please claim it at the library before {$nextReservation->hold_expires_at->format('M j, Y H:i')}.",
+            'message' => "Your reserved book \"{$title}\" is ready. Visit the library desk to claim it before {$holdExpires->format('M j, Y H:i')}.",
         ]);
-
-        // Email and SMS notifications can be dispatched here via queued jobs.
-        // Example:
-        // Mail::to($nextReservation->student)->send(new ReservationReadyMail($nextReservation));
-        // SmsService::send($nextReservation->student->mobile_number, $message);
     }
 
-    /**
-     * Expire "ready" reservations whose hold has expired and notify the next
-     * student in the queue. Intended to be called by a scheduled command.
-     */
     public static function expireStaleHolds(): void
     {
         $expired = BookReservation::query()
-            ->where('status', 'ready')
+            ->with('heldBook')
+            ->where('status', BookReservation::STATUS_READY)
             ->where('hold_expires_at', '<', Carbon::now('Asia/Manila'))
             ->get();
 
         foreach ($expired as $reservation) {
-            $reservation->update(['status' => 'expired']);
+            $heldBook = $reservation->heldBook;
+            $title = $reservation->book?->title_statement ?? 'Reserved book';
+
+            if ($heldBook) {
+                app(CirculationService::class)->releaseHold($heldBook);
+            }
+
+            $reservation->update([
+                'status' => BookReservation::STATUS_EXPIRED,
+                'held_book_id' => null,
+            ]);
 
             StudentNotification::query()->create([
                 'student_id' => $reservation->student_id,
                 'type' => 'book_reservation_expired',
                 'title' => 'Reservation expired',
-                'message' => "Your reservation for \"{$reservation->book?->title_statement}\" has expired because it was not claimed in time.",
+                'message' => "Your reservation for \"{$title}\" expired because it was not claimed in time.",
             ]);
 
-            // Notify the next student in the queue if the book is still available.
-            $book = $reservation->book;
-            if ($book && $book->availability === 'Available') {
-                self::fulfilNextInQueue($book);
+            if ($heldBook) {
+                self::fulfilNextInQueue($heldBook->fresh());
             }
         }
     }
 
-    // ---------------------------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------------------------
-
-    private function resolveStudent(Request $request): Student|JsonResponse
+    public static function fulfillAtDesk(BookReservation $reservation, User $staff): BookReservation
     {
-        $tokenable = $request->user();
-
-        if ($tokenable instanceof Student) {
-            return $tokenable;
+        if ($reservation->status !== BookReservation::STATUS_READY) {
+            throw new \RuntimeException('Only ready reservations can be fulfilled at the desk.');
         }
 
-        if ($tokenable instanceof User) {
-            if (app(ModuleAccessService::class)->availableModules($tokenable) !== []) {
-                return response()->json([
-                    'message' => 'This account is not allowed to use mobile book reservations.',
-                    'data' => null,
-                ], 403);
-            }
+        $student = $reservation->student;
+        $heldBook = $reservation->heldBook;
 
-            $tokenable->loadMissing('student');
-
-            if ($tokenable->student) {
-                return $tokenable->student;
-            }
+        if (! $student || ! $heldBook) {
+            throw new \RuntimeException('Reservation is missing patron or held copy.');
         }
 
-        return response()->json([
-            'message' => 'No student profile is linked to this account.',
-            'data' => null,
-        ], 409);
+        return DB::transaction(function () use ($reservation, $staff, $student, $heldBook) {
+            app(CirculationService::class)->checkoutHeldBook($student, $heldBook, $reservation);
+
+            $now = Carbon::now('Asia/Manila');
+            $title = $reservation->book?->title_statement ?? 'Reserved book';
+
+            $reservation->update([
+                'status' => BookReservation::STATUS_FULFILLED,
+                'fulfilled_at' => $now,
+                'fulfilled_by' => $staff->id,
+            ]);
+
+            StudentNotification::query()->create([
+                'student_id' => $student->id,
+                'type' => 'book_reservation_fulfilled',
+                'title' => 'Reservation fulfilled',
+                'message' => "You checked out your reserved book \"{$title}\".",
+            ]);
+
+            return $reservation->fresh(['book', 'heldBook', 'student']);
+        });
+    }
+
+    public static function staffCancel(BookReservation $reservation, User $staff, ?string $note = null): BookReservation
+    {
+        if (! in_array($reservation->status, [BookReservation::STATUS_PENDING, BookReservation::STATUS_READY], true)) {
+            throw new \RuntimeException('Only active reservations can be cancelled.');
+        }
+
+        $wasReady = $reservation->status === BookReservation::STATUS_READY;
+        $heldBook = $reservation->heldBook;
+        $title = $reservation->book?->title_statement ?? 'Reserved book';
+
+        $reservation->update([
+            'status' => BookReservation::STATUS_CANCELLED,
+            'cancelled_at' => Carbon::now('Asia/Manila'),
+            'fulfilled_by' => $staff->id,
+        ]);
+
+        if ($wasReady && $heldBook) {
+            app(CirculationService::class)->releaseHold($heldBook);
+            self::fulfilNextInQueue($heldBook->fresh());
+        }
+
+        if ($reservation->book) {
+            (new self)->recalculateQueuePositions($reservation->book);
+        }
+
+        StudentNotification::query()->create([
+            'student_id' => $reservation->student_id,
+            'type' => 'book_reservation_cancelled',
+            'title' => 'Reservation cancelled',
+            'message' => $note
+                ? "Your reservation for \"{$title}\" was cancelled by staff: {$note}"
+                : "Your reservation for \"{$title}\" was cancelled by staff.",
+        ]);
+
+        return $reservation->fresh(['book', 'heldBook', 'student']);
     }
 
     private function ownedReservation(Request $request, BookReservation $reservation): BookReservation|JsonResponse
@@ -290,12 +329,9 @@ class BookReservationController extends Controller
         return $reservation;
     }
 
-    /**
-     * Get all copies in the same book group (same title + author + pub_year).
-     */
     private function bookGroupCopies(Book $book)
     {
-        return $this::bookGroupCopiesStatic($book);
+        return self::bookGroupCopiesStatic($book);
     }
 
     private static function bookGroupCopiesStatic(Book $book)
@@ -310,7 +346,7 @@ class BookReservationController extends Controller
 
     private function recalculateQueuePositions(Book $book): void
     {
-        $this::recalculateQueuePositionsStatic($book);
+        self::recalculateQueuePositionsStatic($book);
     }
 
     private static function recalculateQueuePositionsStatic(Book $book): void
@@ -319,7 +355,7 @@ class BookReservationController extends Controller
 
         $pending = BookReservation::query()
             ->whereIn('book_id', $copies->pluck('id'))
-            ->where('status', 'pending')
+            ->where('status', BookReservation::STATUS_PENDING)
             ->orderBy('reserved_at')
             ->get();
 
@@ -333,16 +369,25 @@ class BookReservationController extends Controller
     private function formatReservation(BookReservation $reservation): array
     {
         $book = $reservation->book;
+        $heldCopy = $reservation->heldBook;
 
         return [
             'id' => $reservation->id,
             'book_id' => $reservation->book_id,
+            'held_book_id' => $reservation->held_book_id,
             'status' => $reservation->status,
             'queue_position' => (int) $reservation->queue_position,
             'reserved_at' => $reservation->reserved_at?->toDateTimeString(),
             'available_at' => $reservation->available_at?->toDateTimeString(),
             'expires_at' => $reservation->hold_expires_at?->toDateTimeString(),
+            'fulfilled_at' => $reservation->fulfilled_at?->toDateTimeString(),
             'cancelled_at' => $reservation->cancelled_at?->toDateTimeString(),
+            'held_copy' => $heldCopy ? [
+                'id' => $heldCopy->id,
+                'call_number' => $heldCopy->call_number,
+                'accession_no' => $heldCopy->accession_no,
+                'barcode' => $heldCopy->barcode,
+            ] : null,
             'book' => [
                 'id' => $book?->id,
                 'group' => [

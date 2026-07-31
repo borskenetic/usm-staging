@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             MarcFrameworkSeeder::class,
             ProspectusSeeder::class,
             EmployeeSampleSeeder::class,
+            FacultySampleSeeder::class,
             StudentSampleSeeder::class,
             BookSampleSeeder::class,
             RoomSampleSeeder::class,

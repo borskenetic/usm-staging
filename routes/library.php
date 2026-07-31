@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\ActiveCheckoutController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookImportController;
 use App\Http\Controllers\BookLogController;
+use App\Http\Controllers\BookReservationAdminController;
+use App\Http\Controllers\BorrowRequestAdminController;
 use App\Http\Controllers\CatalogFrameworkAdminController;
 use App\Http\Controllers\CatalogMarcSelectOptionsController;
 use App\Http\Controllers\CheckoutController;
@@ -120,6 +123,8 @@ Route::middleware(['auth', 'library.admin'])->group(function (): void {
     Route::get('/logs', [BookLogController::class, 'index'])->name('logs.index');
     Route::post('/logs', [BookLogController::class, 'store'])->name('logs.store');
     Route::post('/logs/{book}/renew', [BookLogController::class, 'renew'])->name('logs.renew');
+    Route::get('/checkouts/active', [ActiveCheckoutController::class, 'index'])->name('checkouts.active');
+    Route::post('/checkouts/{id}/confirm-return', [ActiveCheckoutController::class, 'confirmReturn'])->name('checkouts.confirm_return');
     Route::get('/library/attendance/logs', [LibraryAttendanceController::class, 'logs'])->name('library.attendance.logs');
     Route::get('/library/attendance/logs/reports', [LibraryAttendanceController::class, 'reports'])->name('library.attendance.reports');
 
@@ -178,6 +183,14 @@ Route::middleware(['auth', 'library.admin'])->group(function (): void {
     });
 
     Route::get('/rooms/pending', [RoomReservationController::class, 'pending'])->name('rooms.pending');
+    Route::get('/books/reservations/pending', [BookReservationAdminController::class, 'pending'])->name('books.reservations.pending');
+    Route::post('/books/reservations/{id}/fulfill', [BookReservationAdminController::class, 'fulfill'])->name('books.reservations.fulfill');
+    Route::post('/books/reservations/{id}/cancel', [BookReservationAdminController::class, 'cancel'])->name('books.reservations.cancel');
+    Route::get('/checkout/requests/pending', [BorrowRequestAdminController::class, 'pending'])->name('checkout.requests.pending');
+    Route::post('/checkout/requests/{id}/approve', [BorrowRequestAdminController::class, 'approve'])->name('checkout.requests.approve');
+    Route::post('/checkout/requests/{id}/reject', [BorrowRequestAdminController::class, 'reject'])->name('checkout.requests.reject');
+    Route::post('/checkout/requests/items/{item}/approve', [BorrowRequestAdminController::class, 'approveItem'])->name('checkout.requests.items.approve');
+    Route::post('/checkout/requests/items/{item}/reject', [BorrowRequestAdminController::class, 'rejectItem'])->name('checkout.requests.items.reject');
     Route::post('/rooms/{id}/approve', [RoomReservationController::class, 'approve'])->name('rooms.approve');
     Route::post('/rooms/reject/{id}', [RoomReservationController::class, 'reject'])->name('rooms.reject');
     Route::delete('/resrooms/{id}', [RoomReservationController::class, 'destroy'])->name('resrooms.destroy');

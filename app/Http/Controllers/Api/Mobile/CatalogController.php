@@ -319,8 +319,14 @@ class CatalogController extends Controller
             'collection' => $copy->course,
             'shelving_location' => trim(implode(' - ', array_filter([$copy->library_name, $copy->section]))),
             'circulation_type' => 'Regular circulation',
-            'circulation_status' => $copy->availability === 'Available' ? 'On-Shelf' : 'Checked out',
+            'circulation_status' => match ($copy->availability) {
+                Book::AVAILABILITY_AVAILABLE => 'On-Shelf',
+                Book::AVAILABILITY_ON_HOLD => 'On hold',
+                default => 'Checked out',
+            },
             'availability' => $copy->availability,
+            'is_held' => $copy->availability === Book::AVAILABILITY_ON_HOLD,
+            'can_add_to_cart' => $copy->availability === Book::AVAILABILITY_AVAILABLE,
             'barcode' => $copy->barcode,
             'rfid' => $copy->rfid,
         ];

@@ -196,8 +196,23 @@
             </button>
             <ul class="sidebar-group-items" id="sidebar-group-library-circulation" role="list">
                 <li>
+                    <a href="{{ route('checkouts.active') }}" class="sidebar-link {{ request()->routeIs('checkouts.*') ? 'active' : '' }}">
+                        <i class="bi bi-book-half"></i> Books in Circulation
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('logs.index') }}" class="sidebar-link {{ request()->routeIs('logs.*') ? 'active' : '' }}">
                         <i class="bi bi-journal-text"></i> Circulation Logs
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('checkout.requests.pending') }}" class="sidebar-link {{ request()->routeIs('checkout.requests.*') ? 'active' : '' }}">
+                        <i class="bi bi-phone"></i> Borrow Requests
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('books.reservations.pending') }}" class="sidebar-link {{ request()->routeIs('books.reservations.*') ? 'active' : '' }}">
+                        <i class="bi bi-bookmark-check"></i> Book Reservations
                     </a>
                 </li>
                 <li>

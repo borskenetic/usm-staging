@@ -9,6 +9,12 @@ class Book extends Model
 {
     use SoftDeletes;
 
+    public const AVAILABILITY_AVAILABLE = 'Available';
+
+    public const AVAILABILITY_BORROWED = 'Borrowed';
+
+    public const AVAILABILITY_ON_HOLD = 'On Hold';
+
     protected $table = 'library_books';
 
     protected $fillable = [

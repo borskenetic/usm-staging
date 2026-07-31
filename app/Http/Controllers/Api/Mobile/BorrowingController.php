@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Mobile;
 
+use App\Http\Controllers\Api\Mobile\Concerns\ResolvesMobileStudent;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\Controller;
 use App\Models\Book;
@@ -11,8 +12,6 @@ use App\Models\BookLog;
 use App\Models\FineSetting;
 use App\Models\Holiday;
 use App\Models\Student;
-use App\Models\User;
-use App\Services\Auth\ModuleAccessService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +19,8 @@ use Illuminate\Support\Facades\DB;
 
 class BorrowingController extends Controller
 {
+    use ResolvesMobileStudent;
+
     public function active(Request $request): JsonResponse
     {
         $student = $this->resolveStudent($request);
@@ -102,164 +103,7 @@ class BorrowingController extends Controller
 
     public function submitCart(Request $request): JsonResponse
     {
-        $student = $this->resolveStudent($request);
-
-        if ($student instanceof JsonResponse) {
-            return $student;
-        }
-
-        $validated = $request->validate([
-            'book_ids' => ['required', 'array', 'min:1', 'max:10'],
-            'book_ids.*' => ['required', 'integer', 'distinct', 'exists:library_books,id'],
-        ]);
-
-        if ($this->hasOverdueLoans($student)) {
-            return response()->json([
-                'message' => 'Checkout blocked: student has overdue book(s).',
-                'data' => null,
-            ], 409);
-        }
-
-        $fineSetting = FineSetting::currentOrDefault();
-
-        $bookIds = array_values(array_unique(array_map('intval', $validated['book_ids'])));
-        $borrowedAt = Carbon::now('Asia/Manila');
-        $patronName = "{$student->lastname}, {$student->firstname}";
-
-        $result = DB::transaction(function () use ($bookIds, $borrowedAt, $fineSetting, $patronName, $student) {
-            $books = Book::query()
-                ->whereIn('id', $bookIds)
-                ->lockForUpdate()
-                ->get()
-                ->keyBy('id');
-
-            $accepted = [];
-            $rejected = [];
-
-            foreach ($bookIds as $bookId) {
-                $book = $books->get($bookId);
-
-                if (! $book || $book->archived_at !== null) {
-                    $rejected[] = [
-                        'book_id' => $bookId,
-                        'reason' => 'Book is not available for checkout.',
-                    ];
-
-                    continue;
-                }
-
-                if ($book->availability !== 'Available') {
-                    $rejected[] = [
-                        'book_id' => $bookId,
-                        'title' => $book->title_statement,
-                        'reason' => 'Book is not available.',
-                    ];
-
-                    continue;
-                }
-
-                $cooldownMessage = $this->reborrowCooldownMessage((int) $student->id, (int) $book->id);
-
-                if ($cooldownMessage !== null) {
-                    $rejected[] = [
-                        'book_id' => $bookId,
-                        'title' => $book->title_statement,
-                        'reason' => $cooldownMessage,
-                    ];
-
-                    continue;
-                }
-
-                $accepted[] = $book;
-            }
-
-            $currentLoans = BookLog::countActiveLoansForStudent((int) $student->id);
-
-            if ($accepted === []) {
-                return [
-                    'status' => 409,
-                    'message' => 'No available copies could be checked out.',
-                    'processed' => [],
-                    'rejected' => $rejected,
-                ];
-            }
-
-            if ($currentLoans + count($accepted) > BookController::MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT) {
-                return [
-                    'status' => 409,
-                    'message' => 'Checkout blocked: patron may have at most '.BookController::MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT.' books on loan at a time.',
-                    'processed' => [],
-                    'rejected' => $rejected,
-                ];
-            }
-
-            $processed = [];
-
-            foreach ($accepted as $book) {
-                $dueDate = $this->addBusinessDays($borrowedAt, (int) $fineSetting->loan_duration_days);
-
-                $log = BookLog::query()->create([
-                    'book_id' => $book->id,
-                    'student_id' => $student->id,
-                    'patron_name' => $patronName,
-                    'status' => 'Checked Out',
-                    'circulation_type' => BookLog::CIRCULATION_CHECKOUT,
-                    'renew_count' => 0,
-                    'timestamp' => $borrowedAt,
-                    'due_date' => $dueDate,
-                    'fine_incurred' => 0,
-                ]);
-
-                $book->update(['availability' => 'Borrowed']);
-                $log->setRelation('book', $book);
-
-                $processed[] = $this->formatLoan($log);
-            }
-
-            return [
-                'status' => 201,
-                'message' => 'Borrow request submitted.',
-                'processed' => $processed,
-                'rejected' => $rejected,
-            ];
-        });
-
-        return response()->json([
-            'message' => $result['message'],
-            'data' => [
-                'processed' => $result['processed'],
-                'rejected' => $result['rejected'],
-            ],
-        ], $result['status']);
-    }
-
-    private function resolveStudent(Request $request): Student|JsonResponse
-    {
-        $tokenable = $request->user();
-
-        if ($tokenable instanceof Student) {
-            return $tokenable;
-        }
-
-        if ($tokenable instanceof User) {
-            if (app(ModuleAccessService::class)->availableModules($tokenable) !== []) {
-                return response()->json([
-                    'message' => 'This account is not allowed to use mobile borrowing.',
-                    'data' => null,
-                ], 403);
-            }
-
-            $tokenable->loadMissing('student');
-
-            if ($tokenable->student) {
-                return $tokenable->student;
-            }
-        }
-
-        return response()->json([
-            'message' => 'No student profile is linked to this account.',
-            'data' => null,
-        ], 409);
+        return app(BorrowRequestController::class)->submitCart($request);
     }
 
     private function activeLoanQuery(Student $student)

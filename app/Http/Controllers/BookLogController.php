@@ -7,6 +7,7 @@ use App\Models\Book;
 use App\Models\BookLog;
 use App\Models\FineSetting;
 use App\Models\Student;
+use App\Services\CirculationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -218,10 +219,18 @@ class BookLogController extends Controller
             return back()->with('error', 'This book is already checked in.');
         }
 
-        if ($action === 'checked_in' && $lastLog && $lastLog->student_id) {
-            if ((int) $request->student_id !== (int) $lastLog->student_id) {
-                return back()->with('error', 'Patron must match the student who has this book.');
+        if ($action === 'checked_in') {
+            try {
+                $result = app(CirculationService::class)->checkInBook($book, $student);
+            } catch (\RuntimeException $e) {
+                return back()->with('error', $e->getMessage());
             }
+
+            if ($result['overdue_modal']) {
+                session()->flash('overdue_modal', $result['overdue_modal']);
+            }
+
+            return back()->with('success', 'Book has been Checked In successfully!');
         }
 
         if ($isOutbound) {
@@ -245,8 +254,6 @@ class BookLogController extends Controller
         $circulationType = BookLog::CIRCULATION_CHECKOUT;
         if ($isOutbound && $action === 'room_use') {
             $circulationType = BookLog::CIRCULATION_ROOM_USE;
-        } elseif (! $isOutbound && $lastLog) {
-            $circulationType = $lastLog->circulation_type ?? BookLog::CIRCULATION_CHECKOUT;
         }
 
         $settings = FineSetting::currentOrDefault();
@@ -258,40 +265,6 @@ class BookLogController extends Controller
         if ($isOutbound && $action === 'checked_out') {
             $loanDays = $settings->loan_duration_days;
             $dueDate = $this->addBusinessDays(Carbon::now('Asia/Manila'), $loanDays);
-        }
-
-        if ($action === 'checked_in') {
-            $returnedDate = Carbon::now('Asia/Manila');
-
-            if ($lastLog && $lastLog->due_date) {
-                $dueDate = $lastLog->due_date;
-
-                $gracePeriod = $settings->grace_period_days;
-                $finePerDay = $settings->fine_per_day;
-                $maxFine = $settings->max_fine;
-
-                $overdueDays = $this->calculateOverdueDays(
-                    Carbon::parse($dueDate)->startOfDay(),
-                    $returnedDate->copy()->startOfDay(),
-                    $gracePeriod
-                );
-
-                $fineIncurred = $overdueDays * $finePerDay;
-
-                if ($overdueDays > 0) {
-                    session()->flash('overdue_modal', [
-                        'book_title' => $book->title_statement,
-                        'patron_name' => $patronName,
-                        'days_late' => $overdueDays,
-                        'fine' => $fineIncurred,
-                        'breakdown' => "{$overdueDays} day(s) × ₱".number_format($finePerDay, 2).' = ₱'.number_format($fineIncurred, 2),
-                    ]);
-                }
-
-                if (! is_null($maxFine)) {
-                    $fineIncurred = min($fineIncurred, $maxFine);
-                }
-            }
         }
 
         BookLog::create([
@@ -308,10 +281,6 @@ class BookLogController extends Controller
         ]);
 
         $book->save();
-
-        if ($action === 'checked_in' && $book->availability === 'Available') {
-            BookReservationController::fulfilNextInQueue($book);
-        }
 
         if ($action === 'room_use') {
             return back()->with('success', 'Room use recorded (in library only). Remind the patron to check in when finished.');

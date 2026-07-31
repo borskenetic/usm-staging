@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Mobile;
 
+use App\Http\Controllers\Api\Mobile\Concerns\ResolvesMobileStudent;
 use App\Http\Controllers\Controller;
 use App\Models\BookLog;
 use App\Models\BookReservation;
 use App\Models\RoomReservation;
 use App\Models\Student;
 use App\Models\StudentNotification;
-use App\Models\User;
-use App\Services\Auth\ModuleAccessService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +19,8 @@ use Illuminate\Support\Facades\DB;
 
 class NotificationController extends Controller
 {
+    use ResolvesMobileStudent;
+
     public function index(Request $request): JsonResponse
     {
         $student = $this->resolveStudent($request);
@@ -31,7 +32,6 @@ class NotificationController extends Controller
         $notifications = collect()
             ->merge($this->borrowNotifications($student))
             ->merge($this->roomReservationNotifications($request, $student))
-            ->merge($this->bookReservationNotifications($student))
             ->merge($this->systemNotifications($student))
             ->sortByDesc(fn (array $notification) => $notification['sort_at'])
             ->values()
@@ -198,34 +198,5 @@ class NotificationController extends Controller
                     'sort_at' => $reservation->updated_at?->timestamp ?? $reservation->created_at?->timestamp ?? 0,
                 ];
             });
-    }
-
-    private function resolveStudent(Request $request): Student|JsonResponse
-    {
-        $tokenable = $request->user();
-
-        if ($tokenable instanceof Student) {
-            return $tokenable;
-        }
-
-        if ($tokenable instanceof User) {
-            if (app(ModuleAccessService::class)->availableModules($tokenable) !== []) {
-                return response()->json([
-                    'message' => 'This account is not allowed to use mobile notifications.',
-                    'data' => null,
-                ], 403);
-            }
-
-            $tokenable->loadMissing('student');
-
-            if ($tokenable->student) {
-                return $tokenable->student;
-            }
-        }
-
-        return response()->json([
-            'message' => 'No student profile is linked to this account.',
-            'data' => null,
-        ], 409);
     }
 }
