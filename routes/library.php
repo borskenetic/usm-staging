@@ -23,6 +23,7 @@ use App\Http\Controllers\IdCardController;
 use App\Http\Controllers\LibraryAttendanceController;
 use App\Http\Controllers\OpenLibraryCopyCatalogController;
 use App\Http\Controllers\PendingEmployeeController;
+use App\Http\Controllers\PendingFacultyController;
 use App\Http\Controllers\PendingStudentController;
 use App\Http\Controllers\ProspectusController;
 use App\Http\Controllers\PublicRegistrationController;
@@ -165,8 +166,11 @@ Route::middleware(['auth', 'library.admin'])->group(function (): void {
     Route::post('/admin/pending/{id}/reject', [StudentController::class, 'reject'])->name('students.reject');
     Route::get('/pending', [PendingStudentController::class, 'index'])->name('pending.index');
     Route::get('/pending/employees', [PendingEmployeeController::class, 'index'])->name('pending.employees');
+    Route::get('/pending/faculty', [PendingFacultyController::class, 'index'])->name('pending.faculty');
     Route::post('/pending/employees/approve/{id}', [PendingEmployeeController::class, 'approve'])->name('employees.approve');
     Route::post('/pending/employees/reject/{id}', [PendingEmployeeController::class, 'reject'])->name('employees.reject');
+    Route::post('/pending/faculty/approve/{id}', [PendingFacultyController::class, 'approve'])->name('faculty.approve');
+    Route::post('/pending/faculty/reject/{id}', [PendingFacultyController::class, 'reject'])->name('faculty.reject');
 
     Route::prefix('employees')->group(function (): void {
         Route::get('/', [EmployeeController::class, 'index'])->name('employees.index');

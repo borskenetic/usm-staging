@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Mobile\BorrowingController;
 use App\Http\Controllers\Api\Mobile\CatalogController;
 use App\Http\Controllers\Api\Mobile\FacultyClassroomController;
 use App\Http\Controllers\Api\Mobile\FacultyFolderController;
+use App\Http\Controllers\Api\Mobile\FacultyRegistrationController;
 use App\Http\Controllers\Api\Mobile\FeedbackController;
 use App\Http\Controllers\Api\Mobile\IdCardController;
 use App\Http\Controllers\Api\Mobile\NotificationController;
@@ -31,6 +32,10 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])
         ->middleware('throttle:10,1')
         ->name('login');
+
+    Route::post('/register/faculty', [FacultyRegistrationController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('register.faculty');
 
     Route::prefix('catalog')->name('catalog.')->group(function () {
         Route::get('/search', [CatalogController::class, 'search'])->name('search');

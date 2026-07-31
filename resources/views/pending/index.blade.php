@@ -11,8 +11,11 @@
 
 @section('content')
 @php
-    $activeTab = $activeTab ?? (request('tab') === 'employees' ? 'employees' : 'students');
+    $activeTab = $activeTab ?? 'students';
+    $pendingFaculty = $pendingFaculty ?? collect();
+    $showStudents = $activeTab === 'students';
     $showEmployees = $activeTab === 'employees';
+    $showFaculty = $activeTab === 'faculty';
 @endphp
 
 <div class="container mt-5">
@@ -29,16 +32,17 @@
             @endif
 
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-                <div>
-                    <button id="showStudents" class="btn {{ $showEmployees ? 'btn-outline-primary' : 'btn-primary' }} me-2">View Students</button>
-                    <button id="showEmployees" class="btn {{ $showEmployees ? 'btn-primary' : 'btn-outline-primary' }}">View Employees</button>
+                <div class="d-flex flex-wrap gap-2">
+                    <button id="showStudents" type="button" class="btn {{ $showStudents ? 'btn-primary' : 'btn-outline-primary' }}">View Students</button>
+                    <button id="showEmployees" type="button" class="btn {{ $showEmployees ? 'btn-primary' : 'btn-outline-primary' }}">View Employees</button>
+                    <button id="showFaculty" type="button" class="btn {{ $showFaculty ? 'btn-primary' : 'btn-outline-primary' }}">Teaching Faculty</button>
                 </div>
                 <a href="{{ route('students.index') }}" class="btn btn-secondary">
                     &larr; Back to Registered
                 </a>
             </div>
 
-            <div id="studentTable" class="{{ $showEmployees ? 'hidden' : '' }}">
+            <div id="studentTable" class="{{ $showStudents ? '' : 'hidden' }}">
                 <h4>Pending Student Registrations</h4>
                 <div class="table-responsive">
                     <table class="table table-bordered mt-3 align-middle">
@@ -142,6 +146,48 @@
                     </table>
                 </div>
             </div>
+
+            <div id="facultyTable" class="{{ $showFaculty ? '' : 'hidden' }}">
+                <h4>Pending Teaching Faculty (Mobile App)</h4>
+                <p class="text-muted mb-2">These accounts unlock classrooms and book recommendations in the mobile app after approval.</p>
+                <div class="table-responsive">
+                    <table class="table table-bordered mt-3 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Employee ID</th>
+                                <th>Designation</th>
+                                <th>Department</th>
+                                <th>Mobile</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($pendingFaculty as $f)
+                                <tr>
+                                    <td>{{ $f->firstname }} {{ $f->middle_initial ? $f->middle_initial.'. ' : '' }}{{ $f->lastname }}</td>
+                                    <td>{{ $f->employee_id }}</td>
+                                    <td>{{ $f->designation ?? '-' }}</td>
+                                    <td>{{ $f->department ?? '-' }}</td>
+                                    <td>{{ $f->mobile_number ?? '-' }}</td>
+                                    <td>
+                                        <form action="{{ route('faculty.approve', $f->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button class="btn btn-success btn-sm">Approve</button>
+                                        </form>
+                                        <form action="{{ route('faculty.reject', $f->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button class="btn btn-danger btn-sm">Reject</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="6">No pending teaching faculty registrations</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -151,21 +197,39 @@
 <script>
     const studentTable = document.getElementById('studentTable');
     const employeeTable = document.getElementById('employeeTable');
+    const facultyTable = document.getElementById('facultyTable');
     const btnStudents = document.getElementById('showStudents');
     const btnEmployees = document.getElementById('showEmployees');
+    const btnFaculty = document.getElementById('showFaculty');
+
+    function setActive(activeBtn) {
+        [btnStudents, btnEmployees, btnFaculty].forEach((btn) => {
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-outline-primary');
+        });
+        activeBtn.classList.remove('btn-outline-primary');
+        activeBtn.classList.add('btn-primary');
+    }
 
     btnStudents.addEventListener('click', () => {
         studentTable.classList.remove('hidden');
         employeeTable.classList.add('hidden');
-        btnStudents.classList.replace('btn-outline-primary', 'btn-primary');
-        btnEmployees.classList.replace('btn-primary', 'btn-outline-primary');
+        facultyTable.classList.add('hidden');
+        setActive(btnStudents);
     });
 
     btnEmployees.addEventListener('click', () => {
         employeeTable.classList.remove('hidden');
         studentTable.classList.add('hidden');
-        btnEmployees.classList.replace('btn-outline-primary', 'btn-primary');
-        btnStudents.classList.replace('btn-primary', 'btn-outline-primary');
+        facultyTable.classList.add('hidden');
+        setActive(btnEmployees);
+    });
+
+    btnFaculty.addEventListener('click', () => {
+        facultyTable.classList.remove('hidden');
+        studentTable.classList.add('hidden');
+        employeeTable.classList.add('hidden');
+        setActive(btnFaculty);
     });
 </script>
 @endsection

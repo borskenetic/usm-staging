@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\PendingStudent;
-use App\Models\Student;
-use App\Models\Program;
 use App\Models\PendingEmployee;
+use App\Models\PendingFaculty;
+use App\Models\PendingStudent;
 use App\Models\Role;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -16,11 +15,20 @@ class PendingStudentController extends Controller
     
     public function index(Request $request)
     {
-        $activeTab = $request->query('tab') === 'employees' ? 'employees' : 'students';
+        $tab = $request->query('tab', 'students');
+        $activeTab = in_array($tab, ['students', 'employees', 'faculty'], true)
+            ? $tab
+            : 'students';
         $pendingEmployees = PendingEmployee::with('role')->latest()->get();
         $pendingStudents = PendingStudent::with('role')->latest()->paginate(10)->withQueryString();
-        
-        return view('pending.index', compact('pendingStudents', 'pendingEmployees', 'activeTab'));
+        $pendingFaculty = PendingFaculty::query()->latest()->get();
+
+        return view('pending.index', compact(
+            'pendingStudents',
+            'pendingEmployees',
+            'pendingFaculty',
+            'activeTab'
+        ));
     }
 
     public function create()

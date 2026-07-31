@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\PendingEmployee;
+use App\Models\PendingFaculty;
 use App\Models\PendingStudent;
 use App\Models\Program;
 use App\Models\Role;
@@ -28,8 +29,14 @@ class PendingEmployeeController extends Controller
         $activeTab = 'employees';
         $pendingEmployees = PendingEmployee::with('role')->latest()->get();
         $pendingStudents = PendingStudent::with('role')->latest()->paginate(10)->withQueryString();
+        $pendingFaculty = PendingFaculty::query()->latest()->get();
 
-        return view('pending.index', compact('pendingStudents', 'pendingEmployees', 'activeTab'));
+        return view('pending.index', compact(
+            'pendingStudents',
+            'pendingEmployees',
+            'pendingFaculty',
+            'activeTab'
+        ));
     }
 
     public function store(Request $request)
