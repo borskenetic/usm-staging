@@ -7,11 +7,14 @@ use App\Http\Controllers\Api\Mobile\BookReservationController;
 use App\Http\Controllers\Api\Mobile\BorrowRequestController;
 use App\Http\Controllers\Api\Mobile\BorrowingController;
 use App\Http\Controllers\Api\Mobile\CatalogController;
+use App\Http\Controllers\Api\Mobile\FacultyClassroomController;
+use App\Http\Controllers\Api\Mobile\FacultyFolderController;
 use App\Http\Controllers\Api\Mobile\FeedbackController;
 use App\Http\Controllers\Api\Mobile\IdCardController;
 use App\Http\Controllers\Api\Mobile\NotificationController;
 use App\Http\Controllers\Api\Mobile\ProfileController;
 use App\Http\Controllers\Api\Mobile\RoomReservationController;
+use App\Http\Controllers\Api\Mobile\StudentClassroomController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('mobile')->name('api.mobile.')->group(function () {
@@ -47,6 +50,7 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
         Route::middleware('sanctum.ability:full-access')->group(function () {
             Route::get('/home', [AggregateController::class, 'home'])->name('home');
             Route::get('/home/recommendations', [AggregateController::class, 'recommendations'])->name('home.recommendations');
+            Route::get('/home/faculty-recommendations', [StudentClassroomController::class, 'facultyRecommendations'])->name('home.faculty-recommendations');
             Route::get('/borrow-overview', [AggregateController::class, 'borrowOverview'])->name('borrow-overview');
             Route::get('/rooms/dashboard', [AggregateController::class, 'roomsDashboard'])->name('rooms.dashboard');
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -76,6 +80,31 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
             Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
             Route::get('/attendance/preview', [AttendanceController::class, 'preview'])->name('attendance.preview');
             Route::get('/id-card', [IdCardController::class, 'show'])->name('id-card.show');
+
+            Route::get('/classrooms', [StudentClassroomController::class, 'index'])->name('classrooms.index');
+            Route::post('/classrooms/join', [StudentClassroomController::class, 'join'])->name('classrooms.join');
+            Route::get('/classrooms/{id}', [StudentClassroomController::class, 'show'])->name('classrooms.show');
+            Route::delete('/classrooms/{id}/leave', [StudentClassroomController::class, 'leave'])->name('classrooms.leave');
+
+            Route::get('/faculty/classrooms', [FacultyClassroomController::class, 'index'])->name('faculty.classrooms.index');
+            Route::post('/faculty/classrooms', [FacultyClassroomController::class, 'store'])->name('faculty.classrooms.store');
+            Route::get('/faculty/classrooms/{id}', [FacultyClassroomController::class, 'show'])->name('faculty.classrooms.show');
+            Route::patch('/faculty/classrooms/{id}', [FacultyClassroomController::class, 'update'])->name('faculty.classrooms.update');
+            Route::delete('/faculty/classrooms/{id}', [FacultyClassroomController::class, 'destroy'])->name('faculty.classrooms.destroy');
+            Route::get('/faculty/classrooms/{id}/members', [FacultyClassroomController::class, 'members'])->name('faculty.classrooms.members');
+            Route::post('/faculty/classrooms/{id}/members/{member}/approve', [FacultyClassroomController::class, 'approveMember'])->name('faculty.classrooms.members.approve');
+            Route::post('/faculty/classrooms/{id}/members/{member}/reject', [FacultyClassroomController::class, 'rejectMember'])->name('faculty.classrooms.members.reject');
+            Route::post('/faculty/classrooms/{id}/regenerate-code', [FacultyClassroomController::class, 'regenerateCode'])->name('faculty.classrooms.regenerate-code');
+            Route::post('/faculty/classrooms/{id}/folders', [FacultyClassroomController::class, 'shareFolder'])->name('faculty.classrooms.folders.share');
+            Route::delete('/faculty/classrooms/{id}/folders/{folderId}', [FacultyClassroomController::class, 'unshareFolder'])->name('faculty.classrooms.folders.unshare');
+
+            Route::get('/faculty/folders', [FacultyFolderController::class, 'index'])->name('faculty.folders.index');
+            Route::post('/faculty/folders', [FacultyFolderController::class, 'store'])->name('faculty.folders.store');
+            Route::get('/faculty/folders/{id}', [FacultyFolderController::class, 'show'])->name('faculty.folders.show');
+            Route::patch('/faculty/folders/{id}', [FacultyFolderController::class, 'update'])->name('faculty.folders.update');
+            Route::delete('/faculty/folders/{id}', [FacultyFolderController::class, 'destroy'])->name('faculty.folders.destroy');
+            Route::post('/faculty/folders/{id}/books', [FacultyFolderController::class, 'addBooks'])->name('faculty.folders.books.add');
+            Route::delete('/faculty/folders/{id}/books/{bookId}', [FacultyFolderController::class, 'removeBook'])->name('faculty.folders.books.remove');
         });
 
         // Staff-initiated student password reset

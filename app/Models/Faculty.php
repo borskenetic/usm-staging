@@ -99,4 +99,14 @@ class Faculty extends Authenticatable
 
         return Hash::check($this->deriveDefaultPassword(), $this->password);
     }
+
+    public function classrooms()
+    {
+        return $this->hasMany(Classroom::class, 'faculty_id');
+    }
+
+    public function folders()
+    {
+        return $this->hasMany(FacultyFolder::class, 'faculty_id');
+    }
 }

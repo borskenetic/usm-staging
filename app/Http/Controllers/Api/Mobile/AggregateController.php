@@ -37,6 +37,8 @@ class AggregateController extends Controller
         $newArrivals = $this->newArrivals();
         $recommendationContext = $this->recommendationContextForStudent($student);
         $recommendedBooks = $this->recommendationsForStudent($student);
+        $facultyRecommendations = app(StudentClassroomController::class)
+            ->facultyRecommendationsForStudent($student);
 
         return $this->etagResponse($request, [
             'message' => 'Mobile home data retrieved.',
@@ -46,6 +48,7 @@ class AggregateController extends Controller
                 'loan_stats' => $this->loanStats($activeLoans),
                 'recommended_books' => $recommendedBooks,
                 'recommendation_context' => $recommendationContext,
+                'faculty_recommendations' => $facultyRecommendations,
             ],
         ]);
     }

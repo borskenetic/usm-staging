@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ProspectusSeeder::class,
             EmployeeSampleSeeder::class,
             FacultySampleSeeder::class,
+            ClassroomSampleSeeder::class,
             StudentSampleSeeder::class,
             BookSampleSeeder::class,
             RoomSampleSeeder::class,
