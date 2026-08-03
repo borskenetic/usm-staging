@@ -109,4 +109,9 @@ class Faculty extends Authenticatable
     {
         return $this->hasMany(FacultyFolder::class, 'faculty_id');
     }
+
+    public function assignments()
+    {
+        return $this->hasMany(Assignment::class, 'faculty_id');
+    }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Mobile\BookReservationController;
 use App\Http\Controllers\Api\Mobile\BorrowRequestController;
 use App\Http\Controllers\Api\Mobile\BorrowingController;
 use App\Http\Controllers\Api\Mobile\CatalogController;
+use App\Http\Controllers\Api\Mobile\FacultyAssignmentController;
 use App\Http\Controllers\Api\Mobile\FacultyClassroomController;
 use App\Http\Controllers\Api\Mobile\FacultyFolderController;
 use App\Http\Controllers\Api\Mobile\FacultyRegistrationController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\Mobile\IdCardController;
 use App\Http\Controllers\Api\Mobile\NotificationController;
 use App\Http\Controllers\Api\Mobile\ProfileController;
 use App\Http\Controllers\Api\Mobile\RoomReservationController;
+use App\Http\Controllers\Api\Mobile\StudentAssignmentController;
 use App\Http\Controllers\Api\Mobile\StudentClassroomController;
 use Illuminate\Support\Facades\Route;
 
@@ -90,6 +92,11 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
             Route::post('/classrooms/join', [StudentClassroomController::class, 'join'])->name('classrooms.join');
             Route::get('/classrooms/{id}', [StudentClassroomController::class, 'show'])->name('classrooms.show');
             Route::delete('/classrooms/{id}/leave', [StudentClassroomController::class, 'leave'])->name('classrooms.leave');
+            Route::get('/classrooms/{id}/assignments', [StudentAssignmentController::class, 'indexForClassroom'])->name('classrooms.assignments.index');
+            Route::get('/assignments', [StudentAssignmentController::class, 'index'])->name('assignments.index');
+            Route::get('/assignments/{id}', [StudentAssignmentController::class, 'show'])->name('assignments.show');
+            Route::post('/assignments/{id}/submit', [StudentAssignmentController::class, 'submit'])->name('assignments.submit');
+            Route::post('/assignments/{id}/complete', [StudentAssignmentController::class, 'complete'])->name('assignments.complete');
 
             Route::get('/faculty/classrooms', [FacultyClassroomController::class, 'index'])->name('faculty.classrooms.index');
             Route::post('/faculty/classrooms', [FacultyClassroomController::class, 'store'])->name('faculty.classrooms.store');
@@ -102,6 +109,14 @@ Route::prefix('mobile')->name('api.mobile.')->group(function () {
             Route::post('/faculty/classrooms/{id}/regenerate-code', [FacultyClassroomController::class, 'regenerateCode'])->name('faculty.classrooms.regenerate-code');
             Route::post('/faculty/classrooms/{id}/folders', [FacultyClassroomController::class, 'shareFolder'])->name('faculty.classrooms.folders.share');
             Route::delete('/faculty/classrooms/{id}/folders/{folderId}', [FacultyClassroomController::class, 'unshareFolder'])->name('faculty.classrooms.folders.unshare');
+            Route::get('/faculty/classrooms/{id}/assignments', [FacultyAssignmentController::class, 'index'])->name('faculty.classrooms.assignments.index');
+            Route::post('/faculty/classrooms/{id}/assignments', [FacultyAssignmentController::class, 'store'])->name('faculty.classrooms.assignments.store');
+            Route::get('/faculty/assignments/{id}', [FacultyAssignmentController::class, 'show'])->name('faculty.assignments.show');
+            Route::patch('/faculty/assignments/{id}', [FacultyAssignmentController::class, 'update'])->name('faculty.assignments.update');
+            Route::delete('/faculty/assignments/{id}', [FacultyAssignmentController::class, 'destroy'])->name('faculty.assignments.destroy');
+            Route::get('/faculty/assignments/{id}/submissions', [FacultyAssignmentController::class, 'submissions'])->name('faculty.assignments.submissions');
+            Route::post('/faculty/assignments/{id}/submissions/{studentId}/complete', [FacultyAssignmentController::class, 'completeSubmission'])->name('faculty.assignments.submissions.complete');
+            Route::post('/faculty/assignments/{id}/submissions/{studentId}/reopen', [FacultyAssignmentController::class, 'reopenSubmission'])->name('faculty.assignments.submissions.reopen');
 
             Route::get('/faculty/folders', [FacultyFolderController::class, 'index'])->name('faculty.folders.index');
             Route::post('/faculty/folders', [FacultyFolderController::class, 'store'])->name('faculty.folders.store');

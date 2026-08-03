@@ -70,4 +70,9 @@ class Classroom extends Model
     {
         return $this->hasMany(ClassroomFolder::class, 'classroom_id');
     }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(Assignment::class, 'classroom_id');
+    }
 }
