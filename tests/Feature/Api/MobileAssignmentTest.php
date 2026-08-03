@@ -89,6 +89,62 @@ class MobileAssignmentTest extends TestCase
         ]);
     }
 
+    public function test_new_assignment_is_not_completed_on_any_endpoint(): void
+    {
+        $faculty = $this->faculty();
+        $student = $this->student();
+
+        $classroom = Classroom::query()->create([
+            'faculty_id' => $faculty->id,
+            'name' => 'Fresh Class',
+            'join_code' => 'FRESH001',
+            'requires_approval' => false,
+        ]);
+
+        ClassroomMember::query()->create([
+            'classroom_id' => $classroom->id,
+            'student_id' => $student->id,
+            'status' => ClassroomMember::STATUS_APPROVED,
+            'joined_at' => now(),
+        ]);
+
+        Sanctum::actingAs($faculty, ['full-access']);
+
+        $create = $this->postJson("/api/mobile/faculty/classrooms/{$classroom->id}/assignments", [
+            'title' => 'New homework',
+        ])->assertCreated();
+
+        $assignmentId = $create->json('data.id');
+
+        $create->assertJsonPath('data.submission_counts.assigned', 1)
+            ->assertJsonPath('data.submission_counts.completed', 0)
+            ->assertJsonPath('data.submission_counts.total', 1);
+
+        $this->getJson("/api/mobile/faculty/classrooms/{$classroom->id}/assignments")
+            ->assertOk()
+            ->assertJsonPath('data.0.submission_counts.completed', 0)
+            ->assertJsonPath('data.0.submission_counts.total', 1);
+
+        $this->getJson("/api/mobile/faculty/assignments/{$assignmentId}/submissions")
+            ->assertOk()
+            ->assertJsonPath('data.0.status', 'assigned');
+
+        Sanctum::actingAs($student, ['full-access']);
+
+        $this->getJson('/api/mobile/assignments')
+            ->assertOk()
+            ->assertJsonPath('data.0.my_submission.status', 'assigned');
+
+        $this->getJson("/api/mobile/classrooms/{$classroom->id}/assignments")
+            ->assertOk()
+            ->assertJsonPath('data.0.my_submission.status', 'assigned');
+
+        $this->getJson("/api/mobile/assignments/{$assignmentId}")
+            ->assertOk()
+            ->assertJsonPath('data.my_submission.status', 'assigned')
+            ->assertJsonPath('data.status', 'published');
+    }
+
     public function test_student_can_mark_assignment_done_without_text(): void
     {
         $faculty = $this->faculty();
