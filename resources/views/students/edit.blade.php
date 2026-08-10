@@ -51,6 +51,23 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="alert alert-danger" role="alert">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form id="studentForm"
                   method="POST"
                   action="{{ route('students.update', $student->id) }}"
@@ -117,13 +134,16 @@
                                value="{{ old('middle_initial', $student->middle_initial) }}">
                     </div>
 
-                    <!-- Birthday -->
+                    <!-- Birthday: HTML date inputs require yyyy-MM-dd only -->
                     <div class="col-md-6">
                         <label class="form-label">Birthday</label>
                         <input type="date"
                                name="birthday"
                                class="form-control"
-                               value="{{ old('birthday', $student->birthday) }}">
+                               value="{{ old('birthday', $student->birthday?->format('Y-m-d')) }}">
+                        @error('birthday')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <!-- Mobile Number -->

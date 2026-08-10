@@ -40,10 +40,10 @@
             </div>
           </div>
 
-          {{-- BIRTHDAY --}}
+          {{-- BIRTHDAY: HTML date inputs require yyyy-MM-dd only --}}
           <label class="mt-3">Birthday</label>
           <input type="date" name="birthday" class="form-control"
-                 value="{{ $student->birthday }}">
+                 value="{{ old('birthday', $student->birthday?->format('Y-m-d')) }}">
 
           {{-- PROGRAM --}}
           <label class="mt-3">Program</label>

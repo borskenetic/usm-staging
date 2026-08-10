@@ -234,7 +234,8 @@ class StudentController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            dd($e->getMessage());
+
+            return back()->withInput()->with('error', $e->getMessage());
         }
     }
 

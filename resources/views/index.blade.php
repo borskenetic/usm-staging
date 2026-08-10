@@ -24,8 +24,8 @@
                 <li><a href="#about">ABOUT</a></li>
                 <li><a href="{{ route('landing') }}" >OPAC</a></li>
                 <li><a href="https://zendy.io/">ZENDY</a></li>
-                <li><a href="https://www.drillbitplagiarismcheck.com/auth/login" target="_blank" rel="noopener noreferrer">DrillBit</a></li>
-                <li><a href="https://app.truscholar.io/" target="_blank" rel="noopener noreferrer">TruScholar</a></li>
+                <li><a href="https://www.drillbitplagiarismcheck.com/auth/login" target="_blank" rel="noopener noreferrer">DRILLBIT</a></li>
+                <li><a href="https://app.truscholar.io/" target="_blank" rel="noopener noreferrer">TRUSCHOLAR</a></li>
                 <li><a href="#contact">CONTACT US</a></li>
                 <li><a href="{{ url('/rooms/book') }}">ROOM RESERVATIONS</a></li>
                 <li><a href="{{ route('feedback.create') }}" class="feedback-link" >FEEDBACK</a></li>
