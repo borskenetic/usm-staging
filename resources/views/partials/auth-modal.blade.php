@@ -1,8 +1,8 @@
 @php
     $modalShouldOpen = ($forceAuthModalOpen ?? false) || session('auth_modal') || $errors->any() || session('success') || session('error') || session('status');
-    $initialView = old('modal_view', session('auth_modal', $errors->any() ? 'register' : 'login'));
-    $initialService = old('service', session('auth_service', 'attendance'));
-    $initialType = old('registration_type', session('auth_type', 'student'));
+    $initialView = old('modal_view', session('auth_modal', $forcedAuthView ?? ($errors->any() ? 'register' : 'login')));
+    $initialService = old('service', session('auth_service', $forcedAuthService ?? 'attendance'));
+    $initialType = old('registration_type', session('auth_type', $forcedAuthType ?? 'student'));
     $yearOptions = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
 @endphp
 

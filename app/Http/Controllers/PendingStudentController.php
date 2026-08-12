@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\PendingEmployee;
 use App\Models\PendingFaculty;
 use App\Models\PendingStudent;
-use App\Models\Role;
+use App\Models\Student;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -33,11 +33,7 @@ class PendingStudentController extends Controller
 
     public function create()
     {
-        $roles = Role::all();
-        $programs = Program::orderBy('program_name')->get();
-        $workStartYears = range((int) date('Y'), 1980);
-
-        return view('pending.register', compact('roles', 'programs', 'workStartYears'));
+        return redirect()->route('patron.register', ['service' => 'library']);
     }
 
     public function store(Request $request)

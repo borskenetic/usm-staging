@@ -19,6 +19,7 @@ Reference plan:
 
 ## Active Work
 
+- [x] Replace Bootstrap public registration pages with a single direct `/register` page using the shared auth modal (Attendance ↔ Library slide).
 - [x] Start Milestone 13: Developer-managed register modal customization on a dedicated Developer settings page.
 - [x] Start Milestone 12: Developer-managed login modal customization on a dedicated Developer settings page.
 - [x] Start Milestone 11: isolated Developer branding role and system-wide `pantas-default` customization.
@@ -488,7 +489,8 @@ Goal: allow the isolated Developer role to customize the public Attendance and L
 - Dashboard navigation is module-aware: Attendance-only staff no longer see Library navigation, Library-only staff no longer see Attendance navigation, and Super Admin keeps system/module access.
 - Library attendance now has its own public scanner, feedback endpoint, admin logs, reports, and feedback settings, all backed by `library_attendance_*` tables.
 - Library scanner lookup accepts Library patron QR codes and ID numbers only; Attendance-only patrons are rejected by the Library scanner.
-- Public `/register` now routes users to a module choice page; `/register/library` keeps Library pending registration and `/register/attendance` writes to Attendance pending registration.
+- Public `/register` now opens the shared auth modal on the register view (Attendance ↔ Library toggle). `/register/attendance` and `/register/library` redirect there with the matching service pre-selected for QR/deep links. POST endpoints remain module-specific.
+- Public `/register` previously routed users to a module choice page; `/register/library` kept Library pending registration and `/register/attendance` wrote to Attendance pending registration.
 - Attendance patron approval moves records from `attendance_pending_*` tables into `attendance_*` patron tables and writes module-aware activity logs.
 - Admin activities now capture module, type, actor, optional subject, body, action URL, and icon. Staff changes, patron approval/rejection, catalog changes, room approval/rejection, and fine clearance write audit events.
 - Laravel's default table naming required an explicit `$table` on `LibraryAttendanceFeedback` because the migration uses `library_attendance_feedbacks`.

@@ -21,15 +21,32 @@ class PublicRegistrationSplitTest extends TestCase
         $this->seed(RoleSeeder::class);
     }
 
-    public function test_public_registration_page_offers_library_and_attendance_paths(): void
+    public function test_public_registration_page_opens_modal_with_both_services(): void
     {
         $response = $this->get('/register');
 
         $response->assertOk()
-            ->assertSee('Library Registration')
+            ->assertSee('data-initial-view="register"', false)
             ->assertSee('Attendance Registration')
-            ->assertSee(route('library.register', absolute: false))
-            ->assertSee(route('attendance.register', absolute: false));
+            ->assertSee('Library Registration')
+            ->assertSee(route('attendance.pending.store', absolute: false))
+            ->assertSee(route('attendance.pendingEmployee.store', absolute: false))
+            ->assertSee(route('library.pending.store', absolute: false))
+            ->assertSee(route('library.pendingEmployee.store', absolute: false));
+    }
+
+    public function test_module_register_urls_redirect_to_shared_register_page(): void
+    {
+        $this->get('/register/attendance')
+            ->assertRedirect(route('patron.register', ['service' => 'attendance']));
+
+        $this->get('/register/library')
+            ->assertRedirect(route('patron.register', ['service' => 'library']));
+
+        $this->get('/register?service=library')
+            ->assertOk()
+            ->assertSee('data-initial-service="library"', false)
+            ->assertSee('data-initial-view="register"', false);
     }
 
     public function test_landing_page_contains_login_register_modal_for_both_services(): void

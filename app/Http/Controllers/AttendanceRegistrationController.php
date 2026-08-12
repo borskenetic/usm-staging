@@ -5,20 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\AttendanceEmployee;
 use App\Models\AttendancePendingEmployee;
 use App\Models\AttendancePendingStudent;
-use App\Models\AttendanceProgram;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\View\View;
 
 class AttendanceRegistrationController extends Controller
 {
-    public function create(): View
+    public function create(): RedirectResponse
     {
-        return view('attendance.register', [
-            'programs' => AttendanceProgram::query()->orderBy('program_name')->get(),
-            'workStartYears' => range((int) date('Y'), 1980),
-        ]);
+        return redirect()->route('patron.register', ['service' => 'attendance']);
     }
 
     public function storeStudent(Request $request): RedirectResponse
