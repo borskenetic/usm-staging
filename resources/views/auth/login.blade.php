@@ -4,12 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Pantas</title>
-    <link rel="stylesheet" href="{{ asset('css/auth-modal.css') }}?v=5">
+    <link href="{{ asset('vendor/fontsource/poppins/latin-400.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendor/fontsource/poppins/latin-600.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendor/fontsource/poppins/latin-700.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/auth-modal.css') }}?v=6">
     <style>
         html,
         body {
             min-height: 100%;
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: inherit;
         }
 
         .direct-auth-page {

@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="{{ asset('img/pantas-10.png') }}">
     <title>PANTAS | Platform</title>
+    <link href="{{ asset('vendor/fontsource/poppins/latin-400.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendor/fontsource/poppins/latin-600.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendor/fontsource/poppins/latin-700.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('style.css') }}?v=responsive-nav-7">
-    <link rel="stylesheet" href="{{ asset('css/auth-modal.css') }}?v=5">
+    <link rel="stylesheet" href="{{ asset('css/auth-modal.css') }}?v=6">
 </head>
 <body>
 
