@@ -317,8 +317,6 @@
     <form id="restore-register-modal-all" method="POST" action="{{ route('developer.register-modal.restore') }}" class="d-none" onsubmit="return confirm('Restore all register modal settings to the original Pantas defaults?')">@csrf</form>
 </div>
 
-@include('components.contrast-warnings')
-
 @endsection
 
 @push('styles')
@@ -486,14 +484,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('libraryRegisterLogoPreview').src = url;
         previewLib.querySelector('.rm-preview-logo img').src = url;
     });
-
-    // Register modal contrast rules for real-time checking
-    initContrastChecker([
-        {fg: 'register_modal_attendance_text_color', bg: 'register_modal_attendance_panel_color', fgLabel: 'Attendance text', bgLabel: 'Attendance panel', largeText: false},
-        {fg: 'register_modal_library_text_color', bg: 'register_modal_library_panel_color', fgLabel: 'Library text', bgLabel: 'Library panel', largeText: false},
-        {fgOverride: '#FFFFFF', bg: 'register_modal_attendance_submit_color', fgLabel: 'Attendance submit button text', bgLabel: 'Attendance submit button', largeText: true},
-        {fgOverride: '#FFFFFF', bg: 'register_modal_library_submit_color', fgLabel: 'Library submit button text', bgLabel: 'Library submit button', largeText: true},
-    ]);
 
     // Service toggle
     document.querySelectorAll('[data-preview-service]').forEach(function (button) {

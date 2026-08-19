@@ -173,8 +173,6 @@
     <form id="restore-login-modal-all" method="POST" action="{{ route('developer.login-modal.restore') }}" class="d-none" onsubmit="return confirm('Restore all login modal settings to the original Pantas defaults?')">@csrf</form>
 </div>
 
-@include('components.contrast-warnings')
-
 @endsection
 
 @push('styles')
@@ -252,13 +250,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
-
-    // Login modal contrast rules for real-time checking
-    initContrastChecker([
-        {fg: 'login_modal_text_color', bg: 'login_modal_background_color', fgLabel: 'Modal text', bgLabel: 'Form background', largeText: false},
-        {fgOverride: '#FFFFFF', bg: 'login_modal_button_color', fgLabel: 'Sign-in button text', bgLabel: 'Sign-in button', largeText: true},
-        {fgOverride: '#FFFFFF', bg: 'login_modal_left_background_color', fgLabel: 'Left panel text', bgLabel: 'Left panel background', largeText: false},
-    ]);
 });
 </script>
 @endpush

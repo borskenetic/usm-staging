@@ -228,19 +228,6 @@
 @endsection
 
 @push('scripts')
-@include('components.contrast-warnings')
-<script>
-// Branding contrast rules for real-time checking
-document.addEventListener('DOMContentLoaded', function () {
-    initContrastChecker([
-        {fg: 'sidebar_brand_text_color', bg: 'sidebar_background_color', fgLabel: 'Sidebar brand text', bgLabel: 'Sidebar background', largeText: false},
-        {fg: 'sidebar_text_color', bg: 'sidebar_background_color', fgLabel: 'Sidebar text', bgLabel: 'Sidebar background', largeText: false},
-        {fg: 'sidebar_hover_text_color', bg: 'sidebar_hover_background_color', fgLabel: 'Sidebar hover text', bgLabel: 'Sidebar hover background', largeText: false},
-        {fg: 'table_header_text_color', bg: 'table_header_color', fgLabel: 'Table header text', bgLabel: 'Table header background', largeText: false},
-    ]);
-});
-</script>
-
 <script>
 document.querySelectorAll('[data-preview]').forEach(function (input) {
     input.addEventListener('change', function () {

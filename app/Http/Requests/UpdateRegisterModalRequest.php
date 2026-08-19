@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Services\ContrastRules;
-use App\Services\ContrastValidator;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class UpdateRegisterModalRequest extends FormRequest
@@ -59,59 +57,6 @@ final class UpdateRegisterModalRequest extends FormRequest
             'register_modal_library_active_role_color' => $color,
             'register_modal_library_submit_color' => $color,
         ];
-    }
-
-    /**
-     * Run contrast checks after validation passes — block saving if WCAG AA fails.
-     */
-    public function passedValidation(): void
-    {
-        $warnings = [];
-        $data = $this->safe();
-
-        foreach (ContrastRules::for('register-modal') as $rule) {
-            $foreground = $rule['fgOverride'] ?? $data->input($rule['fg']);
-            $background = $data->input($rule['bg']);
-
-            if ($foreground === null || $background === null) {
-                continue;
-            }
-
-            $foreground = strtoupper((string) $foreground);
-            $background = strtoupper((string) $background);
-
-            if (! preg_match('/^#[0-9A-F]{6}$/', $foreground) || ! preg_match('/^#[0-9A-F]{6}$/', $background)) {
-                continue;
-            }
-
-            $ratio = ContrastValidator::ratio($foreground, $background);
-            $threshold = $rule['largeText'] ? 3.0 : 4.5;
-
-            if ($ratio < $threshold) {
-                $warnings[] = [
-                    'field' => $rule['fg'] ?? $rule['bg'],
-                    'fgLabel' => $rule['fgLabel'],
-                    'bgLabel' => $rule['bgLabel'],
-                    'fgColor' => $foreground,
-                    'bgColor' => $background,
-                    'ratio' => round($ratio, 2),
-                    'threshold' => $threshold,
-                    'largeText' => $rule['largeText'],
-                ];
-            }
-        }
-
-        if ($warnings !== []) {
-            session()->flash('contrast_warnings', $warnings);
-
-            $errorMessages = [];
-            foreach ($warnings as $w) {
-                $textType = $w['largeText'] ? 'large text (≥3:1)' : 'normal text (≥4.5:1)';
-                $errorMessages[$w['field']] = "{$w['fgLabel']} ({$w['fgColor']}) on {$w['bgLabel']} ({$w['bgColor']}) has only {$w['ratio']}:1 contrast ratio — minimum {$w['threshold']}:1 required for {$textType}.";
-            }
-
-            throw \Illuminate\Validation\ValidationException::withMessages($errorMessages);
-        }
     }
 
     protected function prepareForValidation(): void
