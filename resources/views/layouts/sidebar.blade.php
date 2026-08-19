@@ -27,6 +27,9 @@
     {{-- Page content dark mode overrides for tables, forms, cards, etc. --}}
     <link rel="stylesheet" href="{{ asset('css/page-content.css') }}">
 
+    {{-- Role dashboard cards/grids (static so they do not depend on Vite) --}}
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v=1">
+
     @stack('styles')
     @yield('styles')
 </head>
