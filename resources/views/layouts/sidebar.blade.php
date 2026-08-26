@@ -77,7 +77,7 @@
         ['label' => 'Staff Accounts', 'route' => 'users.index', 'icon' => 'bi-people', 'group' => 'Staff'],
         ['label' => 'Create Staff', 'route' => 'users.create', 'icon' => 'bi-person-plus', 'group' => 'Quick actions'],
         ['label' => 'Books', 'route' => 'book.index', 'icon' => 'bi-grid', 'group' => 'Library'],
-        ['label' => 'Library Scanner', 'route' => 'library.attendance.scanner', 'icon' => 'bi-upc-scan', 'group' => 'Library'],
+        ['label' => 'Library Scanner', 'route' => 'attendance.scan', 'icon' => 'bi-upc-scan', 'group' => 'Library'],
         ['label' => 'Attendance Scanner', 'route' => 'attendance.scan', 'icon' => 'bi-upc-scan', 'group' => 'Attendance'],
         ['label' => 'Attendance Logs', 'route' => 'attendance_logs.index', 'icon' => 'bi-list-check', 'group' => 'Attendance'],
         ['label' => 'Reports Hub', 'route' => 'attendance_logs.reports.hub', 'icon' => 'bi-bar-chart', 'group' => 'Reports'],

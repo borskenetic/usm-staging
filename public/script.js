@@ -1,122 +1,73 @@
 document.addEventListener('DOMContentLoaded', () => {
     const header = document.querySelector('header');
-    const navToggle = document.querySelector('.nav-toggle');
-    const navMenu = document.querySelector('.nav-links');
-    const navLinks = document.querySelectorAll('.nav-links a');
-    const mobileNavQuery = window.matchMedia('(max-width: 1440px)');
+    const navToggle = document.querySelector('#navMenuToggle');
+    const primaryNav = document.querySelector('#primaryNav');
 
-    const closeMobileNav = () => {
-        if (!header || !navToggle) return;
-        header.classList.remove('is-open');
-        navToggle.setAttribute('aria-expanded', 'false');
-    };
+    if (navToggle && primaryNav) {
+        const setMenuState = (isOpen) => {
+            primaryNav.classList.toggle('is-open', isOpen);
+            navToggle.classList.toggle('is-open', isOpen);
+            navToggle.setAttribute('aria-expanded', String(isOpen));
+            navToggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+        };
 
-    const scrollToSection = (target) => {
-        if (!target || !header) return;
-        const headerOffset = header.getBoundingClientRect().height + 12;
-        const targetTop = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
-
-        window.scrollTo({
-            top: Math.max(targetTop, 0),
-            behavior: 'smooth'
-        });
-    };
-
-    if (header && navToggle && navMenu) {
         navToggle.addEventListener('click', () => {
-            const isOpen = header.classList.toggle('is-open');
-            navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            setMenuState(!primaryNav.classList.contains('is-open'));
         });
 
-        navLinks.forEach((link) => {
-            link.addEventListener('click', (event) => {
-                const href = link.getAttribute('href');
-                const target = href && href.startsWith('#') ? document.querySelector(href) : null;
-
-                if (target) {
-                    event.preventDefault();
-                    closeMobileNav();
-                    scrollToSection(target);
-                    history.pushState(null, '', href);
-                    return;
-                }
-
-                closeMobileNav();
-            });
-            link.addEventListener('mouseenter', () => link.classList.add('nav-hover'));
-            link.addEventListener('mouseleave', () => link.classList.remove('nav-hover'));
+        primaryNav.querySelectorAll('a').forEach((link) => {
+            link.addEventListener('click', () => setMenuState(false));
         });
 
-        mobileNavQuery.addEventListener('change', (event) => {
-            if (!event.matches) {
-                closeMobileNav();
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                setMenuState(false);
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1100) {
+                setMenuState(false);
             }
         });
     }
 
-    const loginButton = document.querySelector('.login-button');
-    if (loginButton) {
-        loginButton.addEventListener('mouseenter', () => loginButton.classList.add('is-hovering'));
-        loginButton.addEventListener('mouseleave', () => loginButton.classList.remove('is-hovering'));
+    if (header) {
+        const hero = document.querySelector('.hero-section');
+        const updateHeaderShadow = () => {
+            if (header.classList.contains('navbar--hero') && hero) {
+                const isOverHero = window.scrollY < hero.offsetTop + hero.offsetHeight - header.offsetHeight;
+                header.classList.toggle('navbar--solid', !isOverHero);
+                header.style.boxShadow = isOverHero ? 'none' : '0 2px 10px rgba(0,0,0,0.1)';
+                return;
+            }
+
+            header.style.boxShadow = window.scrollY > 50 ? '0 2px 10px rgba(0,0,0,0.1)' : 'none';
+        };
+
+        updateHeaderShadow();
+        window.addEventListener('scroll', updateHeaderShadow, { passive: true });
     }
 
-    window.addEventListener('scroll', () => {
-        if (!header) return;
-        header.style.boxShadow = window.scrollY > 50
-            ? '0 2px 10px rgba(0,0,0,0.1)'
-            : '0 2px 10px rgba(0,0,0,0.05)';
-    });
+    // When hero videos fail to load, keep the KEPLRC banner visible via poster/fallback bg.
+    document.querySelectorAll('.hero-section .bg-video, .zendy-banner .bg-video').forEach((video) => {
+        const showFallback = () => {
+            const parent = video.closest('.hero-section, .zendy-banner');
+            if (parent) {
+                parent.classList.add('video-fallback');
+            }
+        };
 
-    const aboutSection = document.querySelector('.about-section');
-    if (aboutSection && 'IntersectionObserver' in window) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.2 });
-
-        observer.observe(aboutSection);
-    }
-
-    const imageCards = document.querySelectorAll('.image-card');
-    imageCards.forEach((card, index) => {
-        setTimeout(() => {
-            card.classList.add('animate-in');
-        }, index * 50);
-    });
-
-    const formBox = document.querySelector('.form-box');
-    const contactInfo = document.querySelector('.contact-info-section');
-
-    if (formBox && contactInfo) {
-        contactInfo.style.opacity = '0';
-        contactInfo.style.transform = 'translateY(-20px)';
-        formBox.style.opacity = '0';
-        formBox.style.transform = 'translateY(20px)';
-
-        setTimeout(() => {
-            contactInfo.style.transition = 'all 0.8s ease-out';
-            contactInfo.style.opacity = '1';
-            contactInfo.style.transform = 'translateY(0)';
-        }, 200);
-
-        setTimeout(() => {
-            formBox.style.transition = 'all 1s ease-out';
-            formBox.style.opacity = '1';
-            formBox.style.transform = 'translateY(0)';
-        }, 500);
-    }
-
-    document.querySelectorAll('footer a[href^="#"]').forEach((link) => {
-        link.addEventListener('click', (event) => {
-            const target = document.querySelector(link.getAttribute('href'));
-            if (!target) return;
-
-            event.preventDefault();
-            scrollToSection(target);
-            history.pushState(null, '', link.getAttribute('href'));
+        video.addEventListener('error', showFallback);
+        video.querySelectorAll('source').forEach((source) => {
+            source.addEventListener('error', showFallback);
         });
+
+        // Empty/missing source often leaves a black frame; detect after a short wait.
+        setTimeout(() => {
+            if (video.readyState < 2 && video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+                showFallback();
+            }
+        }, 800);
     });
 });

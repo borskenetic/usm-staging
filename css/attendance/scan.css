@@ -4,7 +4,7 @@ body {
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background: #f0f0f0;
+      background: var(--brand-page-bg, #f0f0f0);
     }
 
     .header {
@@ -23,29 +23,49 @@ body {
       justify-content: space-between;
     }
 
+    .kiosk-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
     .header img {
       height: 4rem;
       width: auto;
-      margin-left: 3rem;
+      margin-left: 0.5rem;
+    }
+
+    .university-name {
+      color: #2e7d32;
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(0.7rem, 1.2vw, 0.95rem);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      text-transform: uppercase;
+      max-width: 14rem;
     }
 
     .header .system-title {
       font-size: 35px;
       font-weight: bold;
-      color: #1f7902;
+      color: #2e7d32;
       text-transform: uppercase;
       letter-spacing: 2px;
       font-family: 'Poppins', sans-serif;
+      flex: 0 1 auto;
+      text-align: center;
     }
 
     .footer1{
-      background: #1f7902;
+      background: #2e7d32;
       padding: 10px 20px;
       display: flex;
       align-items: center;
-      position: relative;   /* so child absolute positioning is relative to this */
-      overflow: hidden; /* hides overflow */
-
+      position: relative;
+      overflow: hidden;
     }
     .footer1 .footer-logo{
       display: flex;
@@ -58,7 +78,7 @@ body {
     .footer1 .footer-title{
       font-size: 30px;
       font-weight: bold;
-      color: #1f7902;
+      color: var(--brand-nav-link, #1f7902);
       text-transform: uppercase;
       letter-spacing: 2px;
       font-family: 'Poppins', sans-serif;
@@ -83,16 +103,18 @@ body {
             display: inline-block;
             margin: 20px;
             padding: 10px 20px;
-            background-color: #1f7902;
-            color: white;
-            transition: color 0.3s, transform 0.3s;
+            background-color: #2e7d32;
+            color: #ffffff;
+            transition: color 0.3s, transform 0.3s, background-color 0.3s;
             text-decoration: none;
             border-radius: 10px;
+            font-weight: 700;
+            flex: 0 0 auto;
     }
 
     .home-button:hover {
-            background-color: #ffe202;
-            color: #1f7902;
+            background-color: #1b5e20;
+            color: #ffffff;
     }
 
     .main {
@@ -102,8 +124,8 @@ body {
 
     .sidebar {
       width: 350px;
-      background: #1f7902;
-      color: white;
+      background: #2e7d32;
+      color: #ffffff;
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -124,6 +146,7 @@ body {
     .date {
       font-size: 16px;
       margin-bottom: 5px;
+      color: #facc15;
     }
 
     .time {
@@ -199,7 +222,7 @@ body {
     .right-content video,
     .right-content iframe {
       max-width: 90%;
-      border: 2px solid #ffb845;
+      border: 2px solid #ffd700;
       box-shadow: 0 0 15px rgba(0,0,0,0.4);
     }
 
@@ -224,7 +247,7 @@ body {
       left: 0;
       width: 100%;
       height: 4px;
-      background: #ffb845;
+      background: var(--brand-button-hover-bg, #ffb845);
       box-shadow: 0 0 8px #ffc25f;
       animation: scanline 4s linear infinite;
     }
@@ -369,6 +392,25 @@ body {
       padding: 10px 20px;
       border-radius: 10px !important;
       cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+    }
+
+    .decline-btn:hover {
+      background: #cbd5e1;
+    }
+
+    @media (max-width: 768px) {
+      .feedback-options {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .feedback-card {
+        width: 95%;
+        padding: 24px 16px;
+      }
+      .modal-content h2 {
+        font-size: 20px;
+      }
     }
     
     * {
@@ -387,10 +429,14 @@ body {
     .header img{
         height: 2rem;
         width: auto;
-        margin-left: 2rem;
+        margin-left: 0.5rem;
     }
     .header .system-title{
         font-size: 25px;
+    }
+    .university-name{
+        font-size: 0.7rem;
+        max-width: 9rem;
     }
     
     .sidebar{
@@ -406,13 +452,16 @@ body {
     .header img{
         height: 1.5rem;
         width: auto;
-        margin-left: 1.5rem;
+        margin-left: 0.35rem;
     }
     .header{
         text-align: center;
     }
     .header .system-title{
         font-size: 23px;
+    }
+    .university-name{
+        display: none;
     }
     
     .sidebar{

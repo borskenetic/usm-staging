@@ -1,0 +1,79 @@
+/*
+ * Brand font files (bundled under public/vendor/fontsource).
+ * To use another font: change --brand-font-family below and swap these @imports.
+ */
+@import url('../vendor/fontsource/poppins/latin-400.css');
+@import url('../vendor/fontsource/poppins/latin-600.css');
+@import url('../vendor/fontsource/poppins/latin-700.css');
+
+:root {
+  /*
+   * Typography (change family name to match @imports above)
+   */
+  --brand-font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  --brand-font-family-heading: var(--brand-font-family);
+  --brand-font-family-mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', Consolas, monospace;
+
+  /*
+   * Primary brand tokens (edit these per school)
+   */
+  --brand-primary: #ffd700;
+  --brand-accent: #4caf50;
+  --brand-text-dark: #333;
+  --brand-text-light: #fff;
+
+  /*
+   * App-wide branding tokens (staff + kiosk)
+   */
+  --brand-page-bg: #ffffff;
+  --brand-school-name-color: red;
+
+  --brand-nav-link: #1f4ea7;
+  --brand-nav-link-active: #ffffff;
+  --brand-nav-hover-bg: #ffffff;
+  --brand-nav-hover-text: #2e7d32;
+
+  --brand-logout-bg: #1f4ea7;
+  --brand-logout-text: #ffffff;
+
+  --brand-button-bg: #1f4ea7;
+  --brand-button-text: #ffffff;
+  --brand-button-hover-bg: #2e7d32;
+  --brand-button-hover-text: #ffffff;
+
+  --brand-danger-bg: #1f4ea7;
+  --brand-danger-hover-bg: #2e7d32;
+  --brand-danger-text: #ffffff;
+
+  --brand-success-bg: #1f4ea7;
+  --brand-success-hover-bg: #2e7d32;
+  --brand-success-text: #ffffff;
+
+  --brand-footer-bg: #1f4ea7;
+
+  --brand-kiosk-gradient-from: #1f4ea7;
+  --brand-kiosk-gradient-to: #2e7d32;
+
+  /*
+   * Backwards-compatible vars used by your existing landing `style.css`
+   */
+  --primary-yellow: var(--brand-primary);
+  --secondary-green: var(--brand-accent);
+  --text-dark: var(--brand-text-dark);
+  --text-light: var(--brand-text-light);
+}
+
+/*
+ * Bootstrap theme variables (affects `.btn-primary`, etc.)
+ * Put this AFTER bootstrap.min.css in your layouts.
+ */
+:root {
+  --bs-primary: var(--brand-primary);
+  --bs-primary-rgb: 255, 215, 0;
+
+  --bs-success: var(--brand-accent);
+  --bs-success-rgb: 76, 175, 80;
+
+  --bs-link-color: var(--brand-accent);
+  --bs-link-hover-color: var(--brand-accent);
+}

@@ -23,29 +23,49 @@ body {
       justify-content: space-between;
     }
 
+    .kiosk-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
     .header img {
       height: 4rem;
       width: auto;
-      margin-left: 3rem;
+      margin-left: 0.5rem;
+    }
+
+    .university-name {
+      color: #2e7d32;
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(0.7rem, 1.2vw, 0.95rem);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      text-transform: uppercase;
+      max-width: 14rem;
     }
 
     .header .system-title {
       font-size: 35px;
       font-weight: bold;
-      color: var(--brand-nav-link, #1f4ea7);
+      color: #2e7d32;
       text-transform: uppercase;
       letter-spacing: 2px;
       font-family: 'Poppins', sans-serif;
+      flex: 0 1 auto;
+      text-align: center;
     }
 
     .footer1{
-      background: var(--brand-nav-link, #1f4ea7);
+      background: #2e7d32;
       padding: 10px 20px;
       display: flex;
       align-items: center;
-      position: relative;   /* so child absolute positioning is relative to this */
-      overflow: hidden; /* hides overflow */
-
+      position: relative;
+      overflow: hidden;
     }
     .footer1 .footer-logo{
       display: flex;
@@ -83,16 +103,18 @@ body {
             display: inline-block;
             margin: 20px;
             padding: 10px 20px;
-            background-color: var(--brand-button-bg, #1f4ea7);
-            color: var(--brand-button-text, #ffffff);
-            transition: color 0.3s, transform 0.3s;
+            background-color: #2e7d32;
+            color: #ffffff;
+            transition: color 0.3s, transform 0.3s, background-color 0.3s;
             text-decoration: none;
             border-radius: 10px;
+            font-weight: 700;
+            flex: 0 0 auto;
     }
 
     .home-button:hover {
-            background-color: var(--brand-nav-link-active, #2e7d32);
-            color: var(--brand-button-hover-text, #ffffff);
+            background-color: #1b5e20;
+            color: #ffffff;
     }
 
     .main {
@@ -102,8 +124,8 @@ body {
 
     .sidebar {
       width: 350px;
-      background: var(--brand-nav-link, #1f4ea7);
-      color: var(--brand-button-text, #ffffff);
+      background: #2e7d32;
+      color: #ffffff;
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -124,6 +146,7 @@ body {
     .date {
       font-size: 16px;
       margin-bottom: 5px;
+      color: #facc15;
     }
 
     .time {
@@ -199,7 +222,7 @@ body {
     .right-content video,
     .right-content iframe {
       max-width: 90%;
-      border: 2px solid var(--brand-button-hover-bg, #ffb845);
+      border: 2px solid #ffd700;
       box-shadow: 0 0 15px rgba(0,0,0,0.4);
     }
 
@@ -406,10 +429,14 @@ body {
     .header img{
         height: 2rem;
         width: auto;
-        margin-left: 2rem;
+        margin-left: 0.5rem;
     }
     .header .system-title{
         font-size: 25px;
+    }
+    .university-name{
+        font-size: 0.7rem;
+        max-width: 9rem;
     }
     
     .sidebar{
@@ -425,13 +452,16 @@ body {
     .header img{
         height: 1.5rem;
         width: auto;
-        margin-left: 1.5rem;
+        margin-left: 0.35rem;
     }
     .header{
         text-align: center;
     }
     .header .system-title{
         font-size: 23px;
+    }
+    .university-name{
+        display: none;
     }
     
     .sidebar{

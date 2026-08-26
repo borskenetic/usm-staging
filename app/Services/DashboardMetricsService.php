@@ -87,7 +87,7 @@ final class DashboardMetricsService
             'quickActions' => [
                 ['label' => 'Add Book', 'route' => 'book.create', 'icon' => 'bi-plus-circle'],
                 ['label' => 'Pending Patrons', 'route' => 'pending.index', 'parameters' => ['tab' => 'students'], 'icon' => 'bi-person-plus'],
-                ['label' => 'Library Scanner', 'route' => 'library.attendance.scanner', 'icon' => 'bi-upc-scan'],
+                ['label' => 'Library Scanner', 'route' => 'attendance.scan', 'icon' => 'bi-upc-scan'],
                 ['label' => 'Pending Rooms', 'route' => 'rooms.pending', 'icon' => 'bi-calendar-check'],
             ],
             'recent' => $this->circulationActivity(),
@@ -112,7 +112,7 @@ final class DashboardMetricsService
             ],
             'quickActions' => [
                 ['label' => 'Books', 'route' => 'book.index', 'icon' => 'bi-grid'],
-                ['label' => 'Library Scanner', 'route' => 'library.attendance.scanner', 'icon' => 'bi-upc-scan'],
+                ['label' => 'Library Scanner', 'route' => 'attendance.scan', 'icon' => 'bi-upc-scan'],
                 ['label' => 'Room Schedule', 'route' => 'rooms.schedule', 'icon' => 'bi-calendar-week'],
                 ['label' => 'OPAC', 'route' => 'landing', 'icon' => 'bi-search'],
             ],

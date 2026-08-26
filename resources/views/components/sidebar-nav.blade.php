@@ -32,7 +32,7 @@
 <div class="sidebar-header">
     <a href="{{ route('dashboard') }}" class="sidebar-logo-wrap">
         <span class="sidebar-logo-mark">
-            <img src="{{ $brandingSidebarLogoUrl }}" alt="Pantas Logo" class="sidebar-logo-img">
+            <img src="{{ $brandingSidebarLogoUrl }}" alt="USM Logo" class="sidebar-logo-img">
         </span>
         <span class="sidebar-brand-copy">
             <span class="sidebar-app-name">{{ $activeBranding['sidebar_brand_name'] }}</span>
@@ -308,7 +308,7 @@
         </button>
         <ul class="sidebar-group-items" id="sidebar-group-library-attendance" role="list">
             <li>
-                <a href="{{ route('library.attendance.scanner') }}" class="sidebar-link {{ request()->routeIs('library.attendance.scanner') ? 'active' : '' }}">
+                <a href="{{ route('attendance.scan') }}" class="sidebar-link {{ request()->routeIs('attendance.scan') ? 'active' : '' }}">
                     <i class="bi bi-upc-scan"></i> Library Scanner
                 </a>
             </li>

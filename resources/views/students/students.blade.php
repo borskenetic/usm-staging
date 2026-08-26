@@ -1,138 +1,144 @@
 @extends('layouts.sidebar')
 
 @section('styles')
-    <link rel="stylesheet" href="{{ asset('css/students/students.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/students/students.css') }}?v={{ filemtime(public_path('css/students/students.css')) }}">
 @endsection
 
 @section('content')
-<!-- ✅ JavaScript Toggle Functions -->
-<script>
-    const toggleBtn = document.getElementById('customMenuToggle');
-    const closeBtn = document.getElementById('customMenuClose');
-    const routeWrapper = document.getElementById('routeWrapper');
-
-    toggleBtn.addEventListener('click', () => {
-        routeWrapper.classList.add('open');
-    });
-
-    closeBtn.addEventListener('click', () => {
-        routeWrapper.classList.remove('open');
-    });
-
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 768) {
-            routeWrapper.classList.remove('open');
-        }
-    });
-</script>
-
-    <div class="container mt-5 students-page">
-        <div class="card">
-            <div id="rs" class="card-header text-center">
-                <h4>Registered Students</h4>
+<div class="container-fluid px-3 px-lg-4 py-4 students-page">
+    <div class="patrons-shell">
+        <header class="patrons-hero">
+            <div>
+                <p class="patrons-kicker">Library patrons</p>
+                <h1 class="patrons-title">Registered Students</h1>
+                <p class="patrons-subtitle">Search, filter, and manage student library accounts.</p>
             </div>
-            <div class="card-body">
+            <div class="patrons-tabs" role="tablist" aria-label="Patron type">
+                <a href="{{ route('students.index') }}" class="patrons-tab is-active" aria-current="page">Students</a>
+                <a href="{{ route('employees.index') }}" class="patrons-tab">Faculty &amp; Staff</a>
+            </div>
+        </header>
 
-                @if(session('success'))
-                    <div class="alert alert-success">{{ session('success') }}</div>
-                @endif
+        @if(session('success'))
+            <div class="alert alert-success patrons-alert">{{ session('success') }}</div>
+        @endif
 
-                <div class="mb-3">
-                    <!-- Search Form -->
-                    <form action="{{ route('students.index') }}" method="GET" class="row g-2 mb-3">
-                        <!-- 🔍 Search -->
-                        <div class="col-md-4">
-                            <input type="text" name="search" class="form-control form-control-sm"
-                                   placeholder="Search patrons..."
-                                   value="{{ request('search') }}">
-                        </div>
-                        <!-- 🎓 Program / Course (Loaded from programs table) -->
-                        <div class="col-md-4">
-                            <select name="program_id" class="form-select form-select-sm">
-                                <option value="">All Courses</option>
-                    
-                                @foreach ($programs as $program)
-                                    <option value="{{ $program->program_code }}"
-                                        {{ request('program_id') == $program->program_code ? 'selected' : '' }}>
-                                        {{ $program->program_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    
-                        <!-- 📚 Year Filter -->
-                        <div class="col-md-3">
-                            <select name="year" class="form-select form-select-sm">
-                                <option value="">All Years</option>
-                                <option value="1st Year" {{ request('year') == '1st Year' ? 'selected' : '' }}>1st Year</option>
-                                <option value="2nd Year" {{ request('year') == '2nd Year' ? 'selected' : '' }}>2nd Year</option>
-                                <option value="3rd Year" {{ request('year') == '3rd Year' ? 'selected' : '' }}>3rd Year</option>
-                                <option value="4th Year" {{ request('year') == '4th Year' ? 'selected' : '' }}>4th Year</option>
-                                <option value="5th Year" {{ request('year') == '5th Year' ? 'selected' : '' }}>5th Year</option>
-                                <option value="6th Year" {{ request('year') == '6th Year' ? 'selected' : '' }}>6th Year</option>
-                            </select>
-                        </div>
-                    
-                        <!-- 🔎 Apply Button -->
-                        <div class="col-md-1">
-                            <button type="submit" id="fil" class="btn btn-primary btn-sm w-100">Filter</button>
-                        </div>
-                    </form>
-                    
-                    <!-- Register + Pending -->
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                        <a href="{{ route('students.create') }}" id="fil" class="btn btn-add">+ Register Patron</a>
-                        <a href="{{ route('pending.index') }}" id="fil" class="btn btn-warning">View Pending Registrations</a>
-                        <a href="{{ route('students.pending.requests') }}" id="fil" class="btn btn-warning btn-sm">Patron edit requests</a>
-                        <a href="{{ route('students.export') }}" id="fil" class="btn btn-success btn-sm">Export CSV</a>
-                        <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
-                            @csrf
-                            <input type="file" name="file" class="form-control form-control-sm" style="max-width: 220px;" accept=".xlsx,.csv" required>
-                            <button type="submit" id="fil" class="btn btn-primary btn-sm">Import</button>
-                        </form>
-                    </div>
+        <section class="patrons-toolbar">
+            <form action="{{ route('students.index') }}" method="GET" class="patrons-filters">
+                <div class="patrons-search">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Search patrons by name…"
+                           value="{{ request('search') }}">
                 </div>
 
-                <div class="mb-3 text-center">
-                    <a href="{{ route('students.index') }}" id="rs" class="btn btn-outline-primary btn-sm active">Students</a>
-                    <a href="{{ route('employees.index') }}" class="btn btn-outline-primary btn-sm">Faculty &amp; Staff</a>
-                </div>
+                <select name="program_id" class="form-select">
+                    <option value="">All Courses</option>
+                    @foreach ($programs as $program)
+                        <option value="{{ $program->program_code }}"
+                            {{ request('program_id') == $program->program_code ? 'selected' : '' }}>
+                            {{ $program->program_name }}
+                        </option>
+                    @endforeach
+                </select>
 
+                <select name="year" class="form-select">
+                    <option value="">All Years</option>
+                    <option value="1st Year" {{ request('year') == '1st Year' ? 'selected' : '' }}>1st Year</option>
+                    <option value="2nd Year" {{ request('year') == '2nd Year' ? 'selected' : '' }}>2nd Year</option>
+                    <option value="3rd Year" {{ request('year') == '3rd Year' ? 'selected' : '' }}>3rd Year</option>
+                    <option value="4th Year" {{ request('year') == '4th Year' ? 'selected' : '' }}>4th Year</option>
+                    <option value="5th Year" {{ request('year') == '5th Year' ? 'selected' : '' }}>5th Year</option>
+                    <option value="6th Year" {{ request('year') == '6th Year' ? 'selected' : '' }}>6th Year</option>
+                </select>
 
-                <div class="table-responsive students-table-responsive">
-                    <table class="table table-bordered table-hover text-center align-middle">
-                        <thead>
+                <button type="submit" class="btn patrons-btn patrons-btn--primary">
+                    <i class="bi bi-funnel" aria-hidden="true"></i>
+                    Filter
+                </button>
+            </form>
+
+            <div class="patrons-actions">
+                <a href="{{ route('students.create') }}" class="btn patrons-btn patrons-btn--primary">
+                    <i class="bi bi-person-plus" aria-hidden="true"></i>
+                    Register Patron
+                </a>
+                <a href="{{ route('pending.index') }}" class="btn patrons-btn patrons-btn--ghost">
+                    <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                    Pending
+                </a>
+                <a href="{{ route('students.pending.requests') }}" class="btn patrons-btn patrons-btn--ghost">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                    Edit requests
+                </a>
+                <a href="{{ route('students.export') }}" class="btn patrons-btn patrons-btn--soft">
+                    <i class="bi bi-download" aria-hidden="true"></i>
+                    Export CSV
+                </a>
+                <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data" class="patrons-import">
+                    @csrf
+                    <label class="patrons-file">
+                        <input type="file" name="file" accept=".xlsx,.csv" required>
+                        <span><i class="bi bi-upload" aria-hidden="true"></i> Choose file</span>
+                    </label>
+                    <button type="submit" class="btn patrons-btn patrons-btn--soft">Import</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="patrons-table-card">
+            <div class="table-responsive students-table-responsive">
+                <table class="table patrons-table align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">Patron</th>
+                            <th scope="col">Course</th>
+                            <th scope="col">Year</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($students as $student)
+                            @php
+                                $initials = strtoupper(mb_substr($student->firstname ?? '', 0, 1).mb_substr($student->lastname ?? '', 0, 1));
+                                $initials = $initials !== '' ? $initials : '?';
+                            @endphp
                             <tr>
-                                <th>Profile</th>
-                                <th>Last Name</th>
-                                <th>First Name</th>
-                                <th>Course</th>
-                                <th>Year</th>
-                                <th>Actions</th>
-                                <th>Generate ID</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($students as $student)
-                                <tr>
-                                    <td>
-                                        @if($student->profile_picture)
-                                            <img src="{{ asset($student->profile_picture) }}" alt="Profile" class="profile-img">
-                                        @else
-                                            <span>No Image</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $student->lastname }}</td>
-                                    <td>{{ $student->firstname }}</td>
-                                    <td>{{ $student->course }}</td>
-                                    <td>{{ $student->year }}</td>
-                                    <td>
+                                <td>
+                                    <div class="patron-identity">
+                                        <div class="patron-avatar" data-initials="{{ $initials }}">
+                                            @if($student->profile_picture)
+                                                <img
+                                                    src="{{ asset($student->profile_picture) }}"
+                                                    alt=""
+                                                    class="profile-img"
+                                                    loading="lazy"
+                                                    onerror="this.remove(); this.parentElement.classList.add('is-fallback');"
+                                                >
+                                            @else
+                                                <span class="patron-avatar__fallback">{{ $initials }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="patron-identity__text">
+                                            <span class="patron-name">{{ $student->lastname }}, {{ $student->firstname }}</span>
+                                            <span class="patron-meta">Student</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="patron-chip">{{ $student->course ?: '—' }}</span>
+                                </td>
+                                <td>
+                                    <span class="patron-year">{{ $student->year ?: '—' }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="patron-row-actions">
                                         <div class="dropdown students-row-dropdown">
-                                            <button class="btn btn-primary btn-sm students-row-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn patrons-btn patrons-btn--row dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="bi bi-sliders" aria-hidden="true"></i>
                                                 <span>Options</span>
                                             </button>
-                                            <ul class="dropdown-menu menu menu-sm students-row-menu">
+                                            <ul class="dropdown-menu dropdown-menu-end students-row-menu">
                                                 <li>
                                                     <a class="dropdown-item students-row-menu__item" href="{{ route('students.edit', $student->id) }}">
                                                         <i class="bi bi-pencil-square" aria-hidden="true"></i>
@@ -151,14 +157,13 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                    </td>
-                                    <td>
+
                                         <div class="dropdown students-row-dropdown">
-                                            <button class="btn btn-success btn-sm students-row-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn patrons-btn patrons-btn--row-accent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="bi bi-person-vcard" aria-hidden="true"></i>
-                                                <span>Generate</span>
+                                                <span>ID card</span>
                                             </button>
-                                            <ul class="dropdown-menu menu menu-sm students-row-menu">
+                                            <ul class="dropdown-menu dropdown-menu-end students-row-menu">
                                                 <li>
                                                     <a class="dropdown-item students-row-menu__item" href="{{ url('idcard/front/' . $student->id) }}" target="_blank">
                                                         <i class="bi bi-credit-card-2-front" aria-hidden="true"></i>
@@ -179,25 +184,28 @@
                                                 </li>
                                             </ul>
                                         </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7">No students found.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                <div class="d-flex justify-content-center mt-3">
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="patrons-empty">No students found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="patrons-footer">
+                <div class="patrons-pagination">
                     {{ $students->withQueryString()->links('pagination::bootstrap-5') }}
                 </div>
-
-                <a href="{{ route('book.index') }}" id="fil" class="btn btn-back mt-3">← Back to Books</a>
-
+                <a href="{{ route('book.index') }}" class="btn patrons-btn patrons-btn--ghost">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                    Back to Books
+                </a>
             </div>
-        </div>
+        </section>
     </div>
-    
-    
+</div>
 @endsection

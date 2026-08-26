@@ -1,20 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Library Attendance & Book RFID</title>
+  <title>USM Library Attendance</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="{{ asset('css/attendance/scan.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/attendance/scan.css') }}?v={{ filemtime(public_path('css/attendance/scan.css')) }}">
   <link href="{{ asset('vendor/fontsource/poppins/latin-400.css') }}" rel="stylesheet">
   <link href="{{ asset('vendor/fontsource/poppins/latin-600.css') }}" rel="stylesheet">
   <link href="{{ asset('vendor/fontsource/poppins/latin-700.css') }}" rel="stylesheet">
   @include('components.branding-overrides')
   <style>
+    /* USM kiosk theme (matches production gate terminal) */
+    body.attendance-kiosk {
+      --brand-nav-link: #2e7d32;
+      --brand-button-bg: #2e7d32;
+      --brand-button-hover-bg: #1b5e20;
+      --brand-button-text: #ffffff;
+      --brand-footer-bg: #2e7d32;
+      --brand-nav-link-active: #ffffff;
+      --brand-button-hover-text: #ffffff;
+    }
+
     .marquee-container {
       width: 100%;
       overflow: hidden;
       background-color: #222;
       color: #fff;
-      border-top: 2px solid #444;
+      border-top: 2px solid #2e7d32;
+      border-bottom: 2px solid #2e7d32;
       padding: 15px 0;
       box-sizing: border-box;
     }
@@ -35,13 +47,16 @@
     }
   </style>
 </head>
-<body>
+<body class="attendance-kiosk">
   <header>
     <div class="header">
       <div class="logo-title">
-        <img src="{{ $brandingSidebarLogoUrl }}" alt="Logo">
+        <div class="kiosk-brand">
+          <img src="{{ asset('img/usm_logo_1954.png') }}" alt="USM Logo">
+          <span class="university-name">UNIVERSITY OF SOUTHERN MINDANAO</span>
+        </div>
         <div class="system-title">POWERED BY PANTAS</div>
-        <a href="{{ route('book.index') }}" class="home-button" hidden>Home</a>
+        <a href="{{ url('/') }}" class="home-button">Home</a>
       </div>
     </div>
   </header>
@@ -96,8 +111,12 @@
         <textarea name="qrcode" id="qrcode" style="opacity:0; position:absolute;" autofocus autocomplete="off"></textarea>
       </form>
 
-      <video autoplay loop controls class="ads-vid">
-        <source src="{{ asset('videos/area51_product_slideshow.mp4') }}" type="video/mp4">
+      <video autoplay muted loop playsinline controls class="ads-vid">
+        @if (is_file(public_path('videos/library-bg.mp4')))
+          <source src="{{ asset('videos/library-bg.mp4') }}" type="video/mp4">
+        @elseif (is_file(public_path('videos/area51_product_slideshow.mp4')))
+          <source src="{{ asset('videos/area51_product_slideshow.mp4') }}" type="video/mp4">
+        @endif
         Your browser does not support the video tag.
       </video>
     </div>
@@ -108,7 +127,7 @@
       <div class="footer-logo">
         <div class="marquee-container">
           <div class="marquee">
-            Welcome to Governor Generoso College of Arts, Sciences and Technology
+            Welcome to University of Southern Mindanao - Kabacan
           </div>
         </div>
       </div>
