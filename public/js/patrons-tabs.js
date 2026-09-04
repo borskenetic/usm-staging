@@ -11,11 +11,11 @@
         return document.querySelector(ROOT_SEL);
     }
 
-    function samePath(a, b) {
+    function sameUrl(a, b) {
         try {
             const left = new URL(a, window.location.origin);
             const right = new URL(b, window.location.origin);
-            return left.pathname === right.pathname;
+            return left.pathname === right.pathname && left.search === right.search;
         } catch (e) {
             return a === b;
         }
@@ -79,7 +79,7 @@
             return;
         }
 
-        if (samePath(url, window.location.href) && push) {
+        if (sameUrl(url, window.location.href) && push) {
             return;
         }
 

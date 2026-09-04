@@ -2,16 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\LibraryAttendanceLogsExport;
 use App\Models\LibraryAttendanceFeedback;
 use App\Models\LibraryAttendanceLog;
 use App\Models\LibraryAttendanceSetting;
 use App\Models\LibraryEmployee;
 use App\Models\LibraryStudent;
+use App\Models\Student;
+use App\Support\PatronNameSearch;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class LibraryAttendanceController extends Controller
 {
@@ -83,15 +91,38 @@ class LibraryAttendanceController extends Controller
 
     public function logs(Request $request): View
     {
-        $logs = LibraryAttendanceLog::query()
-            ->with(['student', 'employee'])
-            ->when($request->from, fn ($query) => $query->whereDate('scanned_at', '>=', $request->from))
-            ->when($request->to, fn ($query) => $query->whereDate('scanned_at', '<=', $request->to))
-            ->latest('scanned_at')
-            ->paginate(15)
-            ->withQueryString();
+        $tab = $this->resolveLogsTab($request);
+        $query = $this->filteredLogsQuery($request, $tab);
+        $total = (clone $query)->count();
+        $logs = $query->paginate(15)->withQueryString();
 
-        return view('library.attendance.logs', compact('logs'));
+        return view('library.attendance.logs', [
+            'logs' => $logs,
+            'total' => $total,
+            'tab' => $tab,
+            'programs' => $this->programOptions($tab),
+            'years' => $this->yearOptions($tab),
+        ]);
+    }
+
+    public function exportPdf(Request $request): Response
+    {
+        $tab = $this->resolveLogsTab($request);
+        $logs = $this->filteredLogsQuery($request, $tab)->get();
+        $pdf = Pdf::loadView('library.attendance.pdf', compact('logs', 'tab'));
+
+        return $pdf->download('library_attendance_logs_'.$tab.'.pdf');
+    }
+
+    public function exportExcel(Request $request): BinaryFileResponse
+    {
+        $tab = $this->resolveLogsTab($request);
+        $logs = $this->filteredLogsQuery($request, $tab)->get();
+
+        return Excel::download(
+            new LibraryAttendanceLogsExport($logs),
+            'library_attendance_logs_'.$tab.'.xlsx'
+        );
     }
 
     public function reports(): View
@@ -152,6 +183,118 @@ class LibraryAttendanceController extends Controller
         );
 
         return back()->with('success', 'Library visit feedback settings updated.');
+    }
+
+    private function resolveLogsTab(Request $request): string
+    {
+        return $request->string('tab')->toString() === 'employees' ? 'employees' : 'students';
+    }
+
+    private function filteredLogsQuery(Request $request, ?string $tab = null): Builder
+    {
+        $tab ??= $this->resolveLogsTab($request);
+        $isStudents = $tab === 'students';
+
+        return LibraryAttendanceLog::query()
+            ->with(['student', 'employee'])
+            ->when($isStudents, fn ($query) => $query->whereNotNull('student_id'))
+            ->when(! $isStudents, fn ($query) => $query->whereNotNull('employee_id'))
+            ->when($request->filled('from'), fn ($query) => $query->whereDate('scanned_at', '>=', $request->from))
+            ->when($request->filled('to'), fn ($query) => $query->whereDate('scanned_at', '<=', $request->to))
+            ->when($request->filled('program'), function ($query) use ($request, $isStudents) {
+                $program = $request->string('program')->toString();
+
+                if ($isStudents) {
+                    $query->whereHas('student', fn ($student) => $student->where('course', $program));
+
+                    return;
+                }
+
+                $query->whereHas('employee', function ($employee) use ($program) {
+                    $employee->where('program', $program)
+                        ->orWhere('department', $program);
+                });
+            })
+            ->when($request->filled('year_level'), function ($query) use ($request, $isStudents) {
+                $year = $request->string('year_level')->toString();
+
+                if ($isStudents) {
+                    $query->whereHas('student', fn ($student) => $student->where('year', $year));
+
+                    return;
+                }
+
+                $query->whereHas('employee', fn ($employee) => $employee->where('year_start_work', $year));
+            })
+            ->when($request->filled('search'), function ($query) use ($request, $isStudents) {
+                $search = trim((string) $request->search);
+
+                $query->where(function (Builder $inner) use ($search, $isStudents) {
+                    if ($isStudents) {
+                        $inner->whereHas('student', function ($student) use ($search) {
+                            PatronNameSearch::apply($student, $search, ['course', 'id_number', 'year', 'qrcode']);
+                        });
+                    } else {
+                        $inner->whereHas('employee', function ($employee) use ($search) {
+                            PatronNameSearch::apply($employee, $search, [
+                                'program',
+                                'department',
+                                'employee_id',
+                                'designation',
+                                'qrcode',
+                            ]);
+                        });
+                    }
+
+                    $inner->orWhere('status', 'like', "%{$search}%");
+                });
+            })
+            ->latest('scanned_at')
+            ->latest('id');
+    }
+
+    /** @return list<string> */
+    private function programOptions(string $tab): array
+    {
+        if ($tab === 'employees') {
+            return LibraryEmployee::query()
+                ->whereNotNull('program')
+                ->where('program', '!=', '')
+                ->distinct()
+                ->orderBy('program')
+                ->pluck('program')
+                ->all();
+        }
+
+        return Student::query()
+            ->whereNotNull('course')
+            ->where('course', '!=', '')
+            ->distinct()
+            ->orderBy('course')
+            ->pluck('course')
+            ->all();
+    }
+
+    /** @return list<string> */
+    private function yearOptions(string $tab): array
+    {
+        if ($tab === 'employees') {
+            return LibraryEmployee::query()
+                ->whereNotNull('year_start_work')
+                ->where('year_start_work', '!=', '')
+                ->distinct()
+                ->orderByDesc('year_start_work')
+                ->pluck('year_start_work')
+                ->all();
+        }
+
+        return Student::query()
+            ->whereNotNull('year')
+            ->where('year', '!=', '')
+            ->distinct()
+            ->orderBy('year')
+            ->pluck('year')
+            ->all();
     }
 
     private function feedbackEnabled(): bool

@@ -127,6 +127,8 @@ Route::middleware(['auth', 'library.admin'])->group(function (): void {
     Route::get('/checkouts/active', [ActiveCheckoutController::class, 'index'])->name('checkouts.active');
     Route::post('/checkouts/{id}/confirm-return', [ActiveCheckoutController::class, 'confirmReturn'])->name('checkouts.confirm_return');
     Route::get('/library/attendance/logs', [LibraryAttendanceController::class, 'logs'])->name('library.attendance.logs');
+    Route::get('/library/attendance/logs/export/pdf', [LibraryAttendanceController::class, 'exportPdf'])->name('library.attendance.logs.export.pdf');
+    Route::get('/library/attendance/logs/export/excel', [LibraryAttendanceController::class, 'exportExcel'])->name('library.attendance.logs.export.excel');
     Route::get('/library/attendance/logs/reports', [LibraryAttendanceController::class, 'reports'])->name('library.attendance.reports');
 
     Route::prefix('prospectus')->name('prospectus.')->group(function (): void {

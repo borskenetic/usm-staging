@@ -19,6 +19,8 @@ Reference plan:
 
 ## Active Work
 
+- [x] Upgrade `/library/attendance/logs` with green attendance-logs UI, filters, `Lastname, Firstname` search, PDF/Excel export, and no Section column.
+- [x] Split Library attendance logs into Students and Faculty & Staff tabs with tab-scoped filters/exports.
 - [x] Align Faculty & Staff patrons table with Registered Students design; instant Students ↔ Faculty tab switch; support `Lastname, Firstname` search.
 - [x] Serve role-dashboard card/grid CSS as a static `public/css/dashboard.css` asset so Library/Attendance dashboards render without a Vite build.
 - [x] Replace Bootstrap public registration pages with a single direct `/register` page using the shared auth modal (Attendance ↔ Library slide).
