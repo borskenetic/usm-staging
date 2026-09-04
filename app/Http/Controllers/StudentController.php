@@ -9,6 +9,7 @@ use App\Models\Program;
 use App\Models\Student;
 use App\Models\StudentEditRequest;
 use App\Services\AdminActivityLogger;
+use App\Support\PatronNameSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -38,16 +39,13 @@ class StudentController extends Controller
         $query = Student::query();
         $programs = Program::orderBy('program_code')->get();
 
-        // 🔍 Search
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('lastname', 'like', "%{$search}%")
-                    ->orWhere('firstname', 'like', "%{$search}%")
-                    ->orWhere('course', 'like', "%{$search}%")
-                    ->orWhere('qrcode', 'like', "%{$search}%")
-                    ->orWhere('id_number', 'like', "%{$search}%");
-            });
+        // 🔍 Search (supports "Lastname, Firstname")
+        if ($request->filled('search')) {
+            PatronNameSearch::apply($query, (string) $request->search, [
+                'course',
+                'qrcode',
+                'id_number',
+            ]);
         }
 
         // 🎓 Filter by Course

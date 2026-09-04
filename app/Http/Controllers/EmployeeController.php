@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\Program;
+use App\Support\PatronNameSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -41,16 +42,13 @@ class EmployeeController extends Controller
         $query = Employee::query();
 
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('firstname', 'like', "%{$search}%")
-                    ->orWhere('lastname', 'like', "%{$search}%")
-                    ->orWhere('employee_id', 'like', "%{$search}%")
-                    ->orWhere('designation', 'like', "%{$search}%")
-                    ->orWhere('program', 'like', "%{$search}%")
-                    ->orWhere('department', 'like', "%{$search}%")
-                    ->orWhere('qrcode', 'like', "%{$search}%");
-            });
+            PatronNameSearch::apply($query, (string) $request->search, [
+                'employee_id',
+                'designation',
+                'program',
+                'department',
+                'qrcode',
+            ]);
         }
 
         if ($request->filled('program')) {

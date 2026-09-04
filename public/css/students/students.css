@@ -14,6 +14,12 @@
     min-width: 0;
 }
 
+[data-patrons-root].is-switching {
+    opacity: 0.72;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+}
+
 .patrons-shell {
     display: grid;
     gap: 1rem;

@@ -19,6 +19,7 @@ Reference plan:
 
 ## Active Work
 
+- [x] Align Faculty & Staff patrons table with Registered Students design; instant Students ↔ Faculty tab switch; support `Lastname, Firstname` search.
 - [x] Serve role-dashboard card/grid CSS as a static `public/css/dashboard.css` asset so Library/Attendance dashboards render without a Vite build.
 - [x] Replace Bootstrap public registration pages with a single direct `/register` page using the shared auth modal (Attendance ↔ Library slide).
 - [x] Start Milestone 13: Developer-managed register modal customization on a dedicated Developer settings page.

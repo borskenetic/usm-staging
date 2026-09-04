@@ -5,7 +5,7 @@
 @endsection
 
 @section('content')
-<div class="container-fluid px-3 px-lg-4 py-4 students-page">
+<div class="container-fluid px-3 px-lg-4 py-4 students-page" data-patrons-root>
     <div class="patrons-shell">
         <header class="patrons-hero">
             <div>
@@ -14,8 +14,8 @@
                 <p class="patrons-subtitle">Search, filter, and manage student library accounts.</p>
             </div>
             <div class="patrons-tabs" role="tablist" aria-label="Patron type">
-                <a href="{{ route('students.index') }}" class="patrons-tab is-active" aria-current="page">Students</a>
-                <a href="{{ route('employees.index') }}" class="patrons-tab">Faculty &amp; Staff</a>
+                <a href="{{ route('students.index') }}" class="patrons-tab is-active" data-patrons-tab aria-current="page">Students</a>
+                <a href="{{ route('employees.index') }}" class="patrons-tab" data-patrons-tab>Faculty &amp; Staff</a>
             </div>
         </header>
 
@@ -208,4 +208,8 @@
         </section>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+    <script src="{{ asset('js/patrons-tabs.js') }}?v={{ filemtime(public_path('js/patrons-tabs.js')) }}"></script>
 @endsection
