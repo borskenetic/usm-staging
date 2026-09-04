@@ -61,11 +61,11 @@
             <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
             Reports &amp; analytics
         </a>
-        <a href="{{ route('library.attendance.logs.export.pdf', request()->query()) }}" class="ll-btn ll-btn--ghost">
+        <a href="{{ url('/library/attendance/logs/export/pdf') }}{{ request()->getQueryString() ? '?'.request()->getQueryString() : '' }}" class="ll-btn ll-btn--ghost">
             <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
             Export PDF
         </a>
-        <a href="{{ route('library.attendance.logs.export.excel', request()->query()) }}" class="ll-btn ll-btn--ghost">
+        <a href="{{ url('/library/attendance/logs/export/excel') }}{{ request()->getQueryString() ? '?'.request()->getQueryString() : '' }}" class="ll-btn ll-btn--ghost">
             <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
             Export Excel
         </a>
