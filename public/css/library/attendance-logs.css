@@ -163,6 +163,17 @@
     align-items: end;
 }
 
+.ll-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.ll-filter-actions .ll-btn {
+    white-space: nowrap;
+}
+
 .ll-field label {
     display: block;
     margin-bottom: 0.3rem;

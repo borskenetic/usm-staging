@@ -20,6 +20,7 @@ class LibraryAttendanceLogsUiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutVite();
         $this->seed(RoleSeeder::class);
     }
 
@@ -55,6 +56,7 @@ class LibraryAttendanceLogsUiTest extends TestCase
             ->assertSee('Export PDF')
             ->assertSee('Export Excel')
             ->assertSee('Apply filters')
+            ->assertSee('Clear filters')
             ->assertSee('Faculty &amp; Staff', false)
             ->assertDontSee('>Section</th>', false);
     }

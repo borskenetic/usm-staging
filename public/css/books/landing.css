@@ -13,7 +13,7 @@ body {
 /* ADdU-style OPAC header (search-active) */
 /* Search header (minimal, matches your structure) */
 .opac-search-header {
-    background: var(--brand-button-bg, #1f4ea7);
+    background: var(--brand-button-bg, #1b5e20);
     color: var(--brand-button-text, #fff);
     padding: 12px 14px;
 }
@@ -70,7 +70,7 @@ body {
     padding: 0 18px;
     border-radius: 10px;
     font-weight: 700;
-    background: var(--brand-accent, #1f4ea7);
+    background: var(--brand-accent, #2e7d32);
     border-color: var(--brand-accent, #ffffff);
     color: var(--brand-success-text, #fff);
 }

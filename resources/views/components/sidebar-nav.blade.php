@@ -150,8 +150,13 @@
         </button>
         <ul class="sidebar-group-items" id="sidebar-group-library-catalog" role="list">
             <li>
-                <a href="{{ route('book.index') }}" class="sidebar-link {{ request()->routeIs('book.*', 'books.*') ? 'active' : '' }}">
+                <a href="{{ route('book.index') }}" class="sidebar-link {{ request()->routeIs('book.index', 'book.show', 'book.edit', 'books.*') ? 'active' : '' }}">
                     <i class="bi bi-grid"></i> Books
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('book.create') }}" class="sidebar-link {{ request()->routeIs('book.create') ? 'active' : '' }}">
+                    <i class="bi bi-plus-square"></i> Add Book
                 </a>
             </li>
             <li>

@@ -194,7 +194,7 @@ final class DeveloperBrandingActivityTest extends TestCase
 
         $active = app(BrandingService::class)->active();
         $this->assertSame('images/Bannernew.jpg', $active['banner_path']);
-        $this->assertSame('images/pantasLogo-box.png', $active['sidebar_logo_path']);
+        $this->assertSame(config('branding.defaults.sidebar_logo_path'), $active['sidebar_logo_path']);
     }
 
     public function test_cache_invalidation_on_update_and_restore(): void

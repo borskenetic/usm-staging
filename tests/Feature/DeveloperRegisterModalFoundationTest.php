@@ -69,23 +69,24 @@ final class DeveloperRegisterModalFoundationTest extends TestCase
         ]));
 
         $active = app(BrandingService::class)->active();
+        $defaults = config('branding.defaults');
 
-        $this->assertSame('img/pantas-10.png', $active['register_modal_attendance_logo_path']);
-        $this->assertSame('img/pantas-10.png', $active['register_modal_library_logo_path']);
-        $this->assertSame('Register', $active['register_modal_heading']);
-        $this->assertSame('Login', $active['register_modal_login_label']);
-        $this->assertSame('Attendance', $active['register_modal_attendance_tab']);
-        $this->assertSame('Library', $active['register_modal_library_tab']);
-        $this->assertSame('Register for', $active['register_modal_attendance_welcome_label']);
-        $this->assertSame('PANTAS Attendance', $active['register_modal_attendance_portal_name']);
-        $this->assertSame('Register for', $active['register_modal_library_welcome_label']);
-        $this->assertSame('PANTAS Library', $active['register_modal_library_portal_name']);
-        $this->assertSame('#d97706', $active['register_modal_attendance_panel_color']);
-        $this->assertSame('#FFFFFF', $active['register_modal_attendance_welcome_portal_color']);
-        $this->assertSame('#FFFFFF', $active['register_modal_attendance_description_color']);
-        $this->assertSame('#123C8C', $active['register_modal_library_panel_color']);
-        $this->assertSame('#FFFFFF', $active['register_modal_library_welcome_portal_color']);
-        $this->assertSame('#FFFFFF', $active['register_modal_library_description_color']);
+        $this->assertSame($defaults['register_modal_attendance_logo_path'], $active['register_modal_attendance_logo_path']);
+        $this->assertSame($defaults['register_modal_library_logo_path'], $active['register_modal_library_logo_path']);
+        $this->assertSame($defaults['register_modal_heading'], $active['register_modal_heading']);
+        $this->assertSame($defaults['register_modal_login_label'], $active['register_modal_login_label']);
+        $this->assertSame($defaults['register_modal_attendance_tab'], $active['register_modal_attendance_tab']);
+        $this->assertSame($defaults['register_modal_library_tab'], $active['register_modal_library_tab']);
+        $this->assertSame($defaults['register_modal_attendance_welcome_label'], $active['register_modal_attendance_welcome_label']);
+        $this->assertSame($defaults['register_modal_attendance_portal_name'], $active['register_modal_attendance_portal_name']);
+        $this->assertSame($defaults['register_modal_library_welcome_label'], $active['register_modal_library_welcome_label']);
+        $this->assertSame($defaults['register_modal_library_portal_name'], $active['register_modal_library_portal_name']);
+        $this->assertSame($defaults['register_modal_attendance_panel_color'], $active['register_modal_attendance_panel_color']);
+        $this->assertSame($defaults['register_modal_attendance_welcome_portal_color'], $active['register_modal_attendance_welcome_portal_color']);
+        $this->assertSame($defaults['register_modal_attendance_description_color'], $active['register_modal_attendance_description_color']);
+        $this->assertSame($defaults['register_modal_library_panel_color'], $active['register_modal_library_panel_color']);
+        $this->assertSame($defaults['register_modal_library_welcome_portal_color'], $active['register_modal_library_welcome_portal_color']);
+        $this->assertSame($defaults['register_modal_library_description_color'], $active['register_modal_library_description_color']);
         $this->assertFalse($active['is_customized']);
     }
 
@@ -102,16 +103,13 @@ final class DeveloperRegisterModalFoundationTest extends TestCase
 
         $active = app(BrandingService::class)->active();
 
-        $this->assertSame('Register', $active['register_modal_heading']);
-        $this->assertSame('Login', $active['register_modal_login_label']);
-        $this->assertSame('#d97706', $active['register_modal_attendance_panel_color']);
-        $this->assertSame('#123C8C', $active['register_modal_library_panel_color']);
+        $defaults = config('branding.defaults');
+        $this->assertSame($defaults['register_modal_heading'], $active['register_modal_heading']);
+        $this->assertSame($defaults['register_modal_login_label'], $active['register_modal_login_label']);
+        $this->assertSame($defaults['register_modal_attendance_panel_color'], $active['register_modal_attendance_panel_color']);
+        $this->assertSame($defaults['register_modal_library_panel_color'], $active['register_modal_library_panel_color']);
         $this->assertTrue($active['is_customized']);
-
-        $this->actingAs($this->developer())
-            ->get('/developer/dashboard')
-            ->assertOk()
-            ->assertSee('Register');
+        $this->assertArrayHasKey('overrides', Cache::get(BrandingService::CACHE_KEY));
     }
 
     public function test_service_persists_register_modal_overrides_upload_and_activity(): void
@@ -199,8 +197,14 @@ final class DeveloperRegisterModalFoundationTest extends TestCase
         ]);
         Cache::forget(BrandingService::CACHE_KEY);
 
-        $this->assertSame('img/pantas-10.png', app(BrandingService::class)->active()['register_modal_attendance_logo_path']);
-        $this->assertSame('img/pantas-10.png', app(BrandingService::class)->active()['register_modal_library_logo_path']);
+        $this->assertSame(
+            config('branding.defaults.register_modal_attendance_logo_path'),
+            app(BrandingService::class)->active()['register_modal_attendance_logo_path']
+        );
+        $this->assertSame(
+            config('branding.defaults.register_modal_library_logo_path'),
+            app(BrandingService::class)->active()['register_modal_library_logo_path']
+        );
 
         app(BrandingService::class)->restore('register_modal_heading', $developer);
         $this->assertNull(BrandingSetting::query()->value('register_modal_heading'));

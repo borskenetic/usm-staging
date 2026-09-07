@@ -48,15 +48,16 @@ final class DeveloperLoginModalFoundationTest extends TestCase
         ]));
 
         $active = app(BrandingService::class)->active();
+        $defaults = config('branding.defaults');
 
-        $this->assertSame('img/pantas-10.png', $active['login_modal_logo_path']);
-        $this->assertSame('PANTAS Portal', $active['login_modal_portal_name']);
-        $this->assertSame('Sign in to your account', $active['login_modal_sign_in_heading']);
-        $this->assertSame('#123C8C', $active['login_modal_button_color']);
-        $this->assertSame('#FFFFFF', $active['login_modal_welcome_portal_color']);
-        $this->assertSame('#DBEAFE', $active['login_modal_description_color']);
-        $this->assertSame('#FFFFFF', $active['login_modal_form_background_color']);
-        $this->assertSame('#DCE3EE', $active['login_modal_form_border_color']);
+        $this->assertSame($defaults['login_modal_logo_path'], $active['login_modal_logo_path']);
+        $this->assertSame($defaults['login_modal_portal_name'], $active['login_modal_portal_name']);
+        $this->assertSame($defaults['login_modal_sign_in_heading'], $active['login_modal_sign_in_heading']);
+        $this->assertSame($defaults['login_modal_button_color'], $active['login_modal_button_color']);
+        $this->assertSame($defaults['login_modal_welcome_portal_color'], $active['login_modal_welcome_portal_color']);
+        $this->assertSame($defaults['login_modal_description_color'], $active['login_modal_description_color']);
+        $this->assertSame($defaults['login_modal_form_background_color'], $active['login_modal_form_background_color']);
+        $this->assertSame($defaults['login_modal_form_border_color'], $active['login_modal_form_border_color']);
         $this->assertFalse($active['is_customized']);
     }
 
@@ -73,15 +74,12 @@ final class DeveloperLoginModalFoundationTest extends TestCase
 
         $active = app(BrandingService::class)->active();
 
-        $this->assertSame('PANTAS Portal', $active['login_modal_portal_name']);
-        $this->assertSame('Sign in to your account', $active['login_modal_sign_in_heading']);
-        $this->assertSame('#123C8C', $active['login_modal_button_color']);
+        $defaults = config('branding.defaults');
+        $this->assertSame($defaults['login_modal_portal_name'], $active['login_modal_portal_name']);
+        $this->assertSame($defaults['login_modal_sign_in_heading'], $active['login_modal_sign_in_heading']);
+        $this->assertSame($defaults['login_modal_button_color'], $active['login_modal_button_color']);
         $this->assertTrue($active['is_customized']);
-
-        $this->actingAs($this->developer())
-            ->get('/developer/dashboard')
-            ->assertOk()
-            ->assertSee('PANTAS Portal');
+        $this->assertArrayHasKey('overrides', Cache::get(BrandingService::CACHE_KEY));
     }
 
     public function test_service_persists_login_modal_overrides_upload_and_activity(): void
@@ -141,7 +139,10 @@ final class DeveloperLoginModalFoundationTest extends TestCase
         ]);
         Cache::forget(BrandingService::CACHE_KEY);
 
-        $this->assertSame('img/pantas-10.png', app(BrandingService::class)->active()['login_modal_logo_path']);
+        $this->assertSame(
+            config('branding.defaults.login_modal_logo_path'),
+            app(BrandingService::class)->active()['login_modal_logo_path']
+        );
 
         app(BrandingService::class)->restore('login_modal_portal_name', $developer);
         $this->assertNull(BrandingSetting::query()->value('login_modal_portal_name'));

@@ -10,34 +10,34 @@
   /*
    * App-wide branding tokens (staff + kiosk)
    */
-  --brand-page-bg: #1f4ea7;
+  --brand-page-bg: #ffffff;
   --brand-school-name-color: red;
 
-  --brand-nav-link: #1f4ea7;
-  --brand-nav-link-active: #1f4ea7;
-  --brand-nav-hover-bg: #2e7d32;
-  --brand-nav-hover-text: #ffffff;
+  --brand-nav-link: #1b5e20;
+  --brand-nav-link-active: #ffffff;
+  --brand-nav-hover-bg: #ffffff;
+  --brand-nav-hover-text: #2e7d32;
 
-  --brand-logout-bg: #1f4ea7;
+  --brand-logout-bg: #1b5e20;
   --brand-logout-text: #ffffff;
 
-  --brand-button-bg: #1f4ea7;
+  --brand-button-bg: #1b5e20;
   --brand-button-text: #ffffff;
-  --brand-button-hover-bg: #2e7d32;
+  --brand-button-hover-bg: #145218;
   --brand-button-hover-text: #ffffff;
 
-  --brand-danger-bg: #1f4ea7;
-  --brand-danger-hover-bg: #2e7d32;
+  --brand-danger-bg: #1b5e20;
+  --brand-danger-hover-bg: #145218;
   --brand-danger-text: #ffffff;
 
-  --brand-success-bg: #1f4ea7;
-  --brand-success-hover-bg: #2e7d32;
+  --brand-success-bg: #2e7d32;
+  --brand-success-hover-bg: #1b5e20;
   --brand-success-text: #ffffff;
 
-  --brand-footer-bg: #1f4ea7;
+  --brand-footer-bg: #1b5e20;
 
-  --brand-kiosk-gradient-from: #f8f9fa;
-  --brand-kiosk-gradient-to: #e9ecef;
+  --brand-kiosk-gradient-from: #1b5e20;
+  --brand-kiosk-gradient-to: #2e7d32;
 
   /*
    * Backwards-compatible vars used by your existing landing `style.css`
@@ -53,13 +53,12 @@
  * Put this AFTER bootstrap.min.css in your layouts.
  */
 :root {
-  --bs-primary: var(--brand-primary);
-  --bs-primary-rgb: 255, 215, 0;
+  --bs-primary: #1b5e20;
+  --bs-primary-rgb: 27, 94, 32;
 
   --bs-success: var(--brand-accent);
   --bs-success-rgb: 76, 175, 80;
 
-  --bs-link-color: var(--brand-accent);
-  --bs-link-hover-color: var(--brand-accent);
+  --bs-link-color: #1b5e20;
+  --bs-link-hover-color: #145218;
 }
-

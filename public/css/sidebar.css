@@ -14,10 +14,10 @@
     --shell-text: #0f172a;
     --shell-muted: #475569;
     --shell-subtle: #64748b;
-    --shell-primary: #1e3a8a;
-    --shell-action: #2563eb;
-    --shell-primary-dark: #172554;
-    --shell-primary-soft: #eff6ff;
+    --shell-primary: #1b5e20;
+    --shell-action: #2e7d32;
+    --shell-primary-dark: #145218;
+    --shell-primary-soft: #e8f5e9;
     --shell-danger: #b91c1c;
     --shell-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }

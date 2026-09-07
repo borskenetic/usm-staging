@@ -214,49 +214,110 @@ final class BrandingService
         private readonly AssetOptimizer $assetOptimizer,
     ) {}
 
+    /** @var list<string> */
+    private const LEGACY_DEFAULT_COLORS = [
+        '#1F4EA7',
+        '#1f4ea7',
+        '#1E3A8A',
+        '#1e3a8a',
+        '#2563EB',
+        '#2563eb',
+        '#EFF6FF',
+        '#eff6ff',
+        '#DBEAFE',
+        '#dbeafe',
+    ];
+
     /** @return array<string, mixed> */
     public function active(): array
     {
+        $existing = Cache::get(self::CACHE_KEY);
+        if (is_array($existing) && ! array_key_exists('overrides', $existing)) {
+            Cache::forever(self::CACHE_KEY, $this->normalizeLegacyCachePayload($existing));
+        }
+
         $cached = Cache::rememberForever(self::CACHE_KEY, function (): array {
-            $defaults = config('branding.defaults', []);
+            $defaults = $this->defaults();
             $settings = $this->settings();
 
             if (! $settings) {
-                return $defaults + ['is_customized' => false, 'updated_at' => null, 'updated_by' => null];
+                return [
+                    'overrides' => [],
+                    'is_customized' => false,
+                    'updated_at' => null,
+                    'updated_by' => null,
+                ];
             }
 
-            $active = $defaults;
+            $overrides = [];
             foreach (array_keys($defaults) as $field) {
                 if (filled($settings->{$field})) {
-                    $active[$field] = $settings->{$field};
+                    $overrides[$field] = $settings->{$field};
                 }
             }
 
             foreach (self::ASSET_FIELDS as $field) {
-                if ($active[$field] !== $defaults[$field] && ! Storage::disk('public')->exists($active[$field])) {
-                    $active[$field] = $defaults[$field];
+                if (
+                    isset($overrides[$field])
+                    && $overrides[$field] !== $defaults[$field]
+                    && ! Storage::disk('public')->exists((string) $overrides[$field])
+                ) {
+                    unset($overrides[$field]);
                 }
             }
 
-            return $active + [
-                'is_customized' => collect(array_keys($defaults))->contains(fn (string $field): bool => filled($settings->{$field})),
+            return [
+                'overrides' => $overrides,
+                'is_customized' => $overrides !== [],
                 'updated_at' => $settings->updated_at,
                 'updated_by' => $settings->updater?->name,
             ];
         });
 
-        // Re-merge current defaults on every read so deployments remain upgrade-safe
-        $active = $this->defaults();
-        foreach (array_keys($active) as $field) {
-            if (filled($cached[$field] ?? null)) {
-                $active[$field] = $cached[$field];
-            }
-        }
+        // Always start from current config defaults, then apply DB overrides only.
+        $active = array_merge($this->defaults(), $cached['overrides'] ?? []);
 
         return $active + [
             'is_customized' => (bool) ($cached['is_customized'] ?? false),
             'updated_at' => $cached['updated_at'] ?? null,
             'updated_by' => $cached['updated_by'] ?? null,
+        ];
+    }
+
+    /**
+     * Convert pre-overrides cache payloads so missing keys pick up new defaults
+     * without pinning retired blue Pantas defaults as permanent overrides.
+     *
+     * @param  array<string, mixed>  $legacy
+     * @return array{overrides: array<string, mixed>, is_customized: bool, updated_at: mixed, updated_by: mixed}
+     */
+    private function normalizeLegacyCachePayload(array $legacy): array
+    {
+        $defaults = $this->defaults();
+        $overrides = [];
+
+        foreach (array_keys($defaults) as $field) {
+            if (! array_key_exists($field, $legacy) || ! filled($legacy[$field])) {
+                continue;
+            }
+
+            $value = $legacy[$field];
+            if ($value === $defaults[$field]) {
+                continue;
+            }
+
+            if (is_string($value) && in_array($value, self::LEGACY_DEFAULT_COLORS, true)) {
+                continue;
+            }
+
+            $overrides[$field] = $value;
+        }
+
+        return [
+            'overrides' => $overrides,
+            'is_customized' => (bool) ($legacy['is_customized'] ?? $overrides !== []),
+            'updated_at' => $legacy['updated_at'] ?? null,
+            'updated_by' => $legacy['updated_by'] ?? null,
         ];
     }
 

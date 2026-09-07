@@ -7,8 +7,11 @@
         --brand-nav-link: {{ $activeBranding['primary_color'] }};
         --brand-nav-link-active: {{ $activeBranding['sidebar_text_color'] }};
         --shell-primary: {{ $activeBranding['primary_color'] }};
+        --shell-primary-dark: color-mix(in srgb, {{ $activeBranding['primary_color'] }} 82%, #000000);
+        --shell-primary-soft: color-mix(in srgb, {{ $activeBranding['primary_color'] }} 12%, #ffffff);
         --shell-action: {{ $activeBranding['sidebar_active_color'] }};
         --shell-chart-palette: {{ $activeBranding['primary_color'] }}, {{ $activeBranding['secondary_color'] }}, {{ $activeBranding['accent_color'] }}, #6D28D9, #B91C1C, #047857;
+        --shell-chart-bg: color-mix(in srgb, {{ $activeBranding['primary_color'] }} 12%, transparent);
         --branding-sidebar-background: {{ $activeBranding['sidebar_background_color'] }};
         --branding-sidebar-text: {{ $activeBranding['sidebar_text_color'] }};
         --branding-sidebar-brand-text: {{ $activeBranding['sidebar_brand_text_color'] }};
@@ -53,8 +56,36 @@
 
     :root:not([data-theme]) .btn-primary,
     [data-theme="pantas-default"] .btn-primary {
+        --bs-btn-bg: var(--branding-button);
+        --bs-btn-border-color: var(--branding-button);
+        --bs-btn-hover-bg: var(--shell-primary-dark);
+        --bs-btn-hover-border-color: var(--shell-primary-dark);
+        --bs-btn-active-bg: var(--shell-primary-dark);
+        --bs-btn-active-border-color: var(--shell-primary-dark);
         border-color: var(--branding-button);
         background-color: var(--branding-button);
+    }
+
+    :root:not([data-theme]) .btn-primary:hover,
+    :root:not([data-theme]) .btn-primary:focus,
+    :root:not([data-theme]) .btn-primary:active,
+    [data-theme="pantas-default"] .btn-primary:hover,
+    [data-theme="pantas-default"] .btn-primary:focus,
+    [data-theme="pantas-default"] .btn-primary:active {
+        border-color: var(--shell-primary-dark) !important;
+        background-color: var(--shell-primary-dark) !important;
+    }
+
+    :root:not([data-theme]) .btn-outline-primary,
+    [data-theme="pantas-default"] .btn-outline-primary {
+        --bs-btn-color: var(--branding-button);
+        --bs-btn-border-color: var(--branding-button);
+        --bs-btn-hover-bg: var(--branding-button);
+        --bs-btn-hover-border-color: var(--branding-button);
+        --bs-btn-active-bg: var(--branding-button);
+        --bs-btn-active-border-color: var(--branding-button);
+        color: var(--branding-button);
+        border-color: var(--branding-button);
     }
 
     :root:not([data-theme]) #sidebar .sidebar-footer-actions,

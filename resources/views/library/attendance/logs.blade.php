@@ -116,12 +116,22 @@
                 </select>
             </div>
 
-            <div class="ll-field">
-                <label class="visually-hidden" for="library-logs-submit">Apply filters</label>
-                <button id="library-logs-submit" type="submit" class="ll-btn ll-btn--primary w-100">
-                    <i class="bi bi-funnel" aria-hidden="true"></i>
-                    Apply filters
-                </button>
+            <div class="ll-field ll-field--actions">
+                <label class="visually-hidden" for="library-logs-submit">Filter actions</label>
+                <div class="ll-filter-actions">
+                    <button id="library-logs-submit" type="submit" class="ll-btn ll-btn--primary">
+                        <i class="bi bi-funnel" aria-hidden="true"></i>
+                        Apply filters
+                    </button>
+                    <a
+                        href="{{ route('library.attendance.logs', ['tab' => $tab]) }}"
+                        class="ll-btn ll-btn--ghost"
+                        id="library-logs-clear"
+                    >
+                        <i class="bi bi-x-circle" aria-hidden="true"></i>
+                        Clear filters
+                    </a>
+                </div>
             </div>
         </div>
     </form>

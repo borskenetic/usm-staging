@@ -21,9 +21,9 @@
          * Rebuild all registered Chart.js instances with current CSS variable values.
          */
         function refreshChartColors() {
-            const palette = cssPalette('--shell-chart-palette', '#1e3a8a, #0f766e, #b45309, #6d28d9, #b91c1c, #047857');
+            const palette = cssPalette('--shell-chart-palette', '#1b5e20, #2e7d32, #b45309, #6d28d9, #b91c1c, #047857');
             const chartBg = cssVar('--shell-chart-bg', 'rgba(30, 58, 138, 0.08)');
-            const borderColor = cssVar('--shell-primary', '#1e3a8a');
+            const borderColor = cssVar('--shell-primary', '#1b5e20');
             const mutedText = cssVar('--shell-muted', '#475569');
             const subtleText = cssVar('--shell-subtle', '#64748b');
             const tooltipBg = cssVar('--shell-text', '#0f172a');
@@ -58,9 +58,9 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             const charts = @json($charts ?? []);
-            const palette = cssPalette('--shell-chart-palette', '#1e3a8a, #0f766e, #b45309, #6d28d9, #b91c1c, #047857');
+            const palette = cssPalette('--shell-chart-palette', '#1b5e20, #2e7d32, #b45309, #6d28d9, #b91c1c, #047857');
             const chartBg = cssVar('--shell-chart-bg', 'rgba(30, 58, 138, 0.08)');
-            const borderColor = cssVar('--shell-primary', '#1e3a8a');
+            const borderColor = cssVar('--shell-primary', '#1b5e20');
             const mutedText = cssVar('--shell-muted', '#475569');
             const subtleText = cssVar('--shell-subtle', '#64748b');
             const tooltipBg = cssVar('--shell-text', '#0f172a');

@@ -19,6 +19,7 @@ Reference plan:
 
 ## Active Work
 
+- [x] Fix Library Admin Dashboard blue primary actions/accents by greening shell branding defaults, clearing legacy branding cache/DB blues, and aligning static branding CSS.
 - [x] Replace stub Library Visit Reports with usm-main-style hub/dashboard/CSV analytics for Students and Faculty & Staff, using green school branding over `library_attendance_logs`.
 - [x] Align Library patrons UI (Students / Faculty & Staff) to green school branding for tabs, primary buttons, chips, and row actions.
 - [x] Port usm-main Circulation Policy (`/admin/circulation-policy`) with green branding, settings-backed borrow/renewal limits, student/employee fine terms, holidays, and live enforcement.

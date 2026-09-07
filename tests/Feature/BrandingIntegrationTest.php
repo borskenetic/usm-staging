@@ -115,6 +115,23 @@ final class BrandingIntegrationTest extends TestCase
         $this->get('/branding-assets/banners/not-active.jpg')->assertNotFound();
     }
 
+    public function test_legacy_cached_blue_defaults_do_not_override_green_shell_primary(): void
+    {
+        Cache::forever(BrandingService::CACHE_KEY, config('branding.defaults') + [
+            'primary_color' => '#1F4EA7',
+            'button_color' => '#1F4EA7',
+            'is_customized' => false,
+            'updated_at' => null,
+            'updated_by' => null,
+        ]);
+
+        $active = app(BrandingService::class)->active();
+
+        $this->assertSame('#1B5E20', $active['primary_color']);
+        $this->assertSame('#1B5E20', $active['button_color']);
+        $this->assertArrayHasKey('overrides', Cache::get(BrandingService::CACHE_KEY));
+    }
+
     private function staffUser(string $role): User
     {
         $user = User::factory()->create(['role' => $role, 'is_active' => true]);
