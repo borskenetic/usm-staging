@@ -10,8 +10,8 @@
         body { background-color: #f8f9fa; }
         .card { border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         canvas { border: 1px solid #ccc; border-radius: 6px; }
-        .btn-save { background-color: #007bff; color: white; }
-        .btn-save:hover { background-color: #0056b3; }
+        .btn-save { background-color: #1b5e20; color: white; }
+        .btn-save:hover { background-color: #145218; }
     </style>
 </head>
 

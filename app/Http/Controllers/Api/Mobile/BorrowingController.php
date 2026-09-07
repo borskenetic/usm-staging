@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Api\Mobile\Concerns\ResolvesMobileStudent;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\Controller;
-use App\Models\Book;
 use App\Models\BookLog;
 use App\Models\FineSetting;
 use App\Models\Holiday;
@@ -80,7 +79,7 @@ class BorrowingController extends Controller
             return $student;
         }
 
-        $maxLoans = BookController::MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT;
+        $maxLoans = BookController::maxConcurrentLoansPerStudent();
         $currentLoans = BookLog::countActiveLoansForStudent((int) $student->id);
         $hasOverdue = $this->hasOverdueLoans($student);
         $fineSetting = FineSetting::currentOrDefault();
@@ -93,9 +92,9 @@ class BorrowingController extends Controller
                 'remaining_loans' => max(0, $maxLoans - $currentLoans),
                 'has_overdue' => $hasOverdue,
                 'can_borrow' => $currentLoans < $maxLoans && ! $hasOverdue,
-                'reborrow_cooldown_days' => BookController::REBORROW_COOLDOWN_DAYS,
+                'reborrow_cooldown_days' => BookController::reborrowCooldownDays(),
                 'fine_settings_configured' => FineSetting::current() !== null,
-                'loan_duration_days' => $fineSetting->loan_duration_days,
+                'loan_duration_days' => $fineSetting->studentLoanDurationDays(),
                 'grace_period_days' => $fineSetting->grace_period_days,
             ],
         ]);
@@ -141,7 +140,7 @@ class BorrowingController extends Controller
         }
 
         $returnedAt = Carbon::parse($latestReturn)->timezone('Asia/Manila');
-        $allowedAt = $returnedAt->copy()->addDays(BookController::REBORROW_COOLDOWN_DAYS);
+        $allowedAt = $returnedAt->copy()->addDays(BookController::reborrowCooldownDays());
 
         if (Carbon::now('Asia/Manila')->lt($allowedAt)) {
             return 'Re-borrow cooldown active until '.$allowedAt->format('Y-m-d').'.';

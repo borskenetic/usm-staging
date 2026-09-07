@@ -85,10 +85,10 @@ class CheckoutController extends Controller
             }
 
             $currentLoans = BookLog::countActiveLoansForStudent((int) $student->id);
-            if ($currentLoans + count($availableIds) > BookController::MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT) {
+            if ($currentLoans + count($availableIds) > BookController::maxConcurrentLoansPerStudent()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Checkout blocked: patron may have at most '.BookController::MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT.' books on loan at a time (including room use).',
+                    'message' => 'Checkout blocked: patron may have at most '.BookController::maxConcurrentLoansPerStudent().' books on loan at a time (including room use).',
                 ]);
             }
 
@@ -115,14 +115,14 @@ class CheckoutController extends Controller
 
                 if ($latestReturn) {
                     $returnedAt = Carbon::parse($latestReturn)->timezone('Asia/Manila');
-                    $allowedAt = $returnedAt->copy()->addDays(BookController::REBORROW_COOLDOWN_DAYS);
+                    $allowedAt = $returnedAt->copy()->addDays(BookController::reborrowCooldownDays());
                     $nowManila = Carbon::now('Asia/Manila');
                     if ($nowManila->lt($allowedAt)) {
                         continue;
                     }
                 }
 
-                $dueDate = $this->addBusinessDays($borrowedAt, $fineSetting->loan_duration_days);
+                $dueDate = $this->addBusinessDays($borrowedAt, $fineSetting->studentLoanDurationDays());
 
                 BookLog::create([
                     'book_id' => $book->id,
@@ -250,10 +250,10 @@ class CheckoutController extends Controller
         }
 
         $currentLoans = BookLog::countActiveLoansForStudent((int) $student->id);
-        if ($currentLoans + count($availableIds) > BookController::MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT) {
+        if ($currentLoans + count($availableIds) > BookController::maxConcurrentLoansPerStudent()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Checkout blocked: patron may have at most '.BookController::MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT.' books on loan at a time.',
+                'message' => 'Checkout blocked: patron may have at most '.BookController::maxConcurrentLoansPerStudent().' books on loan at a time.',
             ]);
         }
 
@@ -277,14 +277,14 @@ class CheckoutController extends Controller
 
             if ($latestReturn) {
                 $returnedAt = Carbon::parse($latestReturn)->timezone('Asia/Manila');
-                $allowedAt = $returnedAt->copy()->addDays(BookController::REBORROW_COOLDOWN_DAYS);
+                $allowedAt = $returnedAt->copy()->addDays(BookController::reborrowCooldownDays());
                 $nowManila = Carbon::now('Asia/Manila');
                 if ($nowManila->lt($allowedAt)) {
                     continue;
                 }
             }
 
-            $dueDate = $this->addBusinessDays($borrowedAt, $fineSetting->loan_duration_days);
+            $dueDate = $this->addBusinessDays($borrowedAt, $fineSetting->studentLoanDurationDays());
 
             BookLog::create([
                 'book_id' => $book->id,

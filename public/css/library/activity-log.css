@@ -9,7 +9,6 @@
     --al-green: #1b5e20;
     --al-green-strong: #145218;
     --al-green-soft: #e8f5e9;
-    --al-blue: #1f4ea7;
     max-width: 100%;
 }
 
@@ -64,21 +63,21 @@
 }
 
 .activity-btn:hover {
-    background: var(--al-soft);
-    border-color: #cbd5e1;
-    color: var(--al-ink);
+    background: var(--al-green-soft);
+    border-color: rgba(27, 94, 32, 0.3);
+    color: var(--al-green);
     text-decoration: none;
 }
 
 .activity-btn--primary {
-    background: var(--al-blue);
-    border-color: var(--al-blue);
+    background: var(--al-green);
+    border-color: var(--al-green);
     color: #fff;
 }
 
 .activity-btn--primary:hover {
-    background: #1a4491;
-    border-color: #1a4491;
+    background: var(--al-green-strong);
+    border-color: var(--al-green-strong);
     color: #fff;
 }
 

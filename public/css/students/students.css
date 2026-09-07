@@ -1,14 +1,15 @@
-/* Registered patrons (students / faculty) — modern shell */
+/* Registered patrons (students / faculty) — green school branding */
 
 .students-page,
 .employees-page {
     --patrons-ink: #15233b;
     --patrons-muted: #5b6b7c;
-    --patrons-line: #e6ebf2;
+    --patrons-line: #e2e8f0;
     --patrons-surface: #ffffff;
-    --patrons-soft: #f5f7fb;
-    --patrons-blue: var(--brand-button-bg, #1f4ea7);
-    --patrons-green: var(--brand-accent, #2e7d32);
+    --patrons-soft: #f4f7f5;
+    --patrons-green: #1b5e20;
+    --patrons-green-strong: #145218;
+    --patrons-green-soft: #e8f5e9;
     --patrons-gold: #d4a017;
     max-width: 100%;
     min-width: 0;
@@ -35,7 +36,7 @@
     border: 1px solid var(--patrons-line);
     border-radius: 18px;
     background:
-        linear-gradient(135deg, rgba(31, 78, 167, 0.08), rgba(46, 125, 50, 0.05)),
+        linear-gradient(135deg, rgba(27, 94, 32, 0.1), rgba(27, 94, 32, 0.03)),
         var(--patrons-surface);
 }
 
@@ -86,14 +87,14 @@
 }
 
 .patrons-tab:hover {
-    color: var(--patrons-ink);
-    background: rgba(31, 78, 167, 0.08);
+    color: var(--patrons-green);
+    background: var(--patrons-green-soft);
 }
 
 .patrons-tab.is-active,
 .patrons-tab.active {
     color: #fff;
-    background: var(--patrons-blue);
+    background: var(--patrons-green);
 }
 
 .patrons-alert {
@@ -156,8 +157,8 @@
 
 .patrons-filters .form-control:focus,
 .patrons-filters .form-select:focus {
-    border-color: rgba(31, 78, 167, 0.45);
-    box-shadow: 0 0 0 3px rgba(31, 78, 167, 0.12);
+    border-color: rgba(27, 94, 32, 0.45);
+    box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.12);
     background: #fff;
 }
 
@@ -187,14 +188,14 @@
 }
 
 .patrons-btn--primary {
-    background: var(--patrons-blue);
-    border-color: var(--patrons-blue);
+    background: var(--patrons-green);
+    border-color: var(--patrons-green);
     color: #fff !important;
 }
 
 .patrons-btn--primary:hover {
-    background: #183d86;
-    border-color: #183d86;
+    background: var(--patrons-green-strong);
+    border-color: var(--patrons-green-strong);
     color: #fff !important;
 }
 
@@ -205,20 +206,20 @@
 }
 
 .patrons-btn--ghost:hover {
-    border-color: rgba(31, 78, 167, 0.35);
-    background: rgba(31, 78, 167, 0.06);
-    color: var(--patrons-blue) !important;
+    border-color: rgba(27, 94, 32, 0.35);
+    background: var(--patrons-green-soft);
+    color: var(--patrons-green) !important;
 }
 
 .patrons-btn--soft {
-    background: rgba(46, 125, 50, 0.1);
-    border-color: rgba(46, 125, 50, 0.18);
-    color: #1f5f28 !important;
+    background: var(--patrons-green-soft);
+    border-color: rgba(27, 94, 32, 0.18);
+    color: var(--patrons-green) !important;
 }
 
 .patrons-btn--soft:hover {
-    background: rgba(46, 125, 50, 0.16);
-    color: #17491e !important;
+    background: rgba(27, 94, 32, 0.16);
+    color: var(--patrons-green-strong) !important;
 }
 
 .patrons-btn--row {
@@ -226,16 +227,16 @@
     min-width: 6.5rem;
     padding-inline: 0.8rem;
     border-radius: 999px !important;
-    background: rgba(31, 78, 167, 0.1);
-    border-color: rgba(31, 78, 167, 0.14);
-    color: var(--patrons-blue) !important;
+    background: var(--patrons-green-soft);
+    border-color: rgba(27, 94, 32, 0.16);
+    color: var(--patrons-green) !important;
 }
 
 .patrons-btn--row:hover,
 .patrons-btn--row:focus,
 .patrons-btn--row.show {
-    background: var(--patrons-blue);
-    border-color: var(--patrons-blue);
+    background: var(--patrons-green);
+    border-color: var(--patrons-green);
     color: #fff !important;
 }
 
@@ -244,9 +245,9 @@
     min-width: 6.5rem;
     padding-inline: 0.8rem;
     border-radius: 999px !important;
-    background: rgba(46, 125, 50, 0.12);
-    border-color: rgba(46, 125, 50, 0.16);
-    color: #1f5f28 !important;
+    background: var(--patrons-green-soft);
+    border-color: rgba(27, 94, 32, 0.16);
+    color: var(--patrons-green) !important;
 }
 
 .patrons-btn--row-accent:hover,
@@ -267,10 +268,10 @@
     align-items: center;
     min-height: 2.5rem;
     padding: 0 0.9rem;
-    border: 1px dashed rgba(31, 78, 167, 0.35);
+    border: 1px dashed rgba(27, 94, 32, 0.35);
     border-radius: 12px;
-    background: rgba(31, 78, 167, 0.04);
-    color: var(--patrons-blue);
+    background: var(--patrons-green-soft);
+    color: var(--patrons-green);
     font-size: 0.84rem;
     font-weight: 700;
     cursor: pointer;
@@ -360,8 +361,8 @@
     height: 44px;
     border-radius: 14px;
     overflow: hidden;
-    background: linear-gradient(145deg, #dfe8f7, #edf3ff);
-    border: 1px solid rgba(31, 78, 167, 0.12);
+    background: linear-gradient(145deg, #dcefe0, #eef7f0);
+    border: 1px solid rgba(27, 94, 32, 0.12);
 }
 
 .patron-avatar.is-fallback::before,
@@ -371,7 +372,7 @@
     place-items: center;
     width: 100%;
     height: 100%;
-    color: var(--patrons-blue);
+    color: var(--patrons-green);
     font-size: 0.82rem;
     font-weight: 800;
 }
@@ -414,8 +415,8 @@
     max-width: 18rem;
     padding: 0.28rem 0.65rem;
     border-radius: 999px;
-    background: rgba(31, 78, 167, 0.08);
-    color: #234b8f;
+    background: var(--patrons-green-soft);
+    color: var(--patrons-green);
     font-size: 0.8rem;
     font-weight: 700;
     white-space: nowrap;
@@ -469,7 +470,7 @@
 .students-page .students-row-menu__item:focus,
 .employees-page .employees-row-menu__item:hover,
 .employees-page .employees-row-menu__item:focus {
-    background: rgba(31, 78, 167, 0.08);
+    background: var(--patrons-green-soft);
     color: var(--patrons-ink);
 }
 
@@ -501,7 +502,7 @@
     gap: 0.85rem;
     padding: 0.95rem 1rem 1.1rem;
     border-top: 1px solid var(--patrons-line);
-    background: #fcfdff;
+    background: #fcfdfc;
 }
 
 .patrons-pagination {
@@ -510,6 +511,65 @@
 
 .patrons-pagination .pagination {
     margin: 0;
+}
+
+.patrons-pagination .page-link {
+    color: var(--patrons-green);
+}
+
+.patrons-pagination .page-item.active .page-link {
+    background-color: var(--patrons-green);
+    border-color: var(--patrons-green);
+    color: #fff;
+}
+
+.patrons-pagination .page-link:hover {
+    color: var(--patrons-green-strong);
+    background-color: var(--patrons-green-soft);
+    border-color: rgba(27, 94, 32, 0.25);
+}
+
+/* Bootstrap primary/outline overrides on patron workflow pages that load this CSS */
+.btn-primary {
+    --bs-btn-bg: #1b5e20;
+    --bs-btn-border-color: #1b5e20;
+    --bs-btn-hover-bg: #145218;
+    --bs-btn-hover-border-color: #145218;
+    --bs-btn-active-bg: #145218;
+    --bs-btn-active-border-color: #145218;
+    --bs-btn-disabled-bg: #1b5e20;
+    --bs-btn-disabled-border-color: #1b5e20;
+    background-color: #1b5e20;
+    border-color: #1b5e20;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active {
+    background-color: #145218 !important;
+    border-color: #145218 !important;
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #1b5e20;
+    --bs-btn-border-color: #1b5e20;
+    --bs-btn-hover-bg: #1b5e20;
+    --bs-btn-hover-border-color: #1b5e20;
+    --bs-btn-active-bg: #1b5e20;
+    --bs-btn-active-border-color: #1b5e20;
+    --bs-btn-hover-color: #fff;
+    color: #1b5e20;
+    border-color: #1b5e20;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-outline-primary.active {
+    background-color: #1b5e20 !important;
+    border-color: #1b5e20 !important;
+    color: #fff !important;
 }
 
 /* Legacy class aliases still used by employees page */
@@ -531,15 +591,15 @@
     min-height: 2.5rem;
     padding: 0.45rem 0.95rem;
     border-radius: 12px;
-    background: var(--patrons-blue);
-    border: 1px solid var(--patrons-blue);
+    background: var(--patrons-green);
+    border: 1px solid var(--patrons-green);
     color: #fff;
     font-weight: 700;
 }
 
 .employees-page .btn-add:hover,
 .students-page .btn-add:hover {
-    background: #183d86;
+    background: var(--patrons-green-strong);
     color: #fff;
 }
 
@@ -552,15 +612,15 @@
 }
 
 .employees-page .btn-warning:hover {
-    background: rgba(31, 78, 167, 0.06);
-    border-color: rgba(31, 78, 167, 0.35);
-    color: var(--patrons-blue);
+    background: var(--patrons-green-soft);
+    border-color: rgba(27, 94, 32, 0.35);
+    color: var(--patrons-green);
 }
 
 .employees-page .btn-outline-primary.active,
 .employees-page .btn-outline-primary:hover {
-    background: var(--patrons-blue);
-    border-color: var(--patrons-blue);
+    background: var(--patrons-green);
+    border-color: var(--patrons-green);
 }
 
 .employees-page .employees-row-btn {

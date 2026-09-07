@@ -1,0 +1,437 @@
+/* Circulation admin module — form emphasis & section styling */
+
+.circ-admin {
+    --circ-student: #1b5e20;
+    --circ-student-bg: #e8f5e9;
+    --circ-student-border: #a5d6a7;
+    --circ-staff: #6f42c1;
+    --circ-staff-bg: #f3ecff;
+    --circ-staff-border: #d4c2f5;
+    --circ-renewal: #e67e22;
+    --circ-renewal-bg: #fff6ec;
+    --circ-renewal-border: #ffd7ae;
+    --circ-general: #1b5e20;
+    --circ-general-bg: #edf9f1;
+    --circ-general-border: #b9e4c7;
+    --circ-search: #0dcaf0;
+    --circ-search-bg: #e8fbff;
+    --circ-search-border: #a8e9f7;
+}
+
+.circ-form-section {
+    border: 1px solid #dbe3ef;
+    border-left-width: 5px;
+    border-radius: 0.9rem;
+    padding: 1.25rem 1.35rem;
+    margin-bottom: 1.25rem;
+    background: #fff;
+    box-shadow: 0 0.2rem 0.9rem rgba(15, 23, 42, 0.05);
+}
+
+.circ-form-section:last-child {
+    margin-bottom: 0;
+}
+
+.circ-form-section--student {
+    border-left-color: var(--circ-student);
+    background: linear-gradient(135deg, #fff 0%, var(--circ-student-bg) 100%);
+}
+
+.circ-form-section--staff {
+    border-left-color: var(--circ-staff);
+    background: linear-gradient(135deg, #fff 0%, var(--circ-staff-bg) 100%);
+}
+
+.circ-form-section--renewal {
+    border-left-color: var(--circ-renewal);
+    background: linear-gradient(135deg, #fff 0%, var(--circ-renewal-bg) 100%);
+}
+
+.circ-form-section--general {
+    border-left-color: var(--circ-general);
+    background: linear-gradient(135deg, #fff 0%, var(--circ-general-bg) 100%);
+}
+
+.circ-form-section--search {
+    border-left-color: var(--circ-search);
+    background: linear-gradient(135deg, #fff 0%, var(--circ-search-bg) 100%);
+}
+
+.circ-form-section--holiday {
+    border-left-color: #dc3545;
+    background: linear-gradient(135deg, #fff 0%, #fff1f2 100%);
+}
+
+.circ-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.circ-section-heading h6,
+.circ-section-heading .circ-section-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.circ-section-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.circ-section-badge--student {
+    color: var(--circ-student);
+    background: var(--circ-student-bg);
+    border: 1px solid var(--circ-student-border);
+}
+
+.circ-section-badge--staff {
+    color: var(--circ-staff);
+    background: var(--circ-staff-bg);
+    border: 1px solid var(--circ-staff-border);
+}
+
+.circ-section-badge--renewal {
+    color: var(--circ-renewal);
+    background: var(--circ-renewal-bg);
+    border: 1px solid var(--circ-renewal-border);
+}
+
+.circ-section-badge--general {
+    color: var(--circ-general);
+    background: var(--circ-general-bg);
+    border: 1px solid var(--circ-general-border);
+}
+
+.circ-form-field {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #d7dee8;
+    border-radius: 0.75rem;
+    padding: 0.9rem 1rem;
+    height: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.circ-form-field:hover {
+    border-color: #b8c4d6;
+}
+
+.circ-form-field:focus-within {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.12);
+}
+
+.circ-form-section--staff .circ-form-field:focus-within {
+    border-color: #b9a3e8;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.12);
+}
+
+.circ-form-section--renewal .circ-form-field:focus-within {
+    border-color: #ffc58a;
+    box-shadow: 0 0 0 0.2rem rgba(230, 126, 34, 0.12);
+}
+
+.circ-form-field .form-label {
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 0.45rem;
+    font-size: 0.88rem;
+}
+
+.circ-form-field .form-control,
+.circ-form-field .form-select {
+    border: 2px solid #cfd8e3;
+    border-radius: 0.55rem;
+    padding: 0.62rem 0.8rem;
+    font-weight: 600;
+    color: #0f172a;
+    background: #fff;
+}
+
+.circ-form-field .form-control:focus,
+.circ-form-field .form-select:focus {
+    border-color: #1b5e20;
+    box-shadow: 0 0 0 0.15rem rgba(27, 94, 32, 0.15);
+}
+
+.circ-form-field .form-text {
+    margin-top: 0.45rem;
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.circ-form-toggle-box {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px dashed var(--circ-staff-border);
+    border-radius: 0.75rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.85rem;
+}
+
+.circ-form-toggle-box .form-check-input {
+    width: 2.5em;
+    height: 1.25em;
+    cursor: pointer;
+}
+
+.circ-form-toggle-box .form-check-label {
+    font-weight: 700;
+    color: #334155;
+    cursor: pointer;
+}
+
+.circ-tab-intro {
+    color: #64748b;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.65rem;
+    font-size: 0.88rem;
+}
+
+.circ-inline-form {
+    background: #f8fafc;
+    border: 1px solid #dbe3ef;
+    border-radius: 0.65rem;
+    padding: 0.65rem;
+}
+
+.circ-inline-form .form-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.circ-inline-form .form-control,
+.circ-inline-form .form-select {
+    border: 2px solid #cfd8e3;
+    font-weight: 600;
+}
+
+.circ-inline-form .form-control:focus,
+.circ-inline-form .form-select:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.15rem rgba(25, 135, 84, 0.15);
+}
+
+.circ-summary-tile {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.85rem;
+    padding: 1rem 1.1rem;
+    height: 100%;
+}
+
+.circ-summary-tile h6 {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.circ-summary-tile ul {
+    color: #475569;
+}
+
+.circ-policy-save-bar {
+    position: sticky;
+    bottom: 1rem;
+    z-index: 20;
+    margin-top: 1.25rem;
+    padding: 1rem 1.15rem;
+    border-radius: 0.9rem;
+    background: linear-gradient(135deg, #ffffff 0%, #e8f5e9 100%);
+    border: 2px solid #a5d6a7;
+    box-shadow: 0 0.65rem 1.75rem rgba(27, 94, 32, 0.12);
+}
+
+.circ-policy-save-bar .btn-primary {
+    --bs-btn-bg: #1b5e20;
+    --bs-btn-border-color: #1b5e20;
+    --bs-btn-hover-bg: #145218;
+    --bs-btn-hover-border-color: #145218;
+    background-color: #1b5e20 !important;
+    border-color: #1b5e20 !important;
+    font-weight: 700;
+    padding: 0.6rem 1.5rem;
+    box-shadow: 0 0.35rem 0.9rem rgba(27, 94, 32, 0.25);
+}
+
+.circ-policy-save-bar .btn-primary:hover,
+.circ-policy-save-bar .btn-primary:focus {
+    background-color: #145218 !important;
+    border-color: #145218 !important;
+}
+
+.circ-policy-pills .nav-link {
+    border-radius: 999px;
+    padding: 0.55rem 1.1rem;
+    font-weight: 600;
+    color: #495057;
+    background: #f1f3f5;
+    margin: 0.2rem 0.35rem 0.2rem 0;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.circ-policy-pills .nav-link:hover {
+    background: #e8f5e9;
+    color: #1b5e20;
+}
+
+.circ-policy-pills .nav-link.active {
+    background: #1b5e20;
+    color: #fff;
+    box-shadow: 0 0.25rem 0.75rem rgba(27, 94, 32, 0.25);
+}
+
+.circ-policy-tab-card {
+    border: 1px solid #dbe3ef;
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 0.35rem 1.25rem rgba(15, 23, 42, 0.06);
+}
+
+.circ-policy-tab-card .tab-pane {
+    padding: 1.5rem;
+}
+
+.circ-outstanding-total {
+    border: 2px solid #ffc107;
+    border-radius: 0.85rem;
+    background: linear-gradient(135deg, #fff 0%, #fff9e6 100%);
+    box-shadow: 0 0.25rem 0.9rem rgba(255, 193, 7, 0.15);
+}
+
+/* Compact circulation policy page */
+.circ-policy-compact .circ-form-section {
+    padding: 0.65rem 0.75rem;
+    margin-bottom: 0.65rem;
+    border-radius: 0.6rem;
+    border-left-width: 4px;
+    box-shadow: none;
+}
+
+.circ-policy-compact .circ-section-heading {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
+    gap: 0.45rem;
+}
+
+.circ-policy-compact .circ-section-heading .circ-section-title {
+    font-size: 0.88rem;
+}
+
+.circ-policy-compact .circ-section-badge {
+    font-size: 0.65rem;
+    padding: 0.12rem 0.45rem;
+}
+
+.circ-policy-compact .circ-form-field {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 0;
+    box-shadow: none;
+}
+
+.circ-policy-compact .circ-form-field:hover,
+.circ-policy-compact .circ-form-field:focus-within {
+    border: none;
+    box-shadow: none;
+}
+
+.circ-policy-compact .circ-form-field .form-label {
+    font-size: 0.78rem;
+    margin-bottom: 0.2rem;
+    font-weight: 600;
+}
+
+.circ-policy-compact .circ-form-field .form-control,
+.circ-policy-compact .circ-form-field .form-select {
+    border-width: 1px;
+    border-radius: 0.4rem;
+    padding: 0.35rem 0.55rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.circ-policy-compact .circ-form-field .form-text {
+    margin-top: 0.2rem;
+    font-size: 0.72rem;
+}
+
+.circ-policy-compact .circ-form-toggle-box {
+    padding: 0.45rem 0.55rem;
+    margin-bottom: 0.45rem;
+    border-width: 1px;
+}
+
+.circ-policy-compact .circ-form-toggle-box .form-check-label {
+    font-size: 0.85rem;
+}
+
+.circ-policy-compact .circ-policy-tab-card {
+    border-radius: 0.65rem;
+    box-shadow: 0 0.15rem 0.5rem rgba(15, 23, 42, 0.05);
+}
+
+.circ-policy-compact .circ-policy-tab-card .tab-pane {
+    padding: 0.75rem;
+}
+
+.circ-policy-compact .circ-policy-pills .nav-link {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+    margin: 0.1rem 0.2rem 0.1rem 0;
+}
+
+.circ-policy-compact .circ-policy-save-bar {
+    margin-top: 0.65rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.6rem;
+    border-width: 1px;
+    box-shadow: 0 0.2rem 0.6rem rgba(27, 94, 32, 0.1);
+    bottom: 0.5rem;
+}
+
+.circ-policy-compact .circ-summary-tile {
+    padding: 0.55rem 0.65rem;
+    border-radius: 0.55rem;
+}
+
+.circ-policy-compact .circ-summary-tile h6 {
+    font-size: 0.82rem;
+}
+
+.circ-policy-compact .circ-summary-tile ul {
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+.circ-policy-compact .circ-summary-tile--student {
+    border-left: 3px solid var(--circ-student);
+}
+
+.circ-policy-compact .circ-summary-tile--staff {
+    border-left: 3px solid var(--circ-staff);
+}
+
+.circ-policy-compact .circ-policy-page-head h4 {
+    font-size: 1.15rem;
+    font-weight: 700;
+}

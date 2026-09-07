@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Mobile\Concerns\ResolvesMobileStudent;
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\BookReservation;
+use App\Models\Setting;
 use App\Models\StudentNotification;
 use App\Models\User;
 use App\Services\AdminActivityLogger;
@@ -20,8 +21,6 @@ use Illuminate\Support\Facades\DB;
 class BookReservationController extends Controller
 {
     use ResolvesMobileStudent;
-
-    private const HOLD_DURATION_HOURS = 48;
 
     public function store(Request $request): JsonResponse
     {
@@ -189,7 +188,7 @@ class BookReservationController extends Controller
         }
 
         $now = Carbon::now('Asia/Manila');
-        $holdExpires = $now->copy()->addHours(self::HOLD_DURATION_HOURS);
+        $holdExpires = $now->copy()->addDays(Setting::reservationHoldDays());
 
         app(CirculationService::class)->placeHold($returnedBook);
 

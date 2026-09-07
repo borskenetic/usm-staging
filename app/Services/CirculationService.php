@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Http\Controllers\BookController;
 use App\Http\Controllers\Api\Mobile\BookReservationController;
+use App\Http\Controllers\BookController;
 use App\Models\Book;
 use App\Models\BookLog;
+use App\Models\BookReservation;
 use App\Models\FineSetting;
 use App\Models\Holiday;
-use App\Models\BookReservation;
 use App\Models\Student;
 use App\Models\User;
 use Carbon\Carbon;
@@ -48,9 +48,9 @@ class CirculationService
         }
 
         $currentLoans = BookLog::countActiveLoansForStudent((int) $student->id);
-        if ($currentLoans >= BookController::MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT) {
+        if ($currentLoans >= BookController::maxConcurrentLoansPerStudent()) {
             return 'Checkout blocked: patron may have at most '
-                .BookController::MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT.' books on loan at a time.';
+                .BookController::maxConcurrentLoansPerStudent().' books on loan at a time.';
         }
 
         return null;
@@ -66,7 +66,7 @@ class CirculationService
         $fineSetting = FineSetting::currentOrDefault();
         $borrowedAt = Carbon::now('Asia/Manila');
         $patronName = "{$student->lastname}, {$student->firstname}";
-        $dueDate = $this->addBusinessDays($borrowedAt, (int) $fineSetting->loan_duration_days);
+        $dueDate = $this->addBusinessDays($borrowedAt, (int) $fineSetting->studentLoanDurationDays());
 
         return DB::transaction(function () use ($student, $book, $borrowedAt, $patronName, $dueDate) {
             $lockedBook = Book::query()->whereKey($book->id)->lockForUpdate()->firstOrFail();
@@ -118,7 +118,7 @@ class CirculationService
         $fineSetting = FineSetting::currentOrDefault();
         $borrowedAt = Carbon::now('Asia/Manila');
         $patronName = "{$student->lastname}, {$student->firstname}";
-        $dueDate = $this->addBusinessDays($borrowedAt, (int) $fineSetting->loan_duration_days);
+        $dueDate = $this->addBusinessDays($borrowedAt, (int) $fineSetting->studentLoanDurationDays());
 
         return DB::transaction(function () use ($student, $book, $borrowedAt, $patronName, $dueDate) {
             $lockedBook = Book::query()->whereKey($book->id)->lockForUpdate()->firstOrFail();
@@ -307,7 +307,7 @@ class CirculationService
         }
 
         $returnedAt = Carbon::parse($latestReturn)->timezone('Asia/Manila');
-        $allowedAt = $returnedAt->copy()->addDays(BookController::REBORROW_COOLDOWN_DAYS);
+        $allowedAt = $returnedAt->copy()->addDays(BookController::reborrowCooldownDays());
 
         if (Carbon::now('Asia/Manila')->lt($allowedAt)) {
             return 'Re-borrow cooldown active until '.$allowedAt->format('Y-m-d').'.';

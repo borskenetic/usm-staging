@@ -1,5 +1,41 @@
 @extends('layouts.sidebar')
 
+@section('styles')
+    <link rel="stylesheet" href="{{ asset('css/students/students.css') }}?v={{ filemtime(public_path('css/students/students.css')) }}">
+    <style>
+        .nav-tabs .nav-link.active {
+            color: #1b5e20;
+            border-color: #e2e8f0 #e2e8f0 #fff;
+            font-weight: 700;
+        }
+        .nav-tabs .nav-link {
+            color: #5b6b7c;
+            font-weight: 650;
+        }
+        .nav-tabs .nav-link:hover {
+            color: #1b5e20;
+            border-color: #e8f5e9 #e8f5e9 #e2e8f0;
+        }
+        .btn-info {
+            --bs-btn-bg: #e8f5e9;
+            --bs-btn-border-color: rgba(27, 94, 32, 0.2);
+            --bs-btn-color: #1b5e20;
+            --bs-btn-hover-bg: #1b5e20;
+            --bs-btn-hover-border-color: #1b5e20;
+            --bs-btn-hover-color: #fff;
+            background-color: #e8f5e9;
+            border-color: rgba(27, 94, 32, 0.2);
+            color: #1b5e20;
+        }
+        .btn-info:hover,
+        .btn-info:focus {
+            background-color: #1b5e20 !important;
+            border-color: #1b5e20 !important;
+            color: #fff !important;
+        }
+    </style>
+@endsection
+
 @section('content')
 <div class="container">
     <h3>Pending Edit Requests</h3>

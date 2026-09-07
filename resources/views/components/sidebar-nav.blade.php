@@ -205,7 +205,12 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('fines.outstanding') }}" class="sidebar-link {{ request()->routeIs('fines.*') ? 'active' : '' }}">
+                    <a href="{{ route('circulation.policy.edit') }}" class="sidebar-link {{ request()->routeIs('circulation.policy.*') ? 'active' : '' }}">
+                        <i class="bi bi-sliders"></i> Circulation Policy
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('fines.outstanding') }}" class="sidebar-link {{ request()->routeIs('fines.outstanding', 'fines.logs.clear') ? 'active' : '' }}">
                         <i class="bi bi-exclamation-circle"></i> Fines
                     </a>
                 </li>
@@ -313,11 +318,6 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('library.attendance.activities') }}" class="sidebar-link {{ request()->routeIs('library.attendance.activities') ? 'active' : '' }}">
-                        <i class="bi bi-activity"></i> Activity log
-                    </a>
-                </li>
-                <li>
                     <a href="{{ route('library.attendance.feedback.settings') }}" class="sidebar-link {{ request()->routeIs('library.attendance.feedback.settings') ? 'active' : '' }}">
                         <i class="bi bi-gear"></i> Feedback Settings
                     </a>
@@ -331,6 +331,11 @@
                 <i class="bi bi-chevron-down sidebar-chevron"></i>
             </button>
             <ul class="sidebar-group-items" id="sidebar-group-library-utilities" role="list">
+                <li>
+                    <a href="{{ route('library.attendance.activities') }}" class="sidebar-link {{ request()->routeIs('library.attendance.activities') ? 'active' : '' }}">
+                        <i class="bi bi-activity"></i> Activity log
+                    </a>
+                </li>
                 <li>
                     <a href="{{ route('files.index') }}" class="sidebar-link {{ request()->routeIs('files.*') ? 'active' : '' }}">
                         <i class="bi bi-folder2-open"></i> Repository

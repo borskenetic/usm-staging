@@ -270,7 +270,7 @@ class AggregateController extends Controller
 
     private function borrowLimitsFromCache(Student $student, int $currentLoans, bool $hasOverdue): array
     {
-        $maxLoans = BookController::MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT;
+        $maxLoans = BookController::maxConcurrentLoansPerStudent();
         $fineSetting = BookLog::cachedFineSettings();
 
         return [
@@ -279,9 +279,9 @@ class AggregateController extends Controller
             'remaining_loans' => max(0, $maxLoans - $currentLoans),
             'has_overdue' => $hasOverdue,
             'can_borrow' => $currentLoans < $maxLoans && ! $hasOverdue,
-            'reborrow_cooldown_days' => BookController::REBORROW_COOLDOWN_DAYS,
+            'reborrow_cooldown_days' => BookController::reborrowCooldownDays(),
             'fine_settings_configured' => $fineSetting->exists,
-            'loan_duration_days' => $fineSetting->loan_duration_days,
+            'loan_duration_days' => $fineSetting->studentLoanDurationDays(),
             'grace_period_days' => $fineSetting->grace_period_days,
         ];
     }
@@ -325,7 +325,7 @@ class AggregateController extends Controller
         $normalizedCourse = mb_strtolower($course);
         $cacheKey = 'mobile:recommendations:'.$student->id.':'.$normalizedCourse;
 
-        return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($student, $course) {
+        return Cache::remember($cacheKey, now()->addMinutes(15), function () use ($course) {
             if ($course === '') {
                 return [];
             }

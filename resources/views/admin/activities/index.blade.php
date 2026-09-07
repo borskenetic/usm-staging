@@ -17,7 +17,7 @@
 <div class="container-fluid px-3 px-lg-4 py-4 activity-page">
     <header class="activity-page__head d-flex flex-wrap justify-content-between align-items-start gap-2">
         <div>
-            <p class="activity-page__kicker">Library Attendance · Reports</p>
+            <p class="activity-page__kicker">Utilities · Library</p>
             <h1 class="activity-page__title">Activity log</h1>
             <p class="activity-page__subtitle">Patron notifications and staff actions, separated by tab.</p>
         </div>

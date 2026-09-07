@@ -175,17 +175,36 @@
             display: inline-block;
         }
         .btn-register{
-            background-color: #5E936C;
+            background-color: #1b5e20;
             border-radius: 5px;
             color: white;
             font-weight: bold;
             
         }
         .btn-register:hover{
-            background-color: #3E5F44;
+            background-color: #145218;
             border-radius: 5px;
             color: white;
         }
+
+        .btn-primary {
+            --bs-btn-bg: #1b5e20;
+            --bs-btn-border-color: #1b5e20;
+            --bs-btn-hover-bg: #145218;
+            --bs-btn-hover-border-color: #145218;
+            --bs-btn-active-bg: #145218;
+            --bs-btn-active-border-color: #145218;
+            background-color: #1b5e20 !important;
+            border-color: #1b5e20 !important;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-primary:active {
+            background-color: #145218 !important;
+            border-color: #145218 !important;
+        }
+
         * {
     border-radius: 0 !important;
 }

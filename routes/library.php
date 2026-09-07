@@ -10,6 +10,7 @@ use App\Http\Controllers\BorrowRequestAdminController;
 use App\Http\Controllers\CatalogFrameworkAdminController;
 use App\Http\Controllers\CatalogMarcSelectOptionsController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CirculationPolicyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EbookController;
 use App\Http\Controllers\EmployeeController;
@@ -18,7 +19,6 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\FineClearanceController;
-use App\Http\Controllers\FineSettingController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\IdCardController;
 use App\Http\Controllers\LibraryAttendanceController;
@@ -213,8 +213,9 @@ Route::middleware(['auth', 'library.admin'])->group(function (): void {
     Route::put('/rooms/{id}', [RoomController::class, 'update'])->name('rooms.update');
     Route::delete('/rooms/{id}', [RoomController::class, 'destroy'])->name('rooms.destroy');
 
-    Route::get('/admin/fines', [FineSettingController::class, 'edit'])->name('fines.edit');
-    Route::post('/admin/fines', [FineSettingController::class, 'update'])->name('fines.update');
+    Route::get('/admin/circulation-policy', [CirculationPolicyController::class, 'edit'])->name('circulation.policy.edit');
+    Route::post('/admin/circulation-policy', [CirculationPolicyController::class, 'update'])->name('circulation.policy.update');
+    Route::redirect('/admin/fines', '/admin/circulation-policy')->name('fines.edit');
     Route::get('/admin/fines/outstanding', [FineClearanceController::class, 'index'])->name('fines.outstanding');
     Route::post('/admin/fines/logs/{bookLog}/clear', [FineClearanceController::class, 'clear'])->name('fines.logs.clear');
 

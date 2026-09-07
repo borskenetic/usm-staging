@@ -24,12 +24,12 @@
         }
 
         .btn-save {
-            background-color: #007bff;
+            background-color: #1b5e20;
             color: white;
         }
 
         .btn-save:hover {
-            background-color: #0056b3;
+            background-color: #145218;
         }
     </style>
 </head>

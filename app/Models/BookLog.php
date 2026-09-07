@@ -65,6 +65,11 @@ class BookLog extends Model
         return self::$cachedFineSetting ??= FineSetting::currentOrDefault();
     }
 
+    public static function forgetCachedFineSettings(): void
+    {
+        self::$cachedFineSetting = null;
+    }
+
     /**
      * Latest log per book is Checked Out for this student (includes room use).
      */
@@ -174,13 +179,14 @@ class BookLog extends Model
         }
 
         $settings = self::cachedFineSettings();
+        $terms = $settings->patronTerms($this->employee_id !== null);
 
         $compareDate = $this->returned_date
             ? Carbon::parse($this->returned_date)
             : Carbon::now('Asia/Manila');
 
         $graceEnd = Carbon::parse($this->due_date)
-            ->addDays($settings->grace_period_days);
+            ->addDays($terms->grace_period_days);
 
         if ($compareDate->lte($graceEnd)) {
             return 0;
@@ -208,11 +214,12 @@ class BookLog extends Model
         }
 
         $settings = self::cachedFineSettings();
+        $terms = $settings->patronTerms($this->employee_id !== null);
 
-        $fine = $this->days_overdue * $settings->fine_per_day;
+        $fine = $this->days_overdue * $terms->fine_per_day;
 
-        if (! is_null($settings->max_fine)) {
-            $fine = min($fine, $settings->max_fine);
+        if (! is_null($terms->max_fine)) {
+            $fine = min($fine, $terms->max_fine);
         }
 
         return round($fine, 2);

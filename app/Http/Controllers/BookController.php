@@ -7,6 +7,7 @@ use App\Models\BookMarcField;
 use App\Models\Ebook;
 use App\Models\Program;
 use App\Models\ProgramCourse;
+use App\Models\Setting;
 use App\Services\AdminActivityLogger;
 use App\Services\BookMarcDisplay;
 use App\Support\PublicStoragePublisher;
@@ -25,16 +26,30 @@ class BookController extends Controller
     public function __construct(protected BookMarcDisplay $marcDisplay) {}
 
     /**
-     * Max number of active loans (check-out or room use) one patron may have at once.
-     * Enforced in {@see \App\Http\Controllers\BookLogController} and {@see \App\Http\Controllers\CheckoutController}.
+     * @deprecated Prefer Setting::maxLoansForStudents() — kept for call-site compatibility.
      */
-    public const MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT = 3;
+    public const MAX_CONCURRENT_BOOK_LOANS_PER_STUDENT = 5;
 
-    /** Max number of renewals allowed per loan. */
+    /** @deprecated Prefer Setting::maxRenewalsPerLoan() */
     public const MAX_RENEWALS_PER_LOAN = 3;
 
-    /** Cooldown (in days) before the same patron can borrow the same book again after return. */
+    /** @deprecated Prefer Setting::reborrowCooldownDays() */
     public const REBORROW_COOLDOWN_DAYS = 7;
+
+    public static function maxConcurrentLoansPerStudent(): int
+    {
+        return Setting::maxLoansForStudents();
+    }
+
+    public static function maxRenewalsPerLoan(): int
+    {
+        return Setting::maxRenewalsPerLoan();
+    }
+
+    public static function reborrowCooldownDays(): int
+    {
+        return Setting::reborrowCooldownDays();
+    }
 
     protected function applyBookSearch($query, ?string $search)
     {
