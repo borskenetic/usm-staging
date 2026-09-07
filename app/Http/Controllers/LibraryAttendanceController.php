@@ -8,7 +8,9 @@ use App\Models\LibraryAttendanceLog;
 use App\Models\LibraryAttendanceSetting;
 use App\Models\LibraryEmployee;
 use App\Models\LibraryStudent;
+use App\Models\Program;
 use App\Models\Student;
+use App\Services\LibraryPatronVisitReportService;
 use App\Support\PatronNameSearch;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -20,6 +22,7 @@ use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LibraryAttendanceController extends Controller
 {
@@ -125,16 +128,38 @@ class LibraryAttendanceController extends Controller
         );
     }
 
-    public function reports(): View
+    public function reports(Request $request, LibraryPatronVisitReportService $visitReports): View
     {
-        $totalIns = LibraryAttendanceLog::query()->where('status', 'IN')->count();
-        $totalOuts = LibraryAttendanceLog::query()->where('status', 'OUT')->count();
-        $todayIns = LibraryAttendanceLog::query()
-            ->where('status', 'IN')
-            ->whereDate('scanned_at', Carbon::now('Asia/Manila')->toDateString())
-            ->count();
+        $tab = $visitReports->resolveScope($request->query('tab'));
 
-        return view('library.attendance.reports', compact('totalIns', 'totalOuts', 'todayIns'));
+        return view('library.attendance.reports_hub', [
+            'tab' => $tab,
+        ]);
+    }
+
+    public function reportsDashboard(Request $request, LibraryPatronVisitReportService $visitReports): View
+    {
+        $tab = $visitReports->resolveScope($request->query('tab'));
+        $only = $request->query('only');
+        $from = $request->query('from');
+        $to = $request->query('to');
+        $programNameByCode = Program::query()->pluck('program_name', 'program_code');
+
+        return view('library.attendance.reports_dashboard', array_merge(
+            compact('tab', 'programNameByCode', 'only', 'from', 'to'),
+            $visitReports->build($from, $to, $tab)
+        ));
+    }
+
+    public function reportsExportCsv(Request $request, LibraryPatronVisitReportService $visitReports): StreamedResponse
+    {
+        $tab = $visitReports->resolveScope($request->query('tab'));
+
+        return $visitReports->streamCsvResponse(
+            $request->query('from'),
+            $request->query('to'),
+            $tab
+        );
     }
 
     public function feedback(Request $request): JsonResponse

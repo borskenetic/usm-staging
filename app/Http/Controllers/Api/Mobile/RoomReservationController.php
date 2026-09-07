@@ -12,6 +12,7 @@ use App\Models\Room;
 use App\Models\RoomReservation;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\AdminActivityLogger;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -175,6 +176,12 @@ class RoomReservationController extends Controller
 
             return $reservation->load(['room', 'students']);
         });
+
+        app(AdminActivityLogger::class)->roomReservationPending(
+            $reservation,
+            (string) ($reservation->room?->name ?? 'Room'),
+            (string) $date,
+        );
 
         return response()->json([
             'message' => 'Room reservation submitted.',

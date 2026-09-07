@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Api\Mobile\Concerns\ResolvesMobileStudent;
 use App\Http\Controllers\Controller;
 use App\Models\StudentEditRequest;
+use App\Services\AdminActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -49,7 +50,7 @@ class ProfileController extends Controller
 
         $course = $validated['course'] ?? $student->course;
 
-        StudentEditRequest::query()->create([
+        $editRequest = StudentEditRequest::query()->create([
             'student_id' => $student->id,
             'lastname' => $validated['last_name'],
             'firstname' => $validated['first_name'],
@@ -65,6 +66,11 @@ class ProfileController extends Controller
             'emergency_address' => $validated['emergency_address'] ?? $student->emergency_address,
             'status' => 'pending',
         ]);
+
+        app(AdminActivityLogger::class)->patronEditRequest(
+            $editRequest,
+            "{$student->lastname}, {$student->firstname}",
+        );
 
         return $this->profileResponse($request, 'Edit request submitted for approval.');
     }

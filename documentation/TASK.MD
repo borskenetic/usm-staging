@@ -19,6 +19,9 @@ Reference plan:
 
 ## Active Work
 
+- [x] Replace stub Library Visit Reports with usm-main-style hub/dashboard/CSV analytics for Students and Faculty & Staff, using green school branding over `library_attendance_logs`.
+- [x] Port usm-main Activity log under Library Attendance (patron/staff tabs, date filters, card feed, Open links) with patron-initiated audit events.
+- [x] Add branded web `403` error page with logo/brand colors and Back to dashboard link for unauthorized staff access.
 - [x] Upgrade `/library/attendance/logs` with green attendance-logs UI, filters, `Lastname, Firstname` search, PDF/Excel export, and no Section column.
 - [x] Split Library attendance logs into Students and Faculty & Staff tabs with tab-scoped filters/exports.
 - [x] Align Faculty & Staff patrons table with Registered Students design; instant Students ↔ Faculty tab switch; support `Lastname, Firstname` search.
@@ -476,6 +479,8 @@ Goal: allow the isolated Developer role to customize the public Attendance and L
 - Current `pantas-v2.5` uses simple `users.role` values such as `admin`, `staff`, `student`, and `faculty`.
 - `pantas-v2.5` owns `/api/mobile`, so schema changes must account for Pantas-UI.
 - Library attendance and school Attendance must be explicitly isolated in schema, routes, controllers, and tests.
+- Library Visit Reports previously showed only three summary counts. They now mirror school Attendance analytics (hub → dashboard → CSV) over `library_attendance_logs`, with Students and Faculty & Staff scopes and green school branding.
+- Library Activity log now lives under Library Attendance (`/library/attendance/activities`) for library admins, with Patron notifications / Staff activity tabs, date filters, and Open links. Patron-initiated events (registration, edit request, feedback, room/book reservation, self checkout) write dedicated activity types.
 - Spatie permission config/migrations existed, but the package dependency was missing and the existing role migration was not Spatie-compatible.
 - The test suite was configured to use the local MySQL database. It now uses SQLite in-memory for safer repeatable tests.
 - Full-suite testing still exposes older Breeze/profile/password-reset tests for routes not currently registered by this app.

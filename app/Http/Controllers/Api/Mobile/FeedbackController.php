@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Feedback;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\AdminActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class FeedbackController extends Controller
 {
@@ -34,6 +36,11 @@ class FeedbackController extends Controller
             'student_id' => $studentId,
             'comments' => $validated['comments'],
         ]);
+
+        app(AdminActivityLogger::class)->feedbackSubmitted(
+            Str::limit((string) $validated['comments'], 120),
+            $feedback,
+        );
 
         return response()->json([
             'message' => 'Feedback submitted successfully.',

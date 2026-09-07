@@ -128,17 +128,6 @@
             </li>
         </ul>
 
-        <button class="sidebar-group-label" data-group="system-activity" aria-expanded="false" aria-controls="sidebar-group-system-activity">
-            <span><i class="bi bi-activity sidebar-group-icon"></i>Activity</span>
-            <i class="bi bi-chevron-down sidebar-chevron"></i>
-        </button>
-        <ul class="sidebar-group-items" id="sidebar-group-system-activity" role="list">
-            <li>
-                <a href="{{ route('admin.activities.index') }}" class="sidebar-link {{ request()->routeIs('admin.activities.*') ? 'active' : '' }}">
-                    <i class="bi bi-list-check"></i> Admin Activity
-                </a>
-            </li>
-        </ul>
     @endif
 
     @if ($showLibraryNav)
@@ -319,8 +308,13 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('library.attendance.reports') }}" class="sidebar-link {{ request()->routeIs('library.attendance.reports') ? 'active' : '' }}">
+                    <a href="{{ route('library.attendance.reports') }}" class="sidebar-link {{ request()->routeIs('library.attendance.reports*') ? 'active' : '' }}">
                         <i class="bi bi-bar-chart"></i> Visit Reports
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('library.attendance.activities') }}" class="sidebar-link {{ request()->routeIs('library.attendance.activities') ? 'active' : '' }}">
+                        <i class="bi bi-activity"></i> Activity log
                     </a>
                 </li>
                 <li>

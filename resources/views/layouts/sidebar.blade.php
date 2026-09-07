@@ -81,7 +81,7 @@
         ['label' => 'Attendance Scanner', 'route' => 'attendance.scan', 'icon' => 'bi-upc-scan', 'group' => 'Attendance'],
         ['label' => 'Attendance Logs', 'route' => 'attendance_logs.index', 'icon' => 'bi-list-check', 'group' => 'Attendance'],
         ['label' => 'Reports Hub', 'route' => 'attendance_logs.reports.hub', 'icon' => 'bi-bar-chart', 'group' => 'Reports'],
-        ['label' => 'Admin Activity', 'route' => 'admin.activities.index', 'icon' => 'bi-activity', 'group' => 'Activity'],
+        ['label' => 'Activity log', 'route' => 'library.attendance.activities', 'icon' => 'bi-activity', 'group' => 'Library'],
         ['label' => 'Feedback Settings', 'route' => 'attendance.feedback.settings', 'icon' => 'bi-gear', 'group' => 'Settings'],
         ])->filter(fn ($item) => Route::has($item['route']))->values();
 @endphp

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Feedback;
+use App\Services\AdminActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -21,12 +22,15 @@ class FeedbackController extends Controller
             'comments' => 'required|string|max:5000',
         ]);
 
-        Feedback::create([
+        $feedback = Feedback::create([
             'name' => $request->name,
             'email' => $request->email,
             'source' => 'web',
             'comments' => $request->comments,
         ]);
+
+        $preview = \Illuminate\Support\Str::limit((string) $request->comments, 120);
+        app(AdminActivityLogger::class)->feedbackSubmitted($preview, $feedback);
 
         return redirect()->back()->with('success', 'Thank you! Your feedback has been submitted.');
     }

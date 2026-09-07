@@ -54,6 +54,10 @@ class ModuleAccessFoundationTest extends TestCase
         $response = $this->actingAs($user)->get('/dashboard/attendance-staff');
 
         $response->assertForbidden();
+        $response->assertSee('403', false);
+        $response->assertSee('FORBIDDEN', false);
+        $response->assertSee('Back to dashboard', false);
+        $response->assertSee(route('dashboard', absolute: false), false);
     }
 
     public function test_user_can_switch_to_authorized_module(): void

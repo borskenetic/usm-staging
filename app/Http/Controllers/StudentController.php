@@ -449,7 +449,7 @@ class StudentController extends Controller
             $photoPath = 'images/edits/'.$filename;
         }
 
-        StudentEditRequest::create([
+        $editRequest = StudentEditRequest::create([
             'student_id' => $student->id,
             'lastname' => $request->lastname,
             'firstname' => $request->firstname,
@@ -465,6 +465,11 @@ class StudentController extends Controller
             'emergency_address' => $request->emergency_address,
             'profile_picture' => $photoPath,
         ]);
+
+        app(AdminActivityLogger::class)->patronEditRequest(
+            $editRequest,
+            "{$student->lastname}, {$student->firstname}",
+        );
 
         return back()->with('success', 'Edit request submitted for approval.');
     }

@@ -1,0 +1,198 @@
+/* Library Activity log — under Library Attendance */
+
+.activity-page {
+    --al-ink: #15233b;
+    --al-muted: #5b6b7c;
+    --al-line: #e2e8f0;
+    --al-surface: #ffffff;
+    --al-soft: #f4f7f5;
+    --al-green: #1b5e20;
+    --al-green-strong: #145218;
+    --al-green-soft: #e8f5e9;
+    --al-blue: #1f4ea7;
+    max-width: 100%;
+}
+
+.activity-page__head {
+    margin-bottom: 1rem;
+}
+
+.activity-page__kicker {
+    margin: 0 0 0.25rem;
+    color: var(--al-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.activity-page__title {
+    margin: 0;
+    color: var(--al-green);
+    font-size: clamp(1.6rem, 2.4vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.activity-page__subtitle {
+    margin: 0.4rem 0 0;
+    max-width: 42rem;
+    color: var(--al-muted);
+    font-size: 0.95rem;
+}
+
+.activity-page__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.activity-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.15rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 0.65rem;
+    border: 1px solid var(--al-line);
+    background: #fff;
+    color: var(--al-ink);
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.activity-btn:hover {
+    background: var(--al-soft);
+    border-color: #cbd5e1;
+    color: var(--al-ink);
+    text-decoration: none;
+}
+
+.activity-btn--primary {
+    background: var(--al-blue);
+    border-color: var(--al-blue);
+    color: #fff;
+}
+
+.activity-btn--primary:hover {
+    background: #1a4491;
+    border-color: #1a4491;
+    color: #fff;
+}
+
+.activity-filter {
+    margin-bottom: 1rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--al-line);
+    border-radius: 12px;
+    background: var(--al-surface);
+}
+
+.activity-filter__grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+.activity-filter__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 10rem;
+}
+
+.activity-filter__field label {
+    margin: 0;
+    color: var(--al-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.activity-filter__field input[type="date"] {
+    min-height: 2.15rem;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--al-line);
+    border-radius: 0.55rem;
+    font-size: 0.9rem;
+}
+
+.activity-filter__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.activity-pills {
+    display: inline-flex;
+    flex-wrap: wrap;
+    padding: 0.25rem;
+    margin: 0 0 1rem;
+    list-style: none;
+    gap: 0.2rem;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid var(--al-line);
+}
+
+.activity-pills .nav-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.15rem;
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    color: var(--al-muted);
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.activity-pills .nav-link:hover {
+    background: var(--al-soft);
+    color: var(--al-ink);
+}
+
+.activity-pills .nav-link.active {
+    background: var(--al-green);
+    color: #fff;
+}
+
+.activity-feed-card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--al-line);
+    background: var(--al-surface);
+}
+
+.activity-feed-item {
+    padding: 1rem 1.15rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.activity-feed-item:last-child {
+    border-bottom: 0;
+}
+
+.activity-feed-item__type {
+    text-transform: capitalize;
+    font-weight: 600;
+    background: var(--al-soft) !important;
+    color: var(--al-ink) !important;
+}
+
+.activity-feed-item__title {
+    margin: 0 0 0.25rem;
+    color: var(--al-ink);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.activity-feed-empty {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: var(--al-muted);
+}

@@ -98,6 +98,13 @@ class PendingEmployeeController extends Controller
 
         PendingEmployee::create($validated);
 
+        $name = trim(($validated['lastname'] ?? '').', '.($validated['firstname'] ?? ''), ' ,');
+        app(AdminActivityLogger::class)->patronRegistration(
+            'employee',
+            $name !== '' ? $name : 'Employee',
+            (string) ($validated['employee_id'] ?? ''),
+        );
+
         return back()
             ->with('auth_modal', 'register')
             ->with('auth_service', 'library')

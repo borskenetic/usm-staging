@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActiveCheckoutController;
+use App\Http\Controllers\AdminActivityController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookImportController;
 use App\Http\Controllers\BookLogController;
@@ -130,6 +131,9 @@ Route::middleware(['auth', 'library.admin'])->group(function (): void {
     Route::get('/library/attendance/logs/export/pdf', [LibraryAttendanceController::class, 'exportPdf'])->name('library.attendance.logs.export.pdf');
     Route::get('/library/attendance/logs/export/excel', [LibraryAttendanceController::class, 'exportExcel'])->name('library.attendance.logs.export.excel');
     Route::get('/library/attendance/logs/reports', [LibraryAttendanceController::class, 'reports'])->name('library.attendance.reports');
+    Route::get('/library/attendance/logs/reports/dashboard', [LibraryAttendanceController::class, 'reportsDashboard'])->name('library.attendance.reports.dashboard');
+    Route::get('/library/attendance/logs/reports/export', [LibraryAttendanceController::class, 'reportsExportCsv'])->name('library.attendance.reports.export');
+    Route::get('/library/attendance/activities', [AdminActivityController::class, 'index'])->name('library.attendance.activities');
 
     Route::prefix('prospectus')->name('prospectus.')->group(function (): void {
         Route::get('/', [ProspectusController::class, 'index'])->name('index');

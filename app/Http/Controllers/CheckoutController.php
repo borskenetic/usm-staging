@@ -7,6 +7,7 @@ use App\Models\BookLog;
 use App\Models\FineSetting;
 use App\Models\Holiday;
 use App\Models\Student;
+use App\Services\AdminActivityLogger;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -152,6 +153,8 @@ class CheckoutController extends Controller
                     'message' => 'No available copies could be checked out (some may be blocked by the 1-week re-borrow cooldown).',
                 ]);
             }
+
+            app(AdminActivityLogger::class)->selfCheckout($patronLegacyName, count($processedBooks));
 
             return response()->json([
                 'success' => true,
@@ -305,6 +308,12 @@ class CheckoutController extends Controller
                 'due_date' => $dueDate->format('Y-m-d'),
             ];
         }
+
+        if ($results === []) {
+            return response()->json(['success' => false, 'message' => 'No available copies could be checked out.']);
+        }
+
+        app(AdminActivityLogger::class)->selfCheckout($patronLegacyName, count($results));
 
         return response()->json([
             'success' => true,

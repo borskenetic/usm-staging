@@ -78,7 +78,7 @@ class RoomReservationController extends Controller
         }
 
         // ✅ Insert data safely
-        \DB::transaction(function () use ($request, $startTime, $endTime) {
+        $reservation = \DB::transaction(function () use ($request, $startTime, $endTime) {
             $reservation = RoomReservation::create([
                 'room_id' => $request->room_id,
                 'date' => $request->date,
@@ -102,7 +102,15 @@ class RoomReservationController extends Controller
                 'action' => 'created',
                 'meta' => json_encode($request->all()),
             ]);
+
+            return $reservation->load('room');
         });
+
+        app(AdminActivityLogger::class)->roomReservationPending(
+            $reservation,
+            (string) ($reservation->room?->name ?? 'Room'),
+            (string) $reservation->date,
+        );
 
         return back()->with('success', 'Reservation submitted and pending approval.');
     }

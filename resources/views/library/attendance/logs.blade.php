@@ -57,7 +57,7 @@
     </header>
 
     <div class="ll-toolbar">
-        <a href="{{ route('library.attendance.reports') }}" class="ll-btn ll-btn--active">
+        <a href="{{ route('library.attendance.reports', ['tab' => $tab]) }}" class="ll-btn ll-btn--active">
             <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
             Reports &amp; analytics
         </a>

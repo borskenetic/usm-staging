@@ -105,11 +105,17 @@ class RoleDashboardExperienceTest extends TestCase
 
     public function test_admin_activity_and_attendance_pending_pages_keep_existing_permissions(): void
     {
+        $this->withoutVite();
+
         $superAdmin = $this->staffUser('super_admin');
+        $libraryAdmin = $this->staffUser('library_admin');
+        $libraryStaff = $this->staffUser('library_staff');
         $attendanceAdmin = $this->staffUser('attendance_admin');
         $attendanceStaff = $this->staffUser('attendance_staff');
 
-        $this->actingAs($superAdmin)->get('/admin-activities')->assertOk();
+        $this->actingAs($superAdmin)->get('/library/attendance/activities')->assertOk();
+        $this->actingAs($libraryAdmin)->get('/library/attendance/activities')->assertOk();
+        $this->actingAs($libraryStaff)->get('/library/attendance/activities')->assertForbidden();
         $this->actingAs($attendanceAdmin)->get('/attendance/pending')->assertOk();
         $this->actingAs($attendanceStaff)->get('/attendance/pending')->assertForbidden();
     }

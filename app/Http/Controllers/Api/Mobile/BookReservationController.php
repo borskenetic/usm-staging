@@ -10,6 +10,7 @@ use App\Models\Book;
 use App\Models\BookReservation;
 use App\Models\StudentNotification;
 use App\Models\User;
+use App\Services\AdminActivityLogger;
 use App\Services\CirculationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -80,6 +81,12 @@ class BookReservationController extends Controller
             'title' => 'Reservation queued',
             'message' => "You are #{$queuePosition} in the queue for \"{$title}\".",
         ]);
+
+        app(AdminActivityLogger::class)->bookReservationPending(
+            $reservation,
+            "{$student->lastname}, {$student->firstname}",
+            (string) $title,
+        );
 
         return response()->json([
             'message' => "Book reserved. You are #{$queuePosition} in the queue.",
