@@ -874,28 +874,10 @@
      display: grid;
      grid-template-columns: minmax(210px, 240px) minmax(0, 1fr);
      grid-template-areas:
-         "hero hero"
          "filters catalog";
      gap: 1.25rem;
      align-items: start;
      margin-top: 1rem;
- }
-
- .books-index-hero {
-     grid-area: hero;
-     width: 100%;
-     overflow: hidden;
-     background: #ffffff;
-     border-bottom: 4px solid var(--brand-button-hover-bg, #ffb845);
-     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
- }
-
- .books-index-hero img {
-     display: block;
-     width: 100%;
-     height: clamp(180px, 24vw, 320px);
-     object-fit: cover;
-     object-position: center;
  }
 
  .books-index-sidebar {
@@ -1386,13 +1368,8 @@
      .books-index-layout {
          grid-template-columns: 1fr;
          grid-template-areas:
-             "hero"
              "filters"
              "catalog";
-     }
-
-     .books-index-hero img {
-         height: clamp(150px, 36vw, 240px);
      }
 
      .books-index-sidebar {

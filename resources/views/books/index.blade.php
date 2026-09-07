@@ -28,10 +28,6 @@
 
 <div class="books-index-layout">
 
-    <section class="books-index-hero" aria-label="All books catalog">
-        <img src="{{ $brandingOpacBannerUrl }}" alt="Pantas library catalog banner">
-    </section>
-
     {{-- Left sidebar: search, filters, actions --}}
     <aside class="books-index-sidebar card card-border p-3">
 
