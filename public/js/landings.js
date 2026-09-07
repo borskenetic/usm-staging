@@ -239,7 +239,17 @@ function applyOpacPayload(payload, card) {
     }
 
     const img = document.getElementById('modalImg');
-    if (img) img.src = coverUrl || '';
+    if (img) {
+        if (coverUrl) {
+            img.src = coverUrl;
+            img.style.display = '';
+            img.alt = title || 'Book cover';
+        } else {
+            img.removeAttribute('src');
+            img.style.display = 'none';
+            img.alt = '';
+        }
+    }
 
     renderBibSummary(payload.description || {});
     renderDescriptionDl(payload.description || {});
@@ -552,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const m = /^#book-(\d+)$/.exec(hash);
     if (m) {
         const id = m[1];
-        const card = document.querySelector(`.book-card[data-id="${id}"], .carosel[data-id="${id}"], .opac-book-card[data-id="${id}"]`);
+        const card = document.querySelector(`.book-card[data-id="${id}"], .carosel[data-id="${id}"], .opac-book-card[data-id="${id}"], .opac-result-row[data-id="${id}"]`);
         if (card) {
             openBookCard(card);
         }

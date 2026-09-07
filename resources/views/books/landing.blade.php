@@ -117,25 +117,18 @@
     <section class="opac-new-arrivals-block">
         <div class="opac-arrivals-header">
             <h2 class="opac-arrivals-title">New Arrival Books</h2>
-            <div class="opac-arrivals-controls" aria-label="Scroll new arrivals">
-                <button type="button" class="opac-arrivals-arrow" data-arrivals-scroll="-1" aria-label="Scroll new arrivals left">
-                    <span aria-hidden="true">&larr;</span>
-                </button>
-                <button type="button" class="opac-arrivals-arrow" data-arrivals-scroll="1" aria-label="Scroll new arrivals right">
-                    <span aria-hidden="true">&rarr;</span>
-                </button>
-            </div>
         </div>
 
-        <div class="opac-carousel-wrap">
-            <div class="opac-carousel-track" id="carouselTrack">
-                @foreach ($carouselBooks as $book)
+        <div class="opac-arrivals-list" id="carouselTrack" role="list">
+            @forelse ($carouselBooks as $book)
                 @php
                     $cMeta = $carouselMeta[$book->id] ?? ['copies' => 1, 'is_available' => $book->availability === 'Available'];
                     $cAvail = ($cMeta['is_available'] ?? false) ? 'Available' : 'Not Available';
+                    $coverUrl = $book->cover_image ? asset('storage/'.$book->cover_image) : '';
                 @endphp
-                <div class="opac-book-card"
-                    data-img="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : $brandingOpacDefaultBookCoverUrl }}"
+                <div class="opac-result-row opac-arrival-row"
+                    role="listitem"
+                    data-img="{{ $coverUrl }}"
                     data-title="{{ $book->title_statement }}"
                     data-author="{{ $book->main_author }}"
                     data-note="{{ $book->general_note }}"
@@ -150,25 +143,35 @@
                     data-course="{{ $book->course ?? '' }}"
                     onclick="openBookCard(this)"
                     tabindex="0"
-                    role="button"
                     aria-label="{{ $book->title_statement }}">
 
-                    <div class="opac-book-card-cover">
-                        <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : $brandingOpacDefaultBookCoverUrl }}"
-                            alt="{{ $book->title_statement }}">
-                    </div>
-                    <div class="opac-book-card-body">
-                        <p class="opac-book-card-title">{{ $book->title_statement }}</p>
-                        @if($book->main_author)
-                            <p class="opac-book-card-author">{{ $book->main_author }}</p>
+                    <div class="opac-result-cover{{ $coverUrl ? '' : ' is-empty' }}">
+                        @if ($coverUrl)
+                            <img src="{{ $coverUrl }}" alt="">
                         @endif
-                        <span class="opac-book-card-badge opac-book-card-badge--{{ ($cMeta['is_available'] ?? false) ? 'available' : 'unavailable' }}">
+                    </div>
+                    <div class="opac-result-meta">
+                        <div class="opac-result-title">
+                            <a href="javascript:void(0)" class="opac-result-title-link">
+                                {{ $book->title_statement }}
+                            </a>
+                            @if ($book->pub_year)
+                                <span class="text-muted">({{ $book->pub_year }})</span>
+                            @endif
+                        </div>
+                        <div class="opac-result-sub small text-muted">
+                            @if ($book->main_author)
+                                By {{ $book->main_author }}
+                            @endif
+                        </div>
+                        <div class="opac-result-availability small {{ ($cMeta['is_available'] ?? false) ? 'text-success' : 'text-danger' }}">
                             {{ $cAvail }}
-                        </span>
+                        </div>
                     </div>
                 </div>
-                @endforeach
-            </div>
+            @empty
+                <p class="text-muted mb-0">No new arrivals to show yet.</p>
+            @endforelse
         </div>
     </section>
     @endunless
@@ -294,7 +297,7 @@
                 @else
                     @foreach ($books as $book)
                     <div class="opac-result-row"
-                        data-img="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : $brandingOpacDefaultBookCoverUrl }}"
+                        data-img="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : '' }}"
                         data-title="{{ $book->title_statement }}"
                         data-author="{{ $book->main_author }}"
                         data-note="{{ $book->general_note }}"
@@ -308,8 +311,10 @@
                         data-library="{{ $book->library_name }}"
                         data-course="{{ $book->course ?? '' }}"
                         onclick="openBookCard(this)">
-                        <div class="opac-result-cover">
-                            <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : $brandingOpacDefaultBookCoverUrl }}" alt="">
+                        <div class="opac-result-cover{{ $book->cover_image ? '' : ' is-empty' }}">
+                            @if ($book->cover_image)
+                                <img src="{{ asset('storage/' . $book->cover_image) }}" alt="">
+                            @endif
                         </div>
                         <div class="opac-result-meta">
                             <div class="opac-result-title">

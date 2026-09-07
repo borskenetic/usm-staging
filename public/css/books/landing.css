@@ -369,7 +369,7 @@ header {
 }
 
 .opac-result-title-link {
-    color: var(--brand-nav-link, #22333b);
+    color: var(--brand-nav-link, #1b5e20);
     text-decoration: none;
     font-weight: 700;
 }
@@ -515,10 +515,10 @@ header {
 }
 
         /* ──────────────────────────────────────────────────────────────────
-   NEW ARRIVALS ─ Stitch redesign
+   NEW ARRIVALS ─ list layout (matches search results)
 ───────────────────────────────────────────────────────────────── */
 .opac-new-arrivals-block {
-    max-width: 1280px;
+    max-width: 920px;
     margin: 0 auto 2.5rem;
     padding: 0 2rem;
 }
@@ -528,17 +528,18 @@ header {
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
 }
 
 .opac-arrivals-title {
     font-family: 'Inter', Arial, sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--brand-nav-link, #001b3d);
+    color: var(--brand-nav-link, #1b5e20);
     letter-spacing: -0.01em;
     position: relative;
     padding-bottom: 10px;
+    margin: 0;
 }
 
 .opac-arrivals-title::after {
@@ -549,174 +550,27 @@ header {
     width: 48px;
     height: 3px;
     border-radius: 2px;
-    background: var(--brand-nav-link, #0050cc);
+    background: var(--brand-nav-link, #1b5e20);
 }
 
-.opac-arrivals-controls {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-shrink: 0;
-}
-
-.opac-arrivals-arrow {
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
-    border: 1px solid #d7dce3;
-    background: #ffffff;
-    color: var(--brand-nav-link, #0050cc);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 1.1rem;
-    font-weight: 800;
-    line-height: 1;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
-}
-
-.opac-arrivals-arrow:hover,
-.opac-arrivals-arrow:focus-visible {
-    background: var(--brand-nav-link, #0050cc);
-    border-color: var(--brand-nav-link, #0050cc);
-    color: #ffffff;
-    transform: translateY(-1px);
-}
-
-.opac-arrivals-arrow:focus-visible {
-    outline: 3px solid rgba(0, 80, 204, 0.24);
-    outline-offset: 2px;
-}
-
-/* Carousel wrapper — no arrow padding needed */
-.opac-carousel-wrap {
-    position: relative;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    /* smooth scroll on touch */
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-}
-
-/* Hide scrollbar visually but keep it functional */
-.opac-carousel-wrap::-webkit-scrollbar { height: 4px; }
-.opac-carousel-wrap::-webkit-scrollbar-track { background: transparent; }
-.opac-carousel-wrap::-webkit-scrollbar-thumb { background: #c4c6cf; border-radius: 4px; }
-
-.opac-carousel-track {
-    display: flex;
-    gap: 16px;
-    /* Do NOT set overflow:hidden — parent scrolls */
-    width: max-content;
-}
-
-/* Individual book card */
-.opac-book-card {
-    flex: 0 0 168px;
-    width: 168px;
-    scroll-snap-align: start;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
-    overflow: hidden;
-    cursor: pointer;
-    border: 1px solid #e7e8e9;
-    transition: transform 0.22s ease, box-shadow 0.22s ease;
-    outline: none;
-}
-
-.opac-book-card:hover,
-.opac-book-card:focus-visible {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.13);
-}
-
-.opac-book-card:focus-visible {
-    outline: 3px solid rgba(0, 80, 204, 0.4);
-}
-
-.opac-book-card-cover {
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    overflow: hidden;
-    background: #edeeef;
-}
-
-.opac-book-card-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.3s ease;
-}
-
-.opac-book-card:hover .opac-book-card-cover img {
-    transform: scale(1.04);
-}
-
-.opac-book-card-body {
-    padding: 10px 10px 12px;
+.opac-arrivals-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 12px;
 }
 
-.opac-book-card-title {
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: #191c1d;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0;
-    line-height: 1.3;
-}
-
-.opac-book-card-author {
-    font-size: 0.75rem;
-    color: #74777f;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0;
-    line-height: 1.3;
-}
-
-.opac-book-card-badge {
-    display: inline-block;
-    margin-top: 4px;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    width: fit-content;
-}
-
-.opac-book-card-badge--available {
-    background: #e6f4ea;
-    color: #1b7a36;
-}
-
-.opac-book-card-badge--unavailable {
-    background: #fde8e8;
-    color: #ba1a1a;
+.opac-arrival-row:focus-visible {
+    outline: 3px solid rgba(27, 94, 32, 0.35);
+    outline-offset: 2px;
 }
 
 @media (max-width: 768px) {
     .opac-new-arrivals-block { padding: 0 1rem; }
-    .opac-book-card { flex: 0 0 140px; width: 140px; }
     .opac-arrivals-title { font-size: 1.25rem; }
-    .opac-arrivals-arrow {
-        width: 36px;
-        height: 36px;
-    }
 }
 
-/* Legacy selectors kept for backward compat with JS (carousel-track id) */
-.carousel-track { display: flex; gap: 16px; }
+/* Legacy selectors kept for backward compat with JS */
+.carousel-track { display: flex; flex-direction: column; gap: 12px; }
 
 /* ── Phase 2: Search section redesign ── */
 .opac-search-block {
@@ -1862,11 +1716,26 @@ footer:not(.opac-footer) {
     box-shadow: 0 8px 20px rgba(0,0,0,0.06);
 }
 
+.opac-result-cover {
+    width: 64px;
+    min-width: 64px;
+    height: 88px;
+    border-radius: 6px;
+    background: transparent;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.opac-result-cover.is-empty {
+    background: #f8faf9;
+}
+
 .opac-result-cover img {
     width: 64px;
     height: 88px;
     object-fit: cover;
     border-radius: 6px;
+    display: block;
     background: #f3f5f8;
 }
 
@@ -1880,10 +1749,25 @@ footer:not(.opac-footer) {
     line-height: 1.25;
 }
 
+.opac-result-title-link {
+    color: var(--brand-nav-link, #1b5e20);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.opac-result-title-link:hover {
+    text-decoration: underline;
+}
+
 .opac-result-sub {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.opac-result-availability {
+    font-weight: 700;
+    margin-top: 4px;
 }
 
 @media (max-width: 576px) {
