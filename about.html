@@ -17,13 +17,20 @@
                     UNIVERSITY OF SOUTHERN MINDANAO
                 </span>
             </div>
-            <nav class="nav-links">
+            <button type="button" class="nav-menu-toggle" id="navMenuToggle" aria-expanded="false" aria-controls="primaryNav" aria-label="Open menu">
+                <span class="nav-menu-toggle-bar" aria-hidden="true"></span>
+                <span class="nav-menu-toggle-bar" aria-hidden="true"></span>
+                <span class="nav-menu-toggle-bar" aria-hidden="true"></span>
+            </button>
+            <nav class="nav-links" id="primaryNav">
                 <a href="/">HOME</a>
                 <a href="about.html">ABOUT</a>
                 <a href="/opac">OPAC</a>
+                <a href="https://zendy.io/">ZENDY</a>
                 <a href="contact.html">CONTACT US</a>
                 <a href="/rooms/book">ROOM RESERVATIONS</a>
-                <a href="/feedback" class="feedback-link" hidden>FEEDBACK</a>
+                <a href="/feedback" class="feedback-link">FEEDBACK</a>
+                <a href="/login" class="login-button">LOGIN</a>
             </nav>
         </div>
     </header>
@@ -105,6 +112,7 @@
         </div>
     </footer>
 
+    <script src="script.js"></script>
     <script src="about.js"></script>
 </body>
 </html>

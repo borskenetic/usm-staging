@@ -16,33 +16,33 @@
     --hero-overlay-color: rgba(255, 255, 255, 0.75); /* White foggy overlay */
 }
 
-/* --- Navigation Bar (Header) --- */
+/* --- Navigation Bar (Header) — matches home solid navbar --- */
 .navbar {
     background-color: var(--primary-yellow);
-    /* Ensures the navbar is at the top */
-    position: sticky; 
+    position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 1000;
 }
 
 .navbar-content {
-    /* Set max width to mimic typical web layouts */
-    max-width: 1200px; 
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 10px 20px;
+    padding: 10px clamp(14px, 3vw, 20px);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
+    min-width: 0;
 }
 
 .logo-section {
     display: flex;
     align-items: center;
+    min-width: 0;
 }
 
 .logo {
-    /* Adjust size to match the small logo in the image */
-    height: 40px; 
+    height: 40px;
     margin-right: 10px;
 }
 
@@ -51,6 +51,14 @@
     font-size: 10px;
     font-weight: bold;
     line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 1.45vw, 25px);
+    min-width: 0;
 }
 
 .nav-links a {
@@ -58,10 +66,10 @@
     text-decoration: none;
     font-size: 14px;
     font-weight: bold;
-    margin-left: 25px;
-    /* Animation: Subtle transition for hover effect */
-    transition: color 0.3s ease; 
+    margin-left: 0;
+    text-transform: uppercase;
     transition: color 0.3s ease, transform 0.3s ease;
+    white-space: nowrap;
 }
 
 .nav-links a:hover {
@@ -69,9 +77,101 @@
 }
 
 .nav-links .highlight {
-    /* To match the slightly different look/emphasis of ROOM RESERVATIONS */
-    /* Could be colored green, or just a different shade */
-    color: var(--text-dark); 
+    color: var(--text-dark);
+}
+
+.login-button {
+    background-color: var(--secondary-green);
+    color: var(--text-light) !important;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.login-button:hover {
+    background-color: #388E3C;
+    color: var(--text-light) !important;
+}
+
+.login-button:active {
+    transform: scale(0.98);
+}
+
+.nav-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 2px solid var(--text-dark);
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+}
+
+.nav-menu-toggle-bar {
+    display: block;
+    width: 22px;
+    height: 3px;
+    margin: 0 auto;
+    background: var(--text-dark);
+    border-radius: 2px;
+}
+
+@media (max-width: 1100px) {
+    .navbar-content {
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .logo-section {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .university-name {
+        font-size: clamp(9px, 2.8vw, 11px);
+        display: block;
+        max-width: 100%;
+    }
+
+    .nav-menu-toggle {
+        display: flex;
+        flex-shrink: 0;
+    }
+
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        order: 3;
+        padding: 0.75rem 0 0;
+        border-top: 2px solid rgba(0, 0, 0, 0.08);
+        gap: 0.25rem;
+    }
+
+    .nav-links.is-open {
+        display: flex;
+    }
+
+    .nav-links a {
+        margin-left: 0 !important;
+        padding: 0.65rem 0.5rem;
+        border-radius: 6px;
+    }
+
+    .nav-links .login-button {
+        text-align: center;
+        margin-top: 0.35rem;
+    }
 }
 
 * {
