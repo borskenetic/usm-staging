@@ -10,7 +10,7 @@ Route::middleware('auth')->group(function (): void {
         ->name('dashboard.super-admin');
 });
 
-Route::middleware(['auth', 'super-admin'])->group(function (): void {
+Route::middleware(['auth', 'library.admin'])->group(function (): void {
     Route::get('/view-users', [UserController::class, 'index'])->name('users.index');
     Route::get('/create-user', [UserController::class, 'create'])->name('users.create');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');

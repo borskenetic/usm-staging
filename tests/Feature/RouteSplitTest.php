@@ -56,13 +56,15 @@ class RouteSplitTest extends TestCase
         $this->actingAs($user)->get('/books')->assertForbidden();
     }
 
-    public function test_super_admin_routes_are_super_admin_only(): void
+    public function test_user_account_routes_are_available_to_library_admins(): void
     {
         $superAdmin = $this->staffUser('super_admin');
         $libraryAdmin = $this->staffUser('library_admin');
+        $libraryStaff = $this->staffUser('library_staff');
 
         $this->actingAs($superAdmin)->get('/view-users')->assertOk();
-        $this->actingAs($libraryAdmin)->get('/view-users')->assertForbidden();
+        $this->actingAs($libraryAdmin)->get('/view-users')->assertOk();
+        $this->actingAs($libraryStaff)->get('/view-users')->assertForbidden();
     }
 
     public function test_super_admin_sidebar_shows_only_active_module_navigation(): void
@@ -84,7 +86,7 @@ class RouteSplitTest extends TestCase
             ->assertOk()
             ->assertSee('Books')
             ->assertSee('OPAC')
-            ->assertDontSee('Staff Accounts')
+            ->assertSee('User accounts')
             ->assertDontSee('Attendance Scanner');
 
         $this->actingAs($superAdmin)

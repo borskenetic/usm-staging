@@ -347,13 +347,11 @@
                             <i class="bi bi-journal-bookmark"></i> Prospectus Manager
                         </a>
                     </li>
-                    @if ($canSuperAdmin)
-                        <li>
-                            <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.index', 'users.edit', 'users.update', 'users.destroy', 'users.create', 'users.store') ? 'active' : '' }}">
-                                <i class="bi bi-people"></i> User accounts
-                            </a>
-                        </li>
-                    @endif
+                    <li>
+                        <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.index', 'users.edit', 'users.update', 'users.destroy', 'users.create', 'users.store') ? 'active' : '' }}">
+                            <i class="bi bi-people"></i> User accounts
+                        </a>
+                    </li>
                     <li>
                         <a href="{{ route('library.attendance.activities') }}" class="sidebar-link {{ request()->routeIs('library.attendance.activities') ? 'active' : '' }}">
                             <i class="bi bi-activity"></i> Activity log
