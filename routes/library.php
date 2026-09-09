@@ -22,6 +22,7 @@ use App\Http\Controllers\FineClearanceController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\IdCardController;
 use App\Http\Controllers\LibraryAttendanceController;
+use App\Http\Controllers\LibraryHoldingsReportController;
 use App\Http\Controllers\OpenLibraryCopyCatalogController;
 use App\Http\Controllers\PendingEmployeeController;
 use App\Http\Controllers\PendingFacultyController;
@@ -103,6 +104,8 @@ Route::middleware(['auth', 'library.access'])->group(function (): void {
     Route::get('/export-transactions', [ExportController::class, 'exportTransactions'])->name('transactions.export');
     Route::get('/download-book-report', [BookController::class, 'downloadBookReport'])->name('book.report.download');
     Route::get('/book-report-by-course', [BookController::class, 'bookReportByCourse'])->name('book.report.by.course');
+    Route::get('/reports/library-holdings', [LibraryHoldingsReportController::class, 'create'])->name('reports.library_holdings.create');
+    Route::post('/reports/library-holdings', [LibraryHoldingsReportController::class, 'download'])->name('reports.library_holdings.download');
 
     Route::get('/patron-suggestions', [BookLogController::class, 'patronSuggestions'])->name('patron.suggestions');
     Route::get('/book-suggestions', [BookLogController::class, 'bookSuggestions'])->name('book.suggestions');

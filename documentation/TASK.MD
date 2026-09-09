@@ -19,6 +19,7 @@ Reference plan:
 
 ## Active Work
 
+- [x] Port usm-main Library Holdings Report (CHED Report 1 + Report 2 Excel) under Library Utilities for all library staff, using `library_*` catalog tables.
 - [x] Fix Library Admin Dashboard blue primary actions/accents by greening shell branding defaults, clearing legacy branding cache/DB blues, and aligning static branding CSS.
 - [x] Replace stub Library Visit Reports with usm-main-style hub/dashboard/CSV analytics for Students and Faculty & Staff, using green school branding over `library_attendance_logs`.
 - [x] Align Library patrons UI (Students / Faculty & Staff) to green school branding for tabs, primary buttons, chips, and row actions.
@@ -483,6 +484,7 @@ Goal: allow the isolated Developer role to customize the public Attendance and L
 - `pantas-v2.5` owns `/api/mobile`, so schema changes must account for Pantas-UI.
 - Library attendance and school Attendance must be explicitly isolated in schema, routes, controllers, and tests.
 - Library Visit Reports previously showed only three summary counts. They now mirror school Attendance analytics (hub → dashboard → CSV) over `library_attendance_logs`, with Students and Faculty & Staff scopes and green school branding.
+- Library Holdings Report (CHED Report 1 + Report 2 Excel) is available under Library Utilities at `/reports/library-holdings` for all library staff (`library.access`), adapted to `library_books` / `library_programs` / prospectus tables.
 - Library patrons Students / Faculty & Staff screens now use green school branding (`#1b5e20`) for tabs, Filter / Register buttons, program chips, Options/ID actions, focus rings, and related Bootstrap primary buttons on pending/create flows.
 - Circulation Policy replaces the old Fine Settings page at `/admin/circulation-policy` (with `/admin/fines` redirect). Borrow limits, renewals, and hold days live in `settings`; student/employee fine terms live on `library_fine_settings`; checkout/renewal/hold paths enforce the saved values immediately.
 - Library Activity log now lives under Library Utilities (`/library/attendance/activities`) for library admins, with Patron notifications / Staff activity tabs, date filters, and Open links. Patron-initiated events (registration, edit request, feedback, room/book reservation, self checkout) write dedicated activity types.

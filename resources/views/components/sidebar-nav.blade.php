@@ -330,40 +330,59 @@
             @endif
         </ul>
 
-        @if ($canLibraryAdmin)
+        @if ($canLibrary)
             <button class="sidebar-group-label" data-group="library-utilities" aria-expanded="false" aria-controls="sidebar-group-library-utilities">
                 <span><i class="bi bi-tools sidebar-group-icon"></i>Utilities</span>
                 <i class="bi bi-chevron-down sidebar-chevron"></i>
             </button>
             <ul class="sidebar-group-items" id="sidebar-group-library-utilities" role="list">
                 <li>
-                    <a href="{{ route('library.attendance.activities') }}" class="sidebar-link {{ request()->routeIs('library.attendance.activities') ? 'active' : '' }}">
-                        <i class="bi bi-activity"></i> Activity log
+                    <a href="{{ route('reports.library_holdings.create') }}" class="sidebar-link {{ request()->routeIs('reports.library_holdings.*') ? 'active' : '' }}">
+                        <i class="bi bi-journal-richtext"></i> Library Holdings Report
                     </a>
                 </li>
-                <li>
-                    <a href="{{ route('files.index') }}" class="sidebar-link {{ request()->routeIs('files.*') ? 'active' : '' }}">
-                        <i class="bi bi-folder2-open"></i> Repository
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('sms.page') }}" class="sidebar-link {{ request()->routeIs('sms.*', 'sms.page') ? 'active' : '' }}">
-                        <i class="bi bi-chat-dots"></i> SMS
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('feedback.index') }}" class="sidebar-link {{ request()->routeIs('feedback.index') ? 'active' : '' }}">
-                        <i class="bi bi-star"></i> Library Feedback
-                        @if ($unreadFeedbackCount > 0)
-                            <span class="badge bg-danger ms-1">{{ $unreadFeedbackCount }}</span>
-                        @endif
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('landing') }}" class="sidebar-link {{ request()->routeIs('landing') ? 'active' : '' }}">
-                        <i class="bi bi-search"></i> OPAC
-                    </a>
-                </li>
+                @if ($canLibraryAdmin)
+                    <li>
+                        <a href="{{ route('prospectus.index') }}" class="sidebar-link {{ request()->routeIs('prospectus.*') ? 'active' : '' }}">
+                            <i class="bi bi-journal-bookmark"></i> Prospectus Manager
+                        </a>
+                    </li>
+                    @if ($canSuperAdmin)
+                        <li>
+                            <a href="{{ route('users.index') }}" class="sidebar-link {{ request()->routeIs('users.index', 'users.edit', 'users.update', 'users.destroy', 'users.create', 'users.store') ? 'active' : '' }}">
+                                <i class="bi bi-people"></i> User accounts
+                            </a>
+                        </li>
+                    @endif
+                    <li>
+                        <a href="{{ route('library.attendance.activities') }}" class="sidebar-link {{ request()->routeIs('library.attendance.activities') ? 'active' : '' }}">
+                            <i class="bi bi-activity"></i> Activity log
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('files.index') }}" class="sidebar-link {{ request()->routeIs('files.*') ? 'active' : '' }}">
+                            <i class="bi bi-folder2-open"></i> Repository
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('sms.page') }}" class="sidebar-link {{ request()->routeIs('sms.*', 'sms.page') ? 'active' : '' }}">
+                            <i class="bi bi-chat-dots"></i> SMS
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('feedback.index') }}" class="sidebar-link {{ request()->routeIs('feedback.index') ? 'active' : '' }}">
+                            <i class="bi bi-star"></i> Library Feedback
+                            @if ($unreadFeedbackCount > 0)
+                                <span class="badge bg-danger ms-1">{{ $unreadFeedbackCount }}</span>
+                            @endif
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('landing') }}" class="sidebar-link {{ request()->routeIs('landing') ? 'active' : '' }}">
+                            <i class="bi bi-search"></i> OPAC
+                        </a>
+                    </li>
+                @endif
             </ul>
         @endif
     @endif
