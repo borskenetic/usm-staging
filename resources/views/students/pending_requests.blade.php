@@ -76,7 +76,7 @@
       <div class="modal-body">
         <p><strong>Name:</strong> {{ $req->lastname }}, {{ $req->firstname }} {{ $req->middle_initial }}</p>
         <p><strong>Birthday:</strong> {{ $req->birthday ?? '-' }}</p>
-        <p><strong>Program:</strong> {{ $req->program_id ?? '-'}}</p>
+        <p><strong>Program:</strong> {{ $req->course ?? '-'}}</p>
         <p><strong>Year:</strong> {{ $req->year ?? '-' }}</p>
         <p><strong>Mobile:</strong> {{ $req->mobile_number ?? '-' }}</p>
         <p><strong>Address:</strong> {{ $req->address ?? '-' }}</p>

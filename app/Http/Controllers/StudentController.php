@@ -449,13 +449,19 @@ class StudentController extends Controller
             $photoPath = 'images/edits/'.$filename;
         }
 
+        $course = $student->course;
+        if ($request->filled('program_id')) {
+            $program = Program::find($request->program_id);
+            $course = $program?->program_code ?? $student->course;
+        }
+
         $editRequest = StudentEditRequest::create([
             'student_id' => $student->id,
             'lastname' => $request->lastname,
             'firstname' => $request->firstname,
             'middle_initial' => $request->middle_initial,
             'birthday' => $request->birthday,
-            'program_id' => $request->program_id,
+            'course' => $course,
             'year' => $request->year,
             'mobile_number' => $request->mobile_number,
             'address' => $request->address,
@@ -464,6 +470,7 @@ class StudentController extends Controller
             'emergency_number' => $request->emergency_number,
             'emergency_address' => $request->emergency_address,
             'profile_picture' => $photoPath,
+            'status' => 'pending',
         ]);
 
         app(AdminActivityLogger::class)->patronEditRequest(
@@ -488,18 +495,12 @@ class StudentController extends Controller
             $newProfilePath = $req->profile_picture;
         }
 
-        $programCode = $student->course;
-        if ($req->program_id) {
-            $program = Program::find($req->program_id);
-            $programCode = $program ? $program->program_code : $student->course;
-        }
-
         $student->update([
             'lastname' => $req->lastname,
             'firstname' => $req->firstname,
             'middle_initial' => $req->middle_initial,
             'birthday' => $req->birthday,
-            'course' => $programCode,
+            'course' => $req->course ?? $student->course,
             'year' => $req->year,
             'mobile_number' => $req->mobile_number,
             'address' => $req->address,

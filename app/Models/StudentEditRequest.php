@@ -15,7 +15,6 @@ class StudentEditRequest extends Model
         'firstname',
         'middle_initial',
         'birthday',
-        'program_id',
         'course',
         'year',
         'mobile_number',
@@ -39,10 +38,5 @@ class StudentEditRequest extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class, 'student_id');
-    }
-
-    public function program(): BelongsTo
-    {
-        return $this->belongsTo(Program::class, 'program_id');
     }
 }
