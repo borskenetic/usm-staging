@@ -50,6 +50,17 @@ School attendance scans write to:
 
 - `attendance_logs`
 
+## Scanner Lookup Rules
+
+Both scanners accept a QR code **or** an ID number typed/scanned directly.
+
+| Scanner | Path | Resolves against | Accepts |
+| --- | --- | --- | --- |
+| School Attendance | `/attendance` | `attendance_students`, `attendance_employees` | QR, student ID, employee ID/number |
+| Library visits | `/library/attendance/scanner` | `library_students`, `library_employees` | QR, student ID number, employee ID |
+
+Cross-domain scans are rejected: a Library-only patron will not match on `/attendance`, and an Attendance-only patron will not match on the Library visit scanner.
+
 ## Registration
 
 Public registration starts at:

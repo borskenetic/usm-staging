@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\AttendanceEmployee;
 use App\Models\AttendanceLog;
 use App\Models\AttendanceStudent;
+use App\Models\Student;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -47,6 +49,64 @@ class AttendanceDomainWorkflowTest extends TestCase
         ]);
 
         $this->assertTrue(AttendanceLog::query()->firstOrFail()->student->is($student));
+    }
+
+    public function test_school_attendance_scan_accepts_student_id_number(): void
+    {
+        $student = AttendanceStudent::query()->create([
+            'student_id' => '25-00013',
+            'firstname' => 'Ada',
+            'lastname' => 'Lovelace',
+            'qrcode' => 'ATT-QR-0013',
+        ]);
+
+        $this->postJson('/attendance', [
+            'qrcode' => '25-00013',
+        ])
+            ->assertOk()
+            ->assertJsonPath('type', 'student')
+            ->assertJsonPath('student_id', $student->id)
+            ->assertJsonPath('status', 'IN');
+    }
+
+    public function test_school_attendance_scan_accepts_employee_qr_or_id(): void
+    {
+        $employee = AttendanceEmployee::query()->create([
+            'employee_id' => 'EMP-0007',
+            'firstname' => 'Grace',
+            'lastname' => 'Hopper',
+            'qrcode' => 'ATT-E-0007',
+        ]);
+
+        $this->postJson('/attendance', [
+            'qrcode' => 'EMP-0007',
+        ])
+            ->assertOk()
+            ->assertJsonPath('type', 'employee')
+            ->assertJsonPath('employee_id', $employee->id)
+            ->assertJsonPath('status', 'IN');
+
+        $this->assertDatabaseHas('attendance_logs', [
+            'employee_id' => $employee->id,
+            'status' => 'IN',
+        ]);
+    }
+
+    public function test_school_attendance_scan_rejects_library_only_patron(): void
+    {
+        Student::query()->create([
+            'id_number' => '24-19462',
+            'firstname' => 'Fatma',
+            'lastname' => 'Aba',
+            'qrcode' => 'S-LIB-19462',
+        ]);
+
+        $this->postJson('/attendance', [
+            'qrcode' => '24-19462',
+        ])
+            ->assertOk()
+            ->assertJsonPath('type', 'error')
+            ->assertJsonPath('message', 'RFID not recognized.');
     }
 
     public function test_attendance_admin_can_view_daily_student_absences(): void

@@ -505,6 +505,7 @@ Goal: allow the isolated Developer role to customize the public Attendance and L
 - Dashboard navigation is module-aware: Attendance-only staff no longer see Library navigation, Library-only staff no longer see Attendance navigation, and Super Admin keeps system/module access.
 - Library attendance now has its own public scanner, feedback endpoint, admin logs, reports, and feedback settings, all backed by `library_attendance_*` tables.
 - Library scanner lookup accepts Library patron QR codes and ID numbers only; Attendance-only patrons are rejected by the Library scanner.
+- School Attendance scanner (`/attendance`) now uses the same lookup rule for Attendance patrons: QR code or ID number for students (`student_id`) and employees (`employee_id` / `employee_number`). Library-only patrons are still rejected.
 - Role dashboard card/grid CSS originally lived only in Vite-compiled `resources/css/app.css`. `public/build` is gitignored, so deployed dashboards rendered as unstyled stacked text unless `npm run build` had been run on the server. Those styles now load from `public/css/dashboard.css`.
 - Public `/register` previously routed users to a module choice page; `/register/library` kept Library pending registration and `/register/attendance` wrote to Attendance pending registration.
 - Attendance patron approval moves records from `attendance_pending_*` tables into `attendance_*` patron tables and writes module-aware activity logs.

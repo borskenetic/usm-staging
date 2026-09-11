@@ -219,17 +219,18 @@
             }
             clearDisplay();
 
-            if (data.type === 'student') {
-              currentStudentId = data.student_id;
-              const pic = data.student.profile_picture
-                ? "{{ asset('') }}" + data.student.profile_picture
+            if (data.type === 'student' || data.type === 'employee') {
+              const patron = data.type === 'student' ? data.student : data.employee;
+              currentStudentId = data.type === 'student' ? data.student_id : null;
+              const pic = patron.profile_picture
+                ? "{{ asset('') }}" + patron.profile_picture
                 : "{{ asset('images/2x2_undifined_gender.jpg') }}";
               profileImg.src = pic;
 
               const div = document.createElement('div');
               div.classList.add('name-box');
               div.innerHTML = `
-                <div class="student-name">${data.student.firstname} ${data.student.lastname}</div>
+                <div class="student-name">${patron.firstname} ${patron.lastname}</div>
                 <div class="label">Name</div>
                 <div class="status-button ${data.status.toLowerCase() === 'out' ? 'status-out' : ''}">${data.status}</div>
                 <div class="timestamp">${data.log.scanned_at}</div>
@@ -237,7 +238,7 @@
               sidebar.appendChild(div);
 
               const feedbackOn = data.logout_feedback_enabled ?? LOGOUT_FEEDBACK_ENABLED;
-              if (data.status.toLowerCase() === 'out' && feedbackOn) {
+              if (data.type === 'student' && data.status.toLowerCase() === 'out' && feedbackOn) {
                 showLogoutFeedback();
               } else {
                 scheduleClear(2000);

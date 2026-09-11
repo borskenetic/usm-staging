@@ -78,6 +78,7 @@
                     <thead>
                         <tr>
                             <th scope="col">Patron</th>
+                            <th scope="col">Designation</th>
                             <th scope="col">Program</th>
                             <th scope="col">Start year</th>
                             <th scope="col" class="text-end">Actions</th>
@@ -89,7 +90,8 @@
                                 $initials = strtoupper(mb_substr($employee->firstname ?? '', 0, 1).mb_substr($employee->lastname ?? '', 0, 1));
                                 $initials = $initials !== '' ? $initials : '?';
                                 $programLabel = $employee->program ?: ($employee->department ?: '—');
-                                $meta = $employee->designation ?: ($employee->position ?: 'Faculty & Staff');
+                                $designation = $employee->designation ?: ($employee->position ?: '—');
+                                $idLabel = $employee->employee_id ? 'ID '.$employee->employee_id : 'Faculty & Staff';
                             @endphp
                             <tr>
                                 <td>
@@ -109,9 +111,12 @@
                                         </div>
                                         <div class="patron-identity__text">
                                             <span class="patron-name">{{ $employee->lastname }}, {{ $employee->firstname }}</span>
-                                            <span class="patron-meta">{{ $meta }}</span>
+                                            <span class="patron-meta">{{ $idLabel }}</span>
                                         </div>
                                     </div>
+                                </td>
+                                <td>
+                                    <span class="patron-meta d-inline">{{ $designation }}</span>
                                 </td>
                                 <td>
                                     <span class="patron-chip">{{ $programLabel }}</span>
@@ -177,7 +182,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="patrons-empty">No faculty or staff found.</td>
+                                <td colspan="5" class="patrons-empty">No faculty or staff found.</td>
                             </tr>
                         @endforelse
                     </tbody>

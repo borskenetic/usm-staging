@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AttendanceEmployee;
 use App\Models\AttendanceLog;
 use App\Models\AttendanceStudent;
 use App\Models\Setting;
 use App\Services\AttendanceSessionService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
@@ -76,89 +78,158 @@ class AttendanceController extends Controller
         ];
     }
 
-    public function scan(Request $request)
+    public function scan(Request $request): JsonResponse
     {
         $request->validate(['qrcode' => 'required|string']);
 
         $token = trim(str_replace("\r", '', $request->qrcode));
-        $student = AttendanceStudent::where('qrcode', $token)->first();
 
-        $parsed = $this->parseQr($request->qrcode);
+        // Same lookup rule as Library visit scanner: QR code or ID number.
+        // Still Attendance-domain patrons only (never library patrons).
+        $student = AttendanceStudent::query()
+            ->where(function ($query) use ($token) {
+                $query->where('qrcode', $token)
+                    ->orWhere('student_id', $token);
+            })
+            ->first();
 
-        // ID number from multiline / comma format
-        if (! $student && $parsed['student_no']) {
-            $student = AttendanceStudent::where('student_id', $parsed['student_no'])->first();
-        }
+        $employee = $student ? null : AttendanceEmployee::query()
+            ->where(function ($query) use ($token) {
+                $query->where('qrcode', $token)
+                    ->orWhere('employee_id', $token)
+                    ->orWhere('employee_number', $token);
+            })
+            ->first();
 
-        if (! $student && $parsed['full_name']) {
+        // Legacy printed QR payloads (multiline / comma / normalized name).
+        if (! $student && ! $employee) {
+            $parsed = $this->parseQr($request->qrcode);
 
-            $qrName = strtoupper($parsed['full_name']);
-            $qrName = preg_replace('/[^A-Z\s]/', '', $qrName);
-            $qrName = preg_replace('/\b[A-Z]\b/', '', $qrName);
-            $qrName = preg_replace('/\s+/', '', $qrName);
+            if ($parsed['student_no']) {
+                $student = AttendanceStudent::query()
+                    ->where('student_id', $parsed['student_no'])
+                    ->first();
+            }
 
-            $student = AttendanceStudent::where('normalized_name', $qrName)->first();
+            if (! $student && $parsed['full_name']) {
+                $qrName = strtoupper($parsed['full_name']);
+                $qrName = preg_replace('/[^A-Z\s]/', '', $qrName);
+                $qrName = preg_replace('/\b[A-Z]\b/', '', $qrName);
+                $qrName = preg_replace('/\s+/', '', $qrName);
+
+                $student = AttendanceStudent::query()
+                    ->where('normalized_name', $qrName)
+                    ->first();
+
+                if (! $student) {
+                    $employee = AttendanceEmployee::query()
+                        ->where('normalized_name', $qrName)
+                        ->first();
+                }
+            }
         }
 
         if ($student) {
-            app(AttendanceSessionService::class)->closeStaleOpenInForStudent($student);
-
-            $lastLog = AttendanceLog::where('student_id', $student->id)
-                ->orderByDesc('scanned_at')
-                ->orderByDesc('id')
-                ->first();
-
-            $sessions = app(AttendanceSessionService::class);
-            $newStatus = ($lastLog && $sessions->isInStatus($lastLog->status)) ? 'OUT' : 'IN';
-
-            $log = AttendanceLog::create([
-                'student_id' => $student->id,
-                'status' => $newStatus,
-                'scanned_at' => Carbon::now('Asia/Manila'),
-            ]);
-
-            // Send attendance SMS
-            if (! empty($student->mobile_number)) {
-
-                $template = Setting::where('key', 'scan_sms')->value('value')
-                    ?? 'Hello {name}, you scanned {status} at the library at {time}.';
-
-                $message = str_replace(
-                    ['{name}', '{status}', '{time}'],
-                    [
-                        trim($student->firstname.' '.$student->lastname),
-                        $newStatus,
-                        Carbon::now('Asia/Manila')->format('h:i A'),
-                    ],
-                    $template
-                );
-
-                app(SMSController::class)->sendDirect(
-                    $student->mobile_number,
-                    $message
-                );
-            }
-
-            return response()->json([
-                'type' => 'student',
-                'student_id' => $student->id,
-                'student' => [
-                    'firstname' => $student->firstname,
-                    'lastname' => $student->lastname,
-                    'profile_picture' => $student->profile_picture,
-                ],
-                'status' => $newStatus,
-                'logout_feedback_enabled' => Setting::logoutFeedbackEnabled(),
-                'log' => [
-                    'scanned_at' => $log->scanned_at->format('Y-m-d h:i:s A'),
-                ],
-            ]);
+            return $this->recordStudentScan($student);
         }
 
-        // Neither
+        if ($employee) {
+            return $this->recordEmployeeScan($employee);
+        }
+
         return response()->json([
             'type' => 'error',
             'message' => 'RFID not recognized.',
+        ]);
+    }
+
+    private function recordStudentScan(AttendanceStudent $student): JsonResponse
+    {
+        $sessions = app(AttendanceSessionService::class);
+        $sessions->closeStaleOpenInForStudent($student);
+
+        $lastLog = AttendanceLog::query()
+            ->where('student_id', $student->id)
+            ->orderByDesc('scanned_at')
+            ->orderByDesc('id')
+            ->first();
+
+        $newStatus = ($lastLog && $sessions->isInStatus($lastLog->status)) ? 'OUT' : 'IN';
+
+        $log = AttendanceLog::query()->create([
+            'student_id' => $student->id,
+            'status' => $newStatus,
+            'scanned_at' => Carbon::now('Asia/Manila'),
+        ]);
+
+        if (! empty($student->mobile_number)) {
+            $template = Setting::where('key', 'scan_sms')->value('value')
+                ?? 'Hello {name}, you scanned {status} at the library at {time}.';
+
+            $message = str_replace(
+                ['{name}', '{status}', '{time}'],
+                [
+                    trim($student->firstname.' '.$student->lastname),
+                    $newStatus,
+                    Carbon::now('Asia/Manila')->format('h:i A'),
+                ],
+                $template
+            );
+
+            app(SMSController::class)->sendDirect(
+                $student->mobile_number,
+                $message
+            );
+        }
+
+        return response()->json([
+            'type' => 'student',
+            'student_id' => $student->id,
+            'student' => [
+                'firstname' => $student->firstname,
+                'lastname' => $student->lastname,
+                'profile_picture' => $student->profile_picture,
+            ],
+            'status' => $newStatus,
+            'logout_feedback_enabled' => Setting::logoutFeedbackEnabled(),
+            'log' => [
+                'scanned_at' => $log->scanned_at->format('Y-m-d h:i:s A'),
+            ],
+        ]);
+    }
+
+    private function recordEmployeeScan(AttendanceEmployee $employee): JsonResponse
+    {
+        $sessions = app(AttendanceSessionService::class);
+        $sessions->closeStaleOpenInForEmployee($employee);
+
+        $lastLog = AttendanceLog::query()
+            ->where('employee_id', $employee->id)
+            ->orderByDesc('scanned_at')
+            ->orderByDesc('id')
+            ->first();
+
+        $newStatus = ($lastLog && $sessions->isInStatus($lastLog->status)) ? 'OUT' : 'IN';
+
+        $log = AttendanceLog::query()->create([
+            'employee_id' => $employee->id,
+            'status' => $newStatus,
+            'scanned_at' => Carbon::now('Asia/Manila'),
+        ]);
+
+        return response()->json([
+            'type' => 'employee',
+            'employee_id' => $employee->id,
+            'employee' => [
+                'firstname' => $employee->firstname,
+                'lastname' => $employee->lastname,
+                'profile_picture' => $employee->formal_picture,
+            ],
+            'status' => $newStatus,
+            'logout_feedback_enabled' => false,
+            'log' => [
+                'scanned_at' => $log->scanned_at->format('Y-m-d h:i:s A'),
+            ],
         ]);
     }
 
