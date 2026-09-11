@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\AttendanceEmployee;
 use App\Models\AttendanceLog;
 use App\Models\AttendanceStudent;
+use App\Models\Employee;
 use App\Models\Student;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -24,17 +24,17 @@ class AttendanceDomainWorkflowTest extends TestCase
         $this->seed(RoleSeeder::class);
     }
 
-    public function test_school_attendance_scan_uses_attendance_student_records(): void
+    public function test_official_kiosk_scan_uses_library_student_records(): void
     {
-        $student = AttendanceStudent::query()->create([
-            'student_id' => '25-00003',
+        $student = Student::query()->create([
+            'id_number' => '25-00003',
             'firstname' => 'Dorothy',
             'lastname' => 'Vaughan',
-            'qrcode' => 'ATT-QR-0003',
+            'qrcode' => 'LIB-QR-0003',
         ]);
 
         $response = $this->postJson('/attendance', [
-            'qrcode' => 'ATT-QR-0003',
+            'qrcode' => 'LIB-QR-0003',
         ]);
 
         $response
@@ -43,58 +43,16 @@ class AttendanceDomainWorkflowTest extends TestCase
             ->assertJsonPath('student_id', $student->id)
             ->assertJsonPath('status', 'IN');
 
-        $this->assertDatabaseHas('attendance_logs', [
+        $this->assertDatabaseHas('library_attendance_logs', [
             'student_id' => $student->id,
             'status' => 'IN',
         ]);
-
-        $this->assertTrue(AttendanceLog::query()->firstOrFail()->student->is($student));
+        $this->assertDatabaseCount('attendance_logs', 0);
     }
 
-    public function test_school_attendance_scan_accepts_student_id_number(): void
+    public function test_official_kiosk_scan_accepts_library_student_id_number(): void
     {
-        $student = AttendanceStudent::query()->create([
-            'student_id' => '25-00013',
-            'firstname' => 'Ada',
-            'lastname' => 'Lovelace',
-            'qrcode' => 'ATT-QR-0013',
-        ]);
-
-        $this->postJson('/attendance', [
-            'qrcode' => '25-00013',
-        ])
-            ->assertOk()
-            ->assertJsonPath('type', 'student')
-            ->assertJsonPath('student_id', $student->id)
-            ->assertJsonPath('status', 'IN');
-    }
-
-    public function test_school_attendance_scan_accepts_employee_qr_or_id(): void
-    {
-        $employee = AttendanceEmployee::query()->create([
-            'employee_id' => 'EMP-0007',
-            'firstname' => 'Grace',
-            'lastname' => 'Hopper',
-            'qrcode' => 'ATT-E-0007',
-        ]);
-
-        $this->postJson('/attendance', [
-            'qrcode' => 'EMP-0007',
-        ])
-            ->assertOk()
-            ->assertJsonPath('type', 'employee')
-            ->assertJsonPath('employee_id', $employee->id)
-            ->assertJsonPath('status', 'IN');
-
-        $this->assertDatabaseHas('attendance_logs', [
-            'employee_id' => $employee->id,
-            'status' => 'IN',
-        ]);
-    }
-
-    public function test_school_attendance_scan_rejects_library_only_patron(): void
-    {
-        Student::query()->create([
+        $student = Student::query()->create([
             'id_number' => '24-19462',
             'firstname' => 'Fatma',
             'lastname' => 'Aba',
@@ -105,8 +63,52 @@ class AttendanceDomainWorkflowTest extends TestCase
             'qrcode' => '24-19462',
         ])
             ->assertOk()
+            ->assertJsonPath('type', 'student')
+            ->assertJsonPath('student_id', $student->id)
+            ->assertJsonPath('status', 'IN');
+    }
+
+    public function test_official_kiosk_scan_accepts_library_employee_id(): void
+    {
+        $employee = Employee::query()->create([
+            'employee_id' => 'EMP-0007',
+            'firstname' => 'Grace',
+            'lastname' => 'Hopper',
+            'qrcode' => 'E-LIB-0007',
+        ]);
+
+        $this->postJson('/attendance', [
+            'qrcode' => 'EMP-0007',
+        ])
+            ->assertOk()
+            ->assertJsonPath('type', 'employee')
+            ->assertJsonPath('employee_id', $employee->id)
+            ->assertJsonPath('status', 'IN');
+
+        $this->assertDatabaseHas('library_attendance_logs', [
+            'employee_id' => $employee->id,
+            'status' => 'IN',
+        ]);
+    }
+
+    public function test_official_kiosk_scan_rejects_attendance_only_patron(): void
+    {
+        AttendanceStudent::query()->create([
+            'student_id' => 'ATT-001',
+            'firstname' => 'Grace',
+            'lastname' => 'Hopper',
+            'qrcode' => 'ATT-QR-001',
+        ]);
+
+        $this->postJson('/attendance', [
+            'qrcode' => 'ATT-QR-001',
+        ])
+            ->assertOk()
             ->assertJsonPath('type', 'error')
             ->assertJsonPath('message', 'RFID not recognized.');
+
+        $this->assertDatabaseCount('library_attendance_logs', 0);
+        $this->assertDatabaseCount('attendance_logs', 0);
     }
 
     public function test_attendance_admin_can_view_daily_student_absences(): void

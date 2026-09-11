@@ -154,6 +154,7 @@
     const LOGOUT_FEEDBACK_ENABLED = @json($logoutFeedbackEnabled ?? true);
     const feedbackModal = document.getElementById('feedbackModal');
     let currentStudentId = null;
+    let currentEmployeeId = null;
     let clearDisplayTimer = null;
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -173,6 +174,7 @@
         profileImg.src = "{{ asset('images/2x2_undifined_gender.jpg') }}";
         document.querySelectorAll('.name-box').forEach(box => box.remove());
         currentStudentId = null;
+        currentEmployeeId = null;
       }
 
       function scheduleClear(delayMs) {
@@ -183,7 +185,7 @@
       }
 
       function showLogoutFeedback() {
-        if (!LOGOUT_FEEDBACK_ENABLED || !feedbackModal || !currentStudentId) {
+        if (!LOGOUT_FEEDBACK_ENABLED || !feedbackModal || (!currentStudentId && !currentEmployeeId)) {
           scheduleClear(2000);
           return;
         }
@@ -222,6 +224,7 @@
             if (data.type === 'student' || data.type === 'employee') {
               const patron = data.type === 'student' ? data.student : data.employee;
               currentStudentId = data.type === 'student' ? data.student_id : null;
+              currentEmployeeId = data.type === 'employee' ? data.employee_id : null;
               const pic = patron.profile_picture
                 ? "{{ asset('') }}" + patron.profile_picture
                 : "{{ asset('images/2x2_undifined_gender.jpg') }}";
@@ -238,7 +241,7 @@
               sidebar.appendChild(div);
 
               const feedbackOn = data.logout_feedback_enabled ?? LOGOUT_FEEDBACK_ENABLED;
-              if (data.type === 'student' && data.status.toLowerCase() === 'out' && feedbackOn) {
+              if (data.status.toLowerCase() === 'out' && feedbackOn) {
                 showLogoutFeedback();
               } else {
                 scheduleClear(2000);
@@ -296,14 +299,14 @@
       }
 
       function sendFeedback(rating = null, declined = 0) {
-        if (!currentStudentId) {
+        if (!currentStudentId && !currentEmployeeId) {
           closeFeedbackModal();
           clearDisplay();
           input.focus();
           return;
         }
 
-        fetch("{{ route('attendance.feedback.store') }}", {
+        fetch("{{ route('library.attendance.feedback.store') }}", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -312,6 +315,7 @@
           },
           body: JSON.stringify({
             student_id: currentStudentId,
+            employee_id: currentEmployeeId,
             rating: rating,
             declined: declined ? 1 : 0,
           }),

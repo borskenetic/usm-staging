@@ -52,14 +52,14 @@ School attendance scans write to:
 
 ## Scanner Lookup Rules
 
-Both scanners accept a QR code **or** an ID number typed/scanned directly.
+The official public kiosk at `/attendance` uses **Library patrons** and writes **Library visit logs**.
 
-| Scanner | Path | Resolves against | Accepts |
-| --- | --- | --- | --- |
-| School Attendance | `/attendance` | `attendance_students`, `attendance_employees` | QR, student ID, employee ID/number |
-| Library visits | `/library/attendance/scanner` | `library_students`, `library_employees` | QR, student ID number, employee ID |
+| Scanner | Path | Resolves against | Writes to | Accepts |
+| --- | --- | --- | --- | --- |
+| Official kiosk | `/attendance` | `library_students`, `library_employees` | `library_attendance_logs` | QR, student ID number, employee ID |
+| Library visits (admin/simple) | `/library/attendance/scanner` | same Library patrons | `library_attendance_logs` | same |
 
-Cross-domain scans are rejected: a Library-only patron will not match on `/attendance`, and an Attendance-only patron will not match on the Library visit scanner.
+Attendance-only patrons (`attendance_students` / `attendance_employees`) do **not** match on either Library visit scanner. School Attendance logs (`attendance_logs`) remain a separate domain for Attendance admin workflows.
 
 ## Registration
 

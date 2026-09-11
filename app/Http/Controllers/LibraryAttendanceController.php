@@ -11,6 +11,7 @@ use App\Models\LibraryStudent;
 use App\Models\Program;
 use App\Models\Student;
 use App\Services\LibraryPatronVisitReportService;
+use App\Services\LibraryVisitScanService;
 use App\Support\PatronNameSearch;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -33,22 +34,15 @@ class LibraryAttendanceController extends Controller
         ]);
     }
 
-    public function scan(Request $request): JsonResponse
+    public function scan(Request $request, LibraryVisitScanService $scanner): JsonResponse
     {
         $validated = $request->validate([
             'qrcode' => ['required', 'string'],
         ]);
 
-        $token = trim(str_replace("\r", '', $validated['qrcode']));
-        $student = LibraryStudent::query()
-            ->where('qrcode', $token)
-            ->orWhere('id_number', $token)
-            ->first();
-
-        $employee = $student ? null : LibraryEmployee::query()
-            ->where('qrcode', $token)
-            ->orWhere('employee_id', $token)
-            ->first();
+        $resolved = $scanner->resolve($validated['qrcode']);
+        $student = $resolved['student'];
+        $employee = $resolved['employee'];
 
         if (! $student && ! $employee) {
             return response()->json([
@@ -57,23 +51,7 @@ class LibraryAttendanceController extends Controller
             ], 404);
         }
 
-        $lastLog = LibraryAttendanceLog::query()
-            ->when($student, fn ($query) => $query->where('student_id', $student->id))
-            ->when($employee, fn ($query) => $query->where('employee_id', $employee->id))
-            ->latest('scanned_at')
-            ->latest('id')
-            ->first();
-
-        $status = $lastLog && strtoupper((string) $lastLog->status) === 'IN' ? 'OUT' : 'IN';
-
-        $log = LibraryAttendanceLog::query()->create([
-            'student_id' => $student?->id,
-            'employee_id' => $employee?->id,
-            'status' => $status,
-            'section' => $request->input('section'),
-            'scanned_at' => Carbon::now('Asia/Manila'),
-        ]);
-
+        $result = $scanner->record($student, $employee, $request->input('section'));
         $patron = $student ?: $employee;
 
         return response()->json([
@@ -84,10 +62,10 @@ class LibraryAttendanceController extends Controller
                 'lastname' => $patron->lastname,
                 'profile_picture' => $student?->profile_picture ?? $employee?->formal_picture,
             ],
-            'status' => $status,
+            'status' => $result['status'],
             'logout_feedback_enabled' => $this->feedbackEnabled(),
             'log' => [
-                'scanned_at' => $log->scanned_at->format('Y-m-d h:i:s A'),
+                'scanned_at' => $result['log']->scanned_at->format('Y-m-d h:i:s A'),
             ],
         ]);
     }
