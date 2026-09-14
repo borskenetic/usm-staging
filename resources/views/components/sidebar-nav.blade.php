@@ -150,7 +150,7 @@
         </button>
         <ul class="sidebar-group-items" id="sidebar-group-library-catalog" role="list">
             <li>
-                <a href="{{ route('book.index') }}" class="sidebar-link {{ request()->routeIs('book.index', 'book.show', 'book.edit', 'books.*') ? 'active' : '' }}">
+                <a href="{{ route('book.index') }}" class="sidebar-link {{ request()->routeIs('book.index', 'book.show', 'book.edit', 'books.*') && ! request()->routeIs('books.archived', 'books.trash') ? 'active' : '' }}">
                     <i class="bi bi-grid"></i> Books
                 </a>
             </li>
@@ -181,6 +181,16 @@
                     </a>
                 </li>
             @endif
+            <li>
+                <a href="{{ route('books.archived') }}" class="sidebar-link {{ request()->routeIs('books.archived') ? 'active' : '' }}">
+                    <i class="bi bi-archive"></i> Archived
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('books.trash') }}" class="sidebar-link {{ request()->routeIs('books.trash') ? 'active' : '' }} text-danger">
+                    <i class="bi bi-trash"></i> Trash
+                </a>
+            </li>
         </ul>
 
         @if ($canLibraryAdmin)

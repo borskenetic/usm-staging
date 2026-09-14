@@ -102,20 +102,20 @@
                         <thead>
                             <tr>
                                 <th>{{ $groupColumn }}</th>
-                                <th class="text-right">Registered patrons</th>
-                                <th class="text-right">IN scans</th>
-                                <th class="text-right">Avg INs / patron</th>
+                                <th>Registered patrons</th>
+                                <th>IN scans</th>
+                                <th>Avg INs / patron</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($programVisitTotals as $row)
                                 <tr>
                                     <td class="text-base-content">{{ $row->group_key ? $programNameByCode->get($row->group_key, $row->group_key) : '—' }}</td>
-                                    <td class="text-right">{{ number_format($row->patron_count) }}</td>
-                                    <td class="text-right">
+                                    <td>{{ number_format($row->patron_count) }}</td>
+                                    <td>
                                         <span class="badge badge-warning badge-sm">{{ number_format($row->ins_count) }}</span>
                                     </td>
-                                    <td class="text-right">{{ number_format($row->avg_ins_per_patron ?? 0, 2) }}</td>
+                                    <td>{{ number_format($row->avg_ins_per_patron ?? 0, 2) }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="4" class="text-base-content/60 text-center py-3">No grouping data yet.</td></tr>
