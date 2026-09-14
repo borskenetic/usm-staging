@@ -12,11 +12,40 @@ class ProspectusController extends Controller
     /**
      * Show all programs
      */
-    public function index()
+    public function index(Request $request)
     {
-        $programs = Program::with('years.courses')->orderBy('program_name')->get();
+        $search = trim((string) $request->query('q', ''));
 
-        return view('prospectus.index', compact('programs'));
+        $programsQuery = Program::query()
+            ->with(['years' => function ($query) {
+                $query->orderBy('year_level')->with('courses');
+            }])
+            ->orderBy('program_name');
+
+        if ($search !== '') {
+            $like = '%'.$search.'%';
+            $programsQuery->where(function ($query) use ($like) {
+                $query->where('program_code', 'like', $like)
+                    ->orWhere('program_name', 'like', $like)
+                    ->orWhereHas('years.courses', function ($courseQuery) use ($like) {
+                        $courseQuery->where('course_code', 'like', $like)
+                            ->orWhere('course_name', 'like', $like);
+                    });
+            });
+        }
+
+        $programs = $programsQuery->get();
+        $programCount = Program::query()->count();
+        $courseCount = ProgramCourse::query()->count();
+        $showingCount = $programs->count();
+
+        return view('prospectus.index', compact(
+            'programs',
+            'search',
+            'programCount',
+            'courseCount',
+            'showingCount'
+        ));
     }
 
     /**

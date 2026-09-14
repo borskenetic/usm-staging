@@ -19,6 +19,7 @@ Reference plan:
 
 ## Active Work
 
+- [x] Restyle Library Prospectus Manager to green school branding with stats cards, add/search forms, and expanded year-column program cards.
 - [x] Port usm-main Library Holdings Report (CHED Report 1 + Report 2 Excel) under Library Utilities for all library staff, using `library_*` catalog tables.
 - [x] Fix Library Admin Dashboard blue primary actions/accents by greening shell branding defaults, clearing legacy branding cache/DB blues, and aligning static branding CSS.
 - [x] Replace stub Library Visit Reports with usm-main-style hub/dashboard/CSV analytics for Students and Faculty & Staff, using green school branding over `library_attendance_logs`.

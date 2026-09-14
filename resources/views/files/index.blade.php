@@ -19,6 +19,15 @@
     @if(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
+    @if($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <div class="upload-card">
         <h5 class="mb-3"><i class="bi bi-cloud-upload me-1"></i>Upload</h5>
@@ -40,7 +49,8 @@
                         <label class="form-label small text-muted mb-1">Custom folder name</label>
                         <input type="text" name="folder_custom" value="{{ old('folder_custom') }}"
                             class="form-control @error('folder_custom') is-invalid @enderror"
-                            placeholder="e.g. Budget 2025, Accreditation" maxlength="80">
+                            placeholder="e.g. Budget 2025, Accreditation" maxlength="80"
+                            @if(old('folder_preset') === 'custom') required @endif>
                         @error('folder_custom')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -164,9 +174,18 @@
 (function () {
     var sel = document.getElementById('folderPreset');
     var wrap = document.getElementById('folderCustomWrap');
+    var customInput = wrap ? wrap.querySelector('input[name="folder_custom"]') : null;
     if (!sel || !wrap) return;
     function sync() {
-        wrap.style.display = sel.value === 'custom' ? 'block' : 'none';
+        var isCustom = sel.value === 'custom';
+        wrap.style.display = isCustom ? 'block' : 'none';
+        if (customInput) {
+            customInput.required = isCustom;
+            customInput.disabled = !isCustom;
+            if (!isCustom) {
+                customInput.value = '';
+            }
+        }
     }
     sel.addEventListener('change', sync);
     sync();

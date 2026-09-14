@@ -1,433 +1,576 @@
-    html, body {
-      height: 100%;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      font-family: 'Segoe UI', sans-serif;
-    }
+/* Prospectus manager — green school branding */
 
-    body {
-      background-color: var(--brand-page-bg, #f0f4f8);
-    }
-    body.modal-open::before {
-    content: '';
+.prospectus-page {
+    --px-ink: #15233b;
+    --px-muted: #5b6b7c;
+    --px-line: #e2e8f0;
+    --px-surface: #ffffff;
+    --px-soft: #f4f7f5;
+    --px-green: #1b5e20;
+    --px-green-strong: #145218;
+    --px-green-soft: #e8f5e9;
+    --px-danger: #b91c1c;
+    --px-danger-strong: #991b1b;
+    max-width: 1120px;
+    margin: 0 auto 2.5rem;
+    padding: 0.25rem 0.15rem 1rem;
+}
+
+.prospectus-hero {
+    margin-bottom: 1.15rem;
+}
+
+.prospectus-title {
+    margin: 0;
+    color: var(--px-green);
+    font-size: clamp(1.55rem, 2.4vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.prospectus-subtitle {
+    margin: 0.35rem 0 0;
+    color: var(--px-muted);
+    font-size: 0.95rem;
+}
+
+.prospectus-alert {
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.prospectus-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.prospectus-stat {
+    background: var(--px-surface);
+    border: 1px solid var(--px-line);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    text-align: left;
+}
+
+.prospectus-stat__label {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--px-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.prospectus-stat__value {
+    color: var(--px-ink);
+    font-size: 1.45rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.prospectus-card {
+    background: var(--px-surface);
+    border: 1px solid var(--px-line);
+    border-radius: 14px;
+    padding: 1rem 1.1rem 1.15rem;
+    margin-bottom: 0.85rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.prospectus-card__title {
+    margin: 0 0 0.85rem;
+    color: var(--px-ink);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.prospectus-add-form,
+.prospectus-search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+
+.prospectus-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 7rem;
+}
+
+.prospectus-field--grow {
+    flex: 1 1 16rem;
+}
+
+.prospectus-field--years {
+    width: 5.5rem;
+    min-width: 5.5rem;
+}
+
+.prospectus-field label {
+    margin: 0;
+    color: var(--px-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.prospectus-field input,
+.prospectus-search-form input[type="search"],
+.prospectus-add-course input,
+.prospectus-modal__dialog input {
+    width: 100%;
+    min-height: 2.4rem;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--px-ink);
+    font-size: 0.92rem;
+}
+
+.prospectus-field input:focus,
+.prospectus-search-form input[type="search"]:focus,
+.prospectus-add-course input:focus,
+.prospectus-modal__dialog input:focus {
+    outline: none;
+    border-color: var(--px-green);
+    box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.15);
+}
+
+.prospectus-search-form input[type="search"] {
+    flex: 1 1 16rem;
+}
+
+.prospectus-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 2.4rem;
+    padding: 0.45rem 0.95rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.prospectus-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.prospectus-btn--primary {
+    background: var(--px-green);
+    border-color: var(--px-green);
+    color: #fff;
+}
+
+.prospectus-btn--primary:hover:not(:disabled) {
+    background: var(--px-green-strong);
+    border-color: var(--px-green-strong);
+    color: #fff;
+}
+
+.prospectus-btn--outline {
+    background: #fff;
+    border-color: #cbd5e1;
+    color: var(--px-ink);
+}
+
+.prospectus-btn--outline:hover:not(:disabled) {
+    border-color: var(--px-green);
+    color: var(--px-green);
+    background: var(--px-green-soft);
+}
+
+.prospectus-btn--ghost {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: var(--px-muted);
+}
+
+.prospectus-btn--ghost:hover:not(:disabled) {
+    color: var(--px-ink);
+    background: #eef2f7;
+}
+
+.prospectus-btn--soft {
+    background: var(--px-green-soft);
+    border-color: #c8e6c9;
+    color: var(--px-green);
+}
+
+.prospectus-btn--soft:hover:not(:disabled) {
+    background: #dcedc8;
+    color: var(--px-green-strong);
+}
+
+.prospectus-btn--danger {
+    background: var(--px-danger);
+    border-color: var(--px-danger);
+    color: #fff;
+}
+
+.prospectus-btn--danger:hover:not(:disabled) {
+    background: var(--px-danger-strong);
+    border-color: var(--px-danger-strong);
+    color: #fff;
+}
+
+.prospectus-btn--xs {
+    min-height: 1.85rem;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.75rem;
+}
+
+.prospectus-list {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.prospectus-program {
+    background: var(--px-surface);
+    border: 1px solid var(--px-line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.prospectus-program__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.85rem;
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid transparent;
+}
+
+.prospectus-program.is-collapsed .prospectus-program__head {
+    border-bottom-color: transparent;
+}
+
+.prospectus-program:not(.is-collapsed) .prospectus-program__head {
+    border-bottom-color: var(--px-line);
+}
+
+.prospectus-program__identity {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.prospectus-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    padding: 0.28rem 0.55rem;
+    border-radius: 999px;
+    background: var(--px-green-soft);
+    color: var(--px-green);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.prospectus-program__name {
+    margin: 0;
+    color: var(--px-ink);
+    font-size: 1.02rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.prospectus-program__meta {
+    margin: 0.2rem 0 0;
+    color: var(--px-muted);
+    font-size: 0.86rem;
+}
+
+.prospectus-program__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.prospectus-program__body {
+    padding: 1rem 1.1rem 1.15rem;
+}
+
+.prospectus-program__body.hidden,
+.prospectus-program.is-collapsed .prospectus-program__body {
+    display: none;
+}
+
+.prospectus-years {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.prospectus-year {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-height: 11rem;
+    padding: 0.85rem;
+    border: 1px solid var(--px-line);
+    border-radius: 12px;
+    background: var(--px-soft);
+}
+
+.prospectus-year__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.prospectus-year__title {
+    margin: 0;
+    color: var(--px-ink);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.prospectus-year__count {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid var(--px-line);
+    color: var(--px-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.prospectus-course-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.45rem;
+    max-height: 12rem;
+    overflow-y: auto;
+    flex: 1 1 auto;
+}
+
+.prospectus-course-empty {
+    color: var(--px-muted);
+    font-size: 0.86rem;
+    padding: 0.35rem 0;
+    text-align: left;
+}
+
+.prospectus-course-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.55rem 0.6rem;
+    border: 1px solid var(--px-line);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.prospectus-course-item__text {
+    min-width: 0;
+    color: var(--px-ink);
+    font-size: 0.84rem;
+    line-height: 1.35;
+    text-align: left;
+}
+
+.prospectus-course-item__text strong {
+    display: block;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+}
+
+.prospectus-course-item__actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.25rem;
+}
+
+.prospectus-add-course {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr auto;
+    gap: 0.4rem;
+    margin-top: auto;
+}
+
+.prospectus-empty {
+    text-align: left;
+    padding: 1.5rem 1.2rem;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    background: #fff;
+    color: var(--px-muted);
+}
+
+.prospectus-empty p {
+    margin: 0 0 0.85rem;
+}
+
+.prospectus-modal {
     position: fixed;
     inset: 0;
-    backdrop-filter: blur(5px); /* Blur intensity */
-    z-index: 1040; /* Just below modal */
-    background: rgba(0, 0, 0, 0.2); /* Optional dark overlay */
-    }
-    /*header style sheet*/
-        .header-logo-img {
-            margin-left: 9rem;
-            max-height: 50px;
-            width: auto;
-        }
-        .school-name{
-            color: var(--brand-school-name-color, red);
-            margin-left: 5px;
-            font-size: 1.3rem;
-            font-weight: bold;
-            font-family: 'Poppins', sans-serif;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.45);
+}
 
-        }
-        .btn0{
-            font-weight: 600;
-            font-size: 0.8rem;
-            border-radius: 50px;
-            padding: 5px 15px;
-            margin-top: 10px;
-            transition: color 0.3s, transform 0.3s;
-            font-family: 'Poppins', sans-serif;
-            text-decoration: none;
-            color: var(--brand-nav-link, #22333b);
-        }
-        .btn0:hover{
-            color: var(--brand-button-hover-bg, #ffb845);
-        }
-
-        .btn1{
-            font-weight: 600;
-            font-size: 0.8rem;
-            border-radius: 50px;
-            padding: 5px 15px;
-            margin-top: 10px;
-            transition: color 0.3s, transform 0.3s;
-            font-family: 'Poppins', sans-serif;
-            text-decoration: none;
-            color: var(--brand-nav-link, #22333b);
-        }
-        .btn1:hover{
-            color: var(--brand-button-hover-bg, #ffb845);
-        }
-        .btn2{
-            font-weight: 600;
-            font-size: 0.8rem;
-            border-radius: 50px;
-            padding: 5px 15px;
-            margin-top: 10px;
-            transition: color 0.3s, transform 0.3s;
-            font-family: 'Poppins', sans-serif;
-            text-decoration: none;
-            color: var(--brand-nav-link, #22333b);
-        }
-        .btn2:hover{
-            color: var(--brand-button-hover-bg, #ffb845);
-        }
-        .btn3{
-            font-weight: 600;
-            font-size: 0.8rem;
-            border-radius: 50px;
-            padding: 5px 15px;
-            margin-top: 10px;
-            transition: color 0.3s, transform 0.3s;
-            font-family: 'Poppins', sans-serif;
-            text-decoration: none;
-            color: var(--brand-button-hover-bg, #ffb845);
-        }
-        .btn4{
-            font-weight: 600;
-            font-size: 0.8rem;
-            border-radius: 50px;
-            padding: 5px 15px;
-            margin-top: 10px;
-            transition: color 0.3s, transform 0.3s;
-            font-family: 'Poppins', sans-serif;
-            text-decoration: none;
-            color: var(--brand-nav-link, #22333b);
-        }
-        .btn4:hover{
-            color: var(--brand-button-hover-bg, #ffb845);
-        }
-
-        .btn5{
-            background-color: var(--brand-button-bg, #22333b);
-            font-weight: 600;
-            font-size: 0.8rem;
-            border-radius: 10px;
-            padding: 5px 15px;
-            margin-top: 10px;
-            transition: color 0.3s, transform 0.3s;
-            font-family: 'Poppins', sans-serif;
-            text-decoration: none;
-            color: var(--brand-button-text, #ffffff);
-            border:none;
-        }
-        .btn5:hover{
-            background-color: var(--brand-button-hover-bg, #ffb845);
-            color: var(--brand-button-hover-text, #22333b);
-        }
-
-
-        footer{
-            background-color: var(--brand-footer-bg, #05014a);
-            width: 100%;
-            height: 4rem;
-            padding: 1rem;
-            margin-top:50px;
-
-        }
-
-        .a51-footer{
-            text-align: center;
-        }
-
-
-        .com-name{
-            color: #ffc107;
-            font-weight: bold;
-            font-size: 1.5rem;
-            letter-spacing: 2px;
-
-
-        }
-        .qoute{
-            font-size: 1rem;
-            font-style: italic;
-            color: #ccc;
-        }
-        /*end of header*/
-
-
-    .container {
-      flex: 1;
-      padding-top: 40px;
-    }
-
-    .hero-text img {
-      width: 100%;
-      height: auto;
-      overflow-x: auto;
-      margin-bottom: 30px;
-      display: flex;
-    }
-
-    .section-title {
-      font-weight: 700;
-      font-size: 1.8rem;
-      margin-bottom: 50px;
-      text-align: center;
-    }
-
-    .btn-success {
-      background-color: #28a745;
-      border: none;
-      font-weight: bold;
-    }
-
-    .btn-add-subject{
-        border-radius: 0px;
-        background-color: var(--brand-button-bg, #22333b);
-        color: var(--brand-button-text, #ffffff);
-    }
-    .btn-add-subject:hover{
-        background-color: var(--brand-button-hover-bg, #ffb845);
-        color: var(--brand-button-hover-text, #22333b);
-    }
-    .btn-go-to-home{
-        border-radius: 0px;
-        background-color: var(--brand-button-bg, #22333b);
-        color: var(--brand-button-text, #ffffff);
-    }
-    .btn-go-to-home:hover{
-        background-color: var(--brand-button-hover-bg, #ffb845);
-        color: var(--brand-button-hover-text, #22333b);
-    }
-    .btn-delete{
-        border-radius: 5px;
-        background-color: var(--brand-danger-bg, #932c27);
-        color: var(--brand-danger-text, #ffffff);
-    }
-    .btn-delete:hover{
-        background-color: var(--brand-danger-hover-bg, #722323);
-        color: var(--brand-danger-text, #ffffff);
-    }
-    .btn-edit{
-        border-radius: 5px;
-        background-color: var(--brand-success-bg, #5E936C);
-        color: var(--brand-success-text, #ffffff);
-    }
-    .btn-edit:hover{
-        background-color: var(--brand-success-hover-bg, #3E5F44);
-        color: var(--brand-success-text, #ffffff);
-    }
-
-    .card-year {
-      background-color: #ffffff;
-      border-radius: 16px;
-      padding: 15px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      height: 300px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .subject-list {
-      overflow-y: auto;
-      flex-grow: 1;
-    }
-
-    .year-title {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 700;
-      font-size: 1.1rem;
-      margin-bottom: 10px;
-      border-bottom: 2px solid #ddd;
-      padding-bottom: 5px;
-      text-align: center;
-    }
-
-    .subject-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #eee;
-    }
-
-    .subject-item:last-child {
-      border-bottom: none;
-    }
-
-    .btn-warning {
-      border-radius: 20px;
-      padding: 5px 16px;
-      font-weight: bold;
-      color: black;
-      font-size: 0.85rem;
-    }
-
-    .btn-danger {
-      color: white;
-      font-weight: bold;
-      border-radius: 20px;
-      padding: 5px 12px;
-      font-size: 0.85rem;
-    }
-
-    .footer {
-      background-color: #000;
-      padding: 10px;
-      text-align: center;
-      margin-top: 50px;
-      border-radius: 30px 30px 0 0;
-    }
-
-    .footer img {
-      width: 80%;
-      max-width: 800px;
-      height: auto;
-    }
-
-    body.modal-open {
-      backdrop-filter: blur(5px);
-      transition: backdrop-filter 0.3s ease;
-    }
-
-
-
-
-
-
-    .dropdown {
-    position: relative;
-    display: inline-block;
-  }
-
-  .dropdown-button {
-    padding: 8px 12px;
-    background-color: #22333b;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-     margin-top: 8px;
-     font-size: 0.8rem;
-     font-family: 'Poppins', sans-serif;
-  }
-
-  .dropdown-content {
+.prospectus-modal.hidden {
     display: none;
-    position: absolute;
-    background-color: white;
-    min-width: 160px;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-    z-index: 1;
-  }
-
-  .dropdown-content a {
-    color: black;
-    padding: 10px 16px;
-    text-decoration: none;
-    display: block;
-  }
-
-  .dropdown-content a:hover {
-    background-color: #ffb845;
-  }
-
-  .dropdown:hover .dropdown-content {
-    display: block;
-  }
-
-
-
- .attendance_dropdown {
-    position: relative;
-    border: none;
 }
 
-.attendance_dropdown-button {
-    margin-top: 8px;
-    background: none;          /* Removed background */
-    border: none;
-    padding: 8px 12px;
-    font-size: 0.8rem;
+.prospectus-modal__dialog {
+    width: min(100%, 26rem);
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.15rem 1.2rem 1.2rem;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+}
+
+.prospectus-modal__title {
+    margin: 0 0 0.65rem;
+    color: var(--px-ink);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.prospectus-modal__text {
+    margin: 0 0 1rem;
+    color: var(--px-muted);
+    font-size: 0.92rem;
+}
+
+.prospectus-modal__dialog .prospectus-field {
+    margin-bottom: 0.75rem;
+}
+
+.prospectus-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.45rem;
+    margin-top: 0.35rem;
+}
+
+.prospectus-toasts {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1100;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.prospectus-toast {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-width: 14rem;
+    max-width: 20rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 10px;
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+}
+
+.prospectus-toast--success {
+    background: var(--px-green);
+}
+
+.prospectus-toast--error {
+    background: var(--px-danger);
+}
+
+.prospectus-toast button {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    font-size: 1.1rem;
+    line-height: 1;
     cursor: pointer;
-   font-weight: 600;
-    color: #22333b;
-    font-family: 'Poppins', sans-serif;
 }
 
-.attendance_dropdown-button:focus {
-    outline: none;             /* Optional: removes outline when clicked */
+.spinner {
+    width: 0.95rem;
+    height: 0.95rem;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #fff;
+    border-radius: 999px;
+    animation: prospectus-spin 0.7s linear infinite;
 }
 
-.attendance_dropdown-content {
+.prospectus-btn--soft .spinner,
+.prospectus-btn--outline .spinner,
+.prospectus-btn--ghost .spinner {
+    border-color: rgba(27, 94, 32, 0.25);
+    border-top-color: var(--px-green);
+}
+
+.spinner.hidden {
     display: none;
-    position: absolute;
-    background-color: white;
-    min-width: 160px;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-    z-index: 1;
-    border-radius: 4px;
 }
 
-.attendance_dropdown-content a {
-    color: black;
-    padding: 10px 16px;
-    text-decoration: none;
-    display: block;
-     font-weight: bold;
-   font-size: 0.8rem;
-    color: #22333b;
+@keyframes prospectus-spin {
+    to { transform: rotate(360deg); }
 }
 
-.attendance_dropdown-content a:hover {
-    background-color: #ffb845;
+@keyframes prospectus-slide-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-.attendance_dropdown:hover .attendance_dropdown-content {
-    display: block;
+@keyframes prospectus-fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
 
-
-  .logs_dropdown {
-    position: relative;
-    border: none;
+.animate-slide-in {
+    animation: prospectus-slide-in 0.35s ease-out;
 }
 
-.logs_dropdown-button {
-    margin-top: 8px;
-    background: none;          /* Removed background */
-    border: none;
-    padding: 8px 12px;
-    font-size: 0.8rem;
-    cursor: pointer;
-   font-weight: 600;
-    color: #22333b;
-    font-family: 'Poppins', sans-serif;
+.animate-fade-out {
+    animation: prospectus-fade-out 0.45s forwards;
 }
 
-.logs_dropdown-button:focus {
-    outline: none;             /* Optional: removes outline when clicked */
-}
+@media (max-width: 768px) {
+    .prospectus-stats {
+        grid-template-columns: 1fr;
+    }
 
-.logs_dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: white;
-    min-width: 160px;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-    z-index: 1;
-    border-radius: 4px;
-}
+    .prospectus-add-course {
+        grid-template-columns: 1fr;
+    }
 
-.logs_dropdown-content a {
-    color: black;
-    padding: 10px 16px;
-    text-decoration: none;
-    display: block;
-     font-weight: bold;
-   font-size: 0.8rem;
-    color: #22333b;
-}
+    .prospectus-program__actions {
+        width: 100%;
+    }
 
-.logs_dropdown-content a:hover {
-    background-color: #ffb845;
+    .prospectus-program__actions .prospectus-btn {
+        flex: 1 1 auto;
+    }
 }
-
-.logs_dropdown:hover .logs_dropdown-content {
-    display: block;
-}
-

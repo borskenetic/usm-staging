@@ -1,19 +1,20 @@
-<li id="course-{{ $course->id }}" class="flex justify-between items-center border-b pb-1">
-    <span>
-        <strong>{{ $course->course_code }}</strong> — {{ $course->course_name }}
-    </span>
-    <div class="flex gap-2">
-        <!-- Edit -->
-        <button type="button"   {{-- ✅ ensures no reload --}}
-                class="bg-yellow-500 text-white px-2 py-1 rounded text-xs"
-                onclick="openEditModal({{ $course->id }}, '{{ $course->course_code }}', '{{ $course->course_name }}')">
+<li id="course-{{ $course->id }}"
+    class="prospectus-course-item"
+    data-course-id="{{ $course->id }}"
+    data-year-id="{{ $course->program_year_id }}">
+    <div class="prospectus-course-item__text">
+        <strong>{{ $course->course_code }}</strong>
+        <span>{{ $course->course_name }}</span>
+    </div>
+    <div class="prospectus-course-item__actions">
+        <button type="button"
+                class="prospectus-btn prospectus-btn--outline prospectus-btn--xs"
+                onclick="openEditModal({{ $course->id }}, @js($course->course_code), @js($course->course_name))">
             Edit
         </button>
-
-        <!-- Delete -->
-        <button type="button"   {{-- ✅ ensures no reload --}}
-                class="bg-red-600 text-white px-2 py-1 rounded text-xs"
-                onclick="openDeleteModal({{ $course->id }}, '{{ $course->course_code }}')">
+        <button type="button"
+                class="prospectus-btn prospectus-btn--danger prospectus-btn--xs"
+                onclick="openDeleteModal({{ $course->id }}, @js($course->course_code))">
             Delete
         </button>
     </div>

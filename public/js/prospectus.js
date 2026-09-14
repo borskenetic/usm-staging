@@ -22,244 +22,280 @@ function closeEditModal() {
     document.getElementById('editModal').classList.add('hidden');
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function courseCountLabel(count) {
+    return `${count} ${count === 1 ? 'course' : 'courses'}`;
+}
+
+function bumpStat(name, delta) {
+    const el = document.querySelector(`[data-stat="${name}"]`);
+    if (!el) return;
+    const next = Math.max(0, (parseInt(el.textContent.replace(/,/g, ''), 10) || 0) + delta);
+    el.textContent = next.toLocaleString();
+}
+
+function refreshYearCount(yearId) {
+    const list = document.getElementById(`year-${yearId}-list`);
+    const badge = document.querySelector(`[data-year-course-count="${yearId}"]`);
+    if (!list || !badge) return;
+    const count = list.querySelectorAll('.prospectus-course-item').length;
+    badge.textContent = courseCountLabel(count);
+}
+
+function refreshProgramCount(programId) {
+    const card = document.getElementById(`program-card-${programId}`);
+    const counter = document.querySelector(`[data-program-course-count="${programId}"]`);
+    const label = document.querySelector(`[data-program-course-label="${programId}"]`);
+    if (!card || !counter) return;
+    const count = card.querySelectorAll('.prospectus-course-item').length;
+    counter.textContent = String(count);
+    if (label) label.textContent = count === 1 ? 'course' : 'courses';
+}
+
+function ensureEmptyState(list) {
+    if (!list) return;
+    if (list.querySelectorAll('.prospectus-course-item').length === 0 && !list.querySelector('.prospectus-course-empty')) {
+        list.insertAdjacentHTML('beforeend', '<li class="prospectus-course-empty">No courses yet.</li>');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('#prospectus-page [data-prospectus-panel]').forEach((btn) => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             const sel = btn.getAttribute('data-prospectus-panel');
             const panel = sel ? document.querySelector(sel) : null;
-            if (panel) panel.classList.toggle('hidden');
+            if (!panel) return;
+
+            const card = panel.closest('.prospectus-program');
+            const willCollapse = !panel.classList.contains('hidden') && !(card && card.classList.contains('is-collapsed'));
+
+            if (card) {
+                card.classList.toggle('is-collapsed', willCollapse);
+            }
+            panel.classList.toggle('hidden', willCollapse);
+            btn.setAttribute('aria-expanded', willCollapse ? 'false' : 'true');
+            btn.textContent = willCollapse
+                ? (btn.getAttribute('data-expand-label') || 'Expand')
+                : (btn.getAttribute('data-collapse-label') || 'Collapse');
         });
     });
 
     const editForm = document.getElementById('editForm');
     const deleteForm = document.getElementById('deleteForm');
 
-    // Helper: show spinner
     function toggleLoading(button, loading) {
+        if (!button) return;
         const spinner = button.querySelector('.spinner');
         const text = button.querySelector('.btn-text');
         if (loading) {
-            spinner.classList.remove('hidden');
-            text.classList.add('hidden');
+            if (spinner) spinner.classList.remove('hidden');
+            if (text) text.classList.add('hidden');
             button.disabled = true;
         } else {
-            spinner.classList.add('hidden');
-            text.classList.remove('hidden');
+            if (spinner) spinner.classList.add('hidden');
+            if (text) text.classList.remove('hidden');
             button.disabled = false;
         }
     }
 
-    // Helper: show success modal
-    function showToast(message, type = "success") {
-        const container = document.getElementById("toastContainer");
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
 
-        const toast = document.createElement("div");
-        toast.className = `px-4 py-2 rounded-lg shadow-lg text-white flex items-center justify-between w-64 animate-slide-in`;
-        toast.style.backgroundColor = type === "success" ? "#16a34a" : "#dc2626"; // green or red
+        const toast = document.createElement('div');
+        toast.className = `prospectus-toast prospectus-toast--${type === 'success' ? 'success' : 'error'} animate-slide-in`;
         toast.innerHTML = `
             <span>${message}</span>
-            <button class="ml-2 text-white font-bold focus:outline-none">×</button>
+            <button type="button" aria-label="Dismiss">×</button>
         `;
 
-        // remove on click
-        toast.querySelector("button").addEventListener("click", () => toast.remove());
-
-        // auto remove
+        toast.querySelector('button').addEventListener('click', () => toast.remove());
         setTimeout(() => {
-            toast.classList.remove("animate-slide-in");
-            toast.classList.add("animate-fade-out");
-            setTimeout(() => toast.remove(), 500);
+            toast.classList.remove('animate-slide-in');
+            toast.classList.add('animate-fade-out');
+            setTimeout(() => toast.remove(), 450);
         }, 2000);
 
         container.appendChild(toast);
     }
 
-    // 🔹 Animations
-    const style = document.createElement("style");
-    style.innerHTML = `
-        @keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
-        @keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
-
-        .animate-slide-in { animation: slideIn 0.4s ease-out; }
-        .animate-fade-out { animation: fadeOut 0.5s forwards; }
-    `;
-    document.head.appendChild(style);
-
-
-    // ✅ Handle Edit (AJAX)
     if (editForm) {
         editForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const btn = document.getElementById('editBtn');
             toggleLoading(btn, true);
 
-            let response = await fetch(this.action, {
+            const response = await fetch(this.action, {
                 method: 'POST',
                 body: new FormData(this),
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
             });
 
             toggleLoading(btn, false);
 
             if (response.ok) {
-                let updatedItem = await response.text();
-                let courseId = this.action.split('/').pop();
-                let li = document.getElementById('course-' + courseId);
-                li.outerHTML = updatedItem;
+                const updatedItem = await response.text();
+                const courseId = this.action.split('/').pop();
+                const li = document.getElementById('course-' + courseId);
+                if (li) li.outerHTML = updatedItem;
                 closeEditModal();
-                showToast("Course Updated ✅");
+                showToast('Course updated');
             } else {
-                alert('Error updating course');
+                showToast('Error updating course', 'error');
             }
         });
     }
 
-    // ✅ Handle Delete (AJAX)
     if (deleteForm) {
         deleteForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             const btn = document.getElementById('deleteBtn');
             toggleLoading(btn, true);
 
-            let response = await fetch(this.action, {
+            const response = await fetch(this.action, {
                 method: 'POST',
                 body: new FormData(this),
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
             });
 
             toggleLoading(btn, false);
 
             if (response.ok) {
-                let courseId = this.action.split('/').pop();
-                let li = document.getElementById('course-' + courseId);
+                const courseId = this.action.split('/').pop();
+                const li = document.getElementById('course-' + courseId);
+                const yearId = li?.dataset?.yearId;
+                const programId = li?.closest('[data-program-id]')?.getAttribute('data-program-id');
+                const list = li?.parentElement;
                 if (li) li.remove();
+                ensureEmptyState(list);
+                if (yearId) refreshYearCount(yearId);
+                if (programId) refreshProgramCount(programId);
+                bumpStat('courses', -1);
                 closeDeleteModal();
-                showToast("Course Deleted 🗑️");
+                showToast('Course deleted');
             } else {
-                alert('Error deleting course');
+                showToast('Error deleting course', 'error');
             }
         });
     }
 
-    document.querySelectorAll('.add-course-form').forEach(form => {
+    document.querySelectorAll('.add-course-form').forEach((form) => {
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
             const btn = this.querySelector('button[type="submit"]');
             toggleLoading(btn, true);
 
-            let formData = new FormData(this);
-            let yearId = this.dataset.year;
-
-            let response = await fetch(this.action, {
+            const yearId = this.dataset.year;
+            const programId = this.dataset.program;
+            const response = await fetch(this.action, {
                 method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                body: new FormData(this),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
             });
 
             toggleLoading(btn, false);
 
             if (response.ok) {
-                let newItem = await response.text();
-                let ul = this.closest('#year-' + yearId).querySelector('ul');
-                let emptyMsg = ul.querySelector('.text-gray-500');
-                if (emptyMsg) emptyMsg.remove();
-                ul.insertAdjacentHTML('beforeend', newItem);
+                const newItem = await response.text();
+                const ul = document.getElementById(`year-${yearId}-list`);
+                if (ul) {
+                    const emptyMsg = ul.querySelector('.prospectus-course-empty');
+                    if (emptyMsg) emptyMsg.remove();
+                    ul.insertAdjacentHTML('beforeend', newItem);
+                }
                 this.reset();
-                showToast("Course Added ✅");
+                refreshYearCount(yearId);
+                if (programId) refreshProgramCount(programId);
+                bumpStat('courses', 1);
+                showToast('Course added');
             } else {
-                alert('Error adding course');
+                showToast('Error adding course', 'error');
             }
         });
     });
 
-
-    // 🔹 Open Program Edit Modal
     window.openProgramEditModal = function (programId, programCode, programName) {
-        const modal = document.getElementById("editProgramModal");
-        const form = document.getElementById("editProgramForm");
+        const modal = document.getElementById('editProgramModal');
+        const form = document.getElementById('editProgramForm');
         form.action = `/prospectus/program/${programId}`;
-        document.getElementById("editProgramCode").value = programCode;
-        document.getElementById("editProgramName").value = programName;
-        modal.classList.remove("hidden");
+        document.getElementById('editProgramCode').value = programCode;
+        document.getElementById('editProgramName').value = programName;
+        modal.classList.remove('hidden');
     };
 
-    // 🔹 Close
     window.closeProgramEditModal = function () {
-        document.getElementById("editProgramModal").classList.add("hidden");
+        document.getElementById('editProgramModal').classList.add('hidden');
     };
 
-    // 🔹 Submit Handler
-    const editProgramForm = document.getElementById("editProgramForm");
+    const editProgramForm = document.getElementById('editProgramForm');
     if (editProgramForm) {
-        editProgramForm.addEventListener("submit", async function (e) {
+        editProgramForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            const btn = document.getElementById("editProgramBtn");
+            const btn = document.getElementById('editProgramBtn');
             toggleLoading(btn, true);
 
-            let response = await fetch(this.action, {
-                method: 'POST', // Laravel spoofing still works
+            const response = await fetch(this.action, {
+                method: 'POST',
                 body: new FormData(this),
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
             });
 
             toggleLoading(btn, false);
 
             if (response.ok) {
-                let data = await response.json();
-                // Update the display text
-                document.getElementById("program-name-" + data.id).textContent =
-                    `${data.program_code} — ${data.program_name}`;
-
+                const data = await response.json();
+                const nameEl = document.getElementById('program-name-' + data.id);
+                if (nameEl) nameEl.textContent = data.program_name;
+                const card = document.getElementById('program-card-' + data.id);
+                const badge = card?.querySelector('.prospectus-badge');
+                if (badge) badge.textContent = data.program_code;
                 closeProgramEditModal();
-                showToast("Program Updated 🎓");
+                showToast('Program updated');
             } else {
-                showToast("Error updating program ❌", "error");
+                showToast('Error updating program', 'error');
             }
         });
     }
-    // 🔹 Open Delete Modal
-    window.openProgramDeleteModal = function(programId, programCode) {
-        const modal = document.getElementById("deleteProgramModal");
-        const form = document.getElementById("deleteProgramForm");
+
+    window.openProgramDeleteModal = function (programId, programCode) {
+        const modal = document.getElementById('deleteProgramModal');
+        const form = document.getElementById('deleteProgramForm');
         form.action = `/prospectus/program/${programId}`;
-        document.getElementById("deleteProgramCode").textContent = programCode;
-        modal.classList.remove("hidden");
+        document.getElementById('deleteProgramCode').textContent = programCode;
+        modal.classList.remove('hidden');
     };
-    
-    // 🔹 Close
-    window.closeProgramDeleteModal = function() {
-        document.getElementById("deleteProgramModal").classList.add("hidden");
+
+    window.closeProgramDeleteModal = function () {
+        document.getElementById('deleteProgramModal').classList.add('hidden');
     };
-    
-    // 🔹 Submit Handler
-    const deleteProgramForm = document.getElementById("deleteProgramForm");
+
+    const deleteProgramForm = document.getElementById('deleteProgramForm');
     if (deleteProgramForm) {
-        deleteProgramForm.addEventListener("submit", async function(e) {
+        deleteProgramForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            const btn = document.getElementById("deleteProgramBtn");
+            const btn = document.getElementById('deleteProgramBtn');
             toggleLoading(btn, true);
-    
-            let response = await fetch(this.action, {
-                method: 'POST', // Laravel method spoofing
+
+            const response = await fetch(this.action, {
+                method: 'POST',
                 body: new FormData(this),
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
             });
-    
+
             toggleLoading(btn, false);
-    
+
             if (response.ok) {
-                let data = await response.json();
-                // Remove the program card from DOM
-                const programDiv = document.getElementById("program-name-" + data.id)?.closest(".bg-white.rounded.shadow.mb-6");
-                if (programDiv) programDiv.remove();
-    
+                const data = await response.json();
+                const card = document.getElementById('program-card-' + data.id);
+                const courseDelta = card ? -card.querySelectorAll('.prospectus-course-item').length : 0;
+                if (card) card.remove();
+                bumpStat('programs', -1);
+                bumpStat('showing', -1);
+                if (courseDelta) bumpStat('courses', courseDelta);
                 closeProgramDeleteModal();
-                showToast("Program deleted 🗑️");
+                showToast('Program deleted');
             } else {
-                showToast("Error deleting program ❌", "error");
+                showToast('Error deleting program', 'error');
             }
         });
     }

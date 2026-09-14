@@ -47,7 +47,7 @@ class FileController extends Controller
         $request->validate([
             'file' => 'required|file|max:20480',
             'folder_preset' => 'required|string|in:'.$presetKeys.',custom',
-            'folder_custom' => 'required_if:folder_preset,custom|string|max:80',
+            'folder_custom' => 'nullable|required_if:folder_preset,custom|string|max:80',
         ]);
 
         $folder = $this->resolveUploadFolder(
