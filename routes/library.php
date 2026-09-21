@@ -153,6 +153,7 @@ Route::middleware(['auth', 'library.admin'])->group(function (): void {
 
     Route::get('/students/report', [StudentController::class, 'index'])->name('students.report');
     Route::post('/students/import', [StudentController::class, 'import'])->name('students.import');
+    Route::get('/students/import/template', [StudentController::class, 'downloadImportTemplate'])->name('students.import.template');
     Route::get('/students/export', [StudentController::class, 'export'])->name('students.export');
     Route::resource('students', StudentController::class);
     Route::get('/idcard/download/{id}', [IdCardController::class, 'download'])->name('idcard.download');

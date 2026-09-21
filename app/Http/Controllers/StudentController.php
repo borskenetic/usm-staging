@@ -640,4 +640,16 @@ class StudentController extends Controller
 
         return redirect()->back()->with('success', 'Students imported successfully.');
     }
+
+    public function downloadImportTemplate()
+    {
+        $path = resource_path('templates/usm_student_import_template.xlsx');
+
+        abort_unless(is_file($path), 404, 'Import template not found.');
+
+        return response()->download(
+            $path,
+            'USM 1st year and Transferee Metadata enrollment.xlsx'
+        );
+    }
 }

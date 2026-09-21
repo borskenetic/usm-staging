@@ -75,14 +75,21 @@
                     <i class="bi bi-download" aria-hidden="true"></i>
                     Export CSV
                 </a>
-                <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data" class="patrons-import">
-                    @csrf
-                    <label class="patrons-file">
-                        <input type="file" name="file" accept=".xlsx,.csv" required>
-                        <span><i class="bi bi-upload" aria-hidden="true"></i> Choose file</span>
-                    </label>
-                    <button type="submit" class="btn patrons-btn patrons-btn--soft">Import</button>
-                </form>
+                <div class="patrons-import">
+                    <a href="{{ route('students.import.template') }}" class="btn patrons-btn patrons-btn--ghost">
+                        <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
+                        Download template
+                    </a>
+                    <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data" class="patrons-import-form">
+                        @csrf
+                        <label class="patrons-file">
+                            <input type="file" name="file" accept=".xlsx,.csv" required>
+                            <span><i class="bi bi-upload" aria-hidden="true"></i> Choose file</span>
+                        </label>
+                        <button type="submit" class="btn patrons-btn patrons-btn--soft">Import</button>
+                    </form>
+                    <p class="patrons-import-hint mb-0">Profile Picture column: filename only (place files in <code>public/images/profile_pictures/</code>).</p>
+                </div>
             </div>
         </section>
 
