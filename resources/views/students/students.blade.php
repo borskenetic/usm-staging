@@ -88,7 +88,6 @@
                         </label>
                         <button type="submit" class="btn patrons-btn patrons-btn--soft">Import</button>
                     </form>
-                    <p class="patrons-import-hint mb-0">Profile Picture column: filename only (place files in <code>public/images/profile_pictures/</code>).</p>
                 </div>
             </div>
         </section>

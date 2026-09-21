@@ -269,19 +269,6 @@
     gap: 0.65rem;
 }
 
-.patrons-import-hint {
-    flex-basis: 100%;
-    margin-top: 0.15rem;
-    color: #5f6b7a;
-    font-size: 0.75rem;
-    line-height: 1.35;
-}
-
-.patrons-import-hint code {
-    font-size: 0.72rem;
-    color: var(--patrons-green);
-}
-
 .patrons-file {
     position: relative;
     display: inline-flex;
