@@ -643,13 +643,13 @@ class StudentController extends Controller
 
     public function downloadImportTemplate()
     {
-        $path = resource_path('templates/usm_student_import_template.xlsx');
+        $path = resource_path('templates/student_import_template.xlsx');
 
         abort_unless(is_file($path), 404, 'Import template not found.');
 
         return response()->download(
             $path,
-            'USM 1st year and Transferee Metadata enrollment.xlsx'
+            'student_import_template.xlsx'
         );
     }
 }
