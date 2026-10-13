@@ -19,6 +19,7 @@ Reference plan:
 
 ## Active Work
 
+- [x] Export books using Library Holdings template columns (Call Number, Barcode, Title/Subtitle, Author, Edition, Publication Year, Publisher, Sublocation, Library Name, Status).
 - [x] Speed up post-login first load: share branding once per request, aggregate dashboard chart queries, short-cache topbar/sidebar counts, prefer file session/cache in .env.example.
 - [x] Set MARC 852 ‡b Library Name and 852 ‡c Sublocation / shelving as cataloging dropdowns (USM LRC + college libraries; Circulation/Filipiniana/Reference/Periodicals/Fiction/Reserve), and expose them on Catalog dropdown options for admin add/remove.
 - [x] Add Library student import template download and align `StudentsImport` to the client USM enrollment Excel (`ID Number`, `Full Name`, `Birth Date`, `Program`, `Year Level`, `Mobile No.`, `Home Address`).

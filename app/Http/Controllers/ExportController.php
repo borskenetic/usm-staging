@@ -6,20 +6,26 @@ use App\Models\Book;
 use App\Models\BookLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Spatie\SimpleExcel\SimpleExcelWriter;
 
 class ExportController extends Controller
 {
     public function exportBooks(Request $request)
     {
-        $fileName = 'books_'.Carbon::now()->format('Y-m-d_H-i-s').'.xlsx';
-        $filePath = storage_path('app/'.$fileName);
-        $writer = SimpleExcelWriter::create($filePath);
+        $templatePath = resource_path('templates/library_holdings_export_template.xlsx');
+        if (! is_file($templatePath)) {
+            abort(500, 'Library holdings export template is missing.');
+        }
 
-        $writer->addRow(['Downloaded At' => Carbon::now()->format('Y-m-d H:i:s')]);
-        $writer->addHeader(['Title', 'Author', 'Program', 'Course', 'Publication Year', 'Status']);
+        $spreadsheet = IOFactory::load($templatePath);
+        $sheet = $spreadsheet->getActiveSheet();
 
-        $query = Book::query();
+        $query = Book::query()->whereNull('archived_at');
+
+        if (in_array($request->input('status'), ['Available', 'Borrowed'], true)) {
+            $query->where('availability', $request->input('status'));
+        }
 
         if ($request->filled('program')) {
             $query->whereHas('programs', function ($q) use ($request) {
@@ -27,7 +33,6 @@ class ExportController extends Controller
             });
         }
 
-        // ✅ pub_year year filter
         if ($request->filled('year_filter') && $request->filled('year1')) {
             $year1 = (int) $request->year1;
             $year2 = (int) $request->year2;
@@ -44,40 +49,54 @@ class ExportController extends Controller
                     break;
                 case 'between':
                     if ($request->filled('year2')) {
-                        $query->whereBetween('pub_year', [$year1, $year2]);
+                        $query->whereBetween('pub_year', [min($year1, $year2), max($year1, $year2)]);
                     }
                     break;
             }
         }
 
-        // ✅ Search filter
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title_statement', 'like', "%$search%")
-                    ->orWhere('rfid', 'like', "%$search%")
-                    ->orWhere('main_author', 'like', "%$search%")
-                    ->orWhere('course', 'like', "%$search%")
-                    ->orWhere('year', 'like', "%$search%");
-            });
+        if ($request->filled('search')) {
+            $search = trim((string) $request->search);
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title_statement', 'like', "%{$search}%")
+                        ->orWhere('rfid', 'like', "%{$search}%")
+                        ->orWhere('main_author', 'like', "%{$search}%")
+                        ->orWhere('course', 'like', "%{$search}%")
+                        ->orWhere('call_number', 'like', "%{$search}%")
+                        ->orWhere('barcode', 'like', "%{$search}%")
+                        ->orWhere('accession_no', 'like', "%{$search}%")
+                        ->orWhere('year', 'like', "%{$search}%");
+                });
+            }
         }
 
-        // ✅ Export only filtered data
-        $query->orderBy('title_statement')
-            ->chunk(500, function ($books) use ($writer) {
+        $row = 2;
+        $query->orderBy('call_number')
+            ->orderBy('title_statement')
+            ->chunk(500, function ($books) use ($sheet, &$row) {
                 foreach ($books as $book) {
-                    $writer->addRow([
-                        'Title' => $book->title_statement,
-                        'Author' => $book->main_author,
-                        'Program' => $book->programs->pluck('program_code')->join(', ') ?: 'N/A',
-                        'Course' => $book->course,
-                        'pub_year' => $book->pub_year,
-                        'Status' => $book->availability,
-                    ]);
+                    $sheet->setCellValue("A{$row}", $book->call_number);
+                    $sheet->setCellValue("B{$row}", $book->barcode);
+                    $sheet->setCellValue("C{$row}", $book->title_statement);
+                    $sheet->setCellValue("D{$row}", $book->main_author);
+                    $sheet->setCellValue("E{$row}", $book->edition);
+                    $sheet->setCellValue("F{$row}", $book->pub_year);
+                    $sheet->setCellValue("G{$row}", $book->publisher);
+                    $sheet->setCellValue("H{$row}", $book->section);
+                    $sheet->setCellValue("I{$row}", $book->library_name);
+                    $sheet->setCellValue("J{$row}", $book->availability);
+                    $row++;
                 }
             });
 
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        $fileName = 'library_holdings_'.Carbon::now()->format('Y-m-d_H-i-s').'.xlsx';
+        $filePath = storage_path('app/'.$fileName);
+        IOFactory::createWriter($spreadsheet, 'Xlsx')->save($filePath);
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+
+        return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
     }
 
     public function exportTransactions()
