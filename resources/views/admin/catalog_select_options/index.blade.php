@@ -5,7 +5,7 @@
         <div>
             <h1 class="h4 mb-1">Catalog dropdown options</h1>
             <p class="text-muted small mb-0">
-                Manage lists for RDA fields 336 (content), 337 (media), and 338 (carrier). Changes apply on Add/Edit book.
+                Manage lists for RDA fields 336–338 and location fields 852 ‡b (library) and 852 ‡c (sublocation). Changes apply on Add/Edit book.
             </p>
         </div>
         <div class="d-flex gap-2">

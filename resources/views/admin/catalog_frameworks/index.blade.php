@@ -8,7 +8,7 @@
 
     <p class="text-muted small">
         Frameworks control which tags appear on Add/Edit book, their order, visibility, and optional mapping to a <code>books</code> column.
-        <a href="{{ route('admin.catalog_select_options.index') }}">Catalog dropdown options</a> (content, media, and carrier types).
+        <a href="{{ route('admin.catalog_select_options.index') }}">Catalog dropdown options</a> (content, media, carrier, library, and sublocation).
     </p>
 
     @if (session('success'))

@@ -45,6 +45,8 @@ return [
         ['tag' => '336', 'subfield' => 'a', 'title' => 'Content type', 'book_column' => 'content_type'],
         ['tag' => '337', 'subfield' => 'a', 'title' => 'Media type', 'book_column' => 'media_type'],
         ['tag' => '338', 'subfield' => 'a', 'title' => 'Carrier type', 'book_column' => 'carrier_type'],
+        ['tag' => '852', 'subfield' => 'b', 'title' => 'Library Name', 'book_column' => 'library_name'],
+        ['tag' => '852', 'subfield' => 'c', 'title' => 'Sublocation / shelving (local)', 'book_column' => 'section'],
     ],
 
 ];
