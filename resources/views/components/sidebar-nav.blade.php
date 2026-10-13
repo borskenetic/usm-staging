@@ -23,7 +23,11 @@
     $showLibraryNav = $canLibrary && $activeModule === \App\Services\Auth\ModuleAccessService::LIBRARY;
     $showAttendanceNav = $canAttendance && $activeModule === \App\Services\Auth\ModuleAccessService::ATTENDANCE;
     $unreadFeedbackCount = $canLibraryAdmin
-        ? \App\Models\Feedback::query()->unread()->count()
+        ? (int) \Illuminate\Support\Facades\Cache::remember(
+            'sidebar.unread_feedback',
+            30,
+            fn () => \App\Models\Feedback::query()->unread()->count()
+        )
         : 0;
 
     $activeModuleLabel = $activeModule ? str_replace('-', ' ', ucfirst($activeModule)) : 'No module';

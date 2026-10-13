@@ -32,6 +32,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
+        $user?->loadMissing('roles');
         $module = $this->moduleAccess->defaultModule($user);
         $request->session()->put('active_module', $module);
 

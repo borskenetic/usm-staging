@@ -21,6 +21,7 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 final class DashboardMetricsService
 {
@@ -200,13 +201,20 @@ final class DashboardMetricsService
 
     private function todayCount(Builder $query, string $column): int
     {
-        return (clone $query)->whereDate($column, today())->count();
+        $start = CarbonImmutable::today()->startOfDay();
+        $end = $start->addDay();
+
+        return (clone $query)->where($column, '>=', $start)->where($column, '<', $end)->count();
     }
 
     private function currentlyInCount(Builder $query): int
     {
+        $start = CarbonImmutable::today()->startOfDay();
+        $end = $start->addDay();
+
         return (clone $query)
-            ->whereDate('scanned_at', today())
+            ->where('scanned_at', '>=', $start)
+            ->where('scanned_at', '<', $end)
             ->where('status', 'IN')
             ->count();
     }
@@ -246,27 +254,48 @@ final class DashboardMetricsService
     private function dateTrendChart(string $id, string $title, Builder $query, string $column): array
     {
         $days = collect(range(6, 0))->map(fn (int $offset): CarbonImmutable => CarbonImmutable::today()->subDays($offset));
+        $start = $days->first()->startOfDay();
+        $end = $days->last()->addDay()->startOfDay();
+        $dateExpr = $this->sqlDateExpression($query, $column);
+
+        $counts = (clone $query)
+            ->where($column, '>=', $start)
+            ->where($column, '<', $end)
+            ->selectRaw("{$dateExpr} as trend_day, COUNT(*) as aggregate")
+            ->groupBy(DB::raw($dateExpr))
+            ->pluck('aggregate', 'trend_day');
 
         return [
             'id' => $id,
             'title' => $title,
             'type' => 'line',
             'labels' => $days->map(fn (CarbonImmutable $day): string => $day->format('M j'))->values(),
-            'data' => $days->map(fn (CarbonImmutable $day): int => (clone $query)->whereDate($column, $day)->count())->values(),
+            'data' => $days->map(fn (CarbonImmutable $day): int => (int) ($counts[$day->toDateString()] ?? 0))->values(),
         ];
     }
 
     /** @return array<string, mixed> */
     private function statusChart(string $id, string $title, Builder $query, string $column): array
     {
+        $start = CarbonImmutable::today()->startOfDay();
+        $end = $start->addDay();
+
+        $counts = (clone $query)
+            ->where($column, '>=', $start)
+            ->where($column, '<', $end)
+            ->whereIn('status', ['IN', 'OUT'])
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
         return [
             'id' => $id,
             'title' => $title,
             'type' => 'bar',
             'labels' => ['IN', 'OUT'],
             'data' => [
-                (clone $query)->whereDate($column, today())->where('status', 'IN')->count(),
-                (clone $query)->whereDate($column, today())->where('status', 'OUT')->count(),
+                (int) ($counts['IN'] ?? 0),
+                (int) ($counts['OUT'] ?? 0),
             ],
         ];
     }
@@ -275,18 +304,45 @@ final class DashboardMetricsService
     private function hourlyChart(string $id, string $title, Builder $query, string $column): array
     {
         $hours = collect(range(7, 19));
+        $start = CarbonImmutable::today()->setTime(7, 0);
+        $end = CarbonImmutable::today()->setTime(20, 0);
+        $hourExpr = $this->sqlHourExpression($query, $column);
+
+        $counts = (clone $query)
+            ->where($column, '>=', $start)
+            ->where($column, '<', $end)
+            ->selectRaw("{$hourExpr} as trend_hour, COUNT(*) as aggregate")
+            ->groupBy(DB::raw($hourExpr))
+            ->pluck('aggregate', 'trend_hour');
 
         return [
             'id' => $id,
             'title' => $title,
             'type' => 'bar',
             'labels' => $hours->map(fn (int $hour): string => CarbonImmutable::createFromTime($hour)->format('g A'))->values(),
-            'data' => $hours->map(function (int $hour) use ($query, $column): int {
-                $start = CarbonImmutable::today()->setTime($hour, 0);
-                $end = $start->addHour();
-
-                return (clone $query)->where($column, '>=', $start)->where($column, '<', $end)->count();
-            })->values(),
+            'data' => $hours->map(fn (int $hour): int => (int) ($counts[$hour] ?? $counts[(string) $hour] ?? 0))->values(),
         ];
+    }
+
+    private function sqlDateExpression(Builder $query, string $column): string
+    {
+        $wrapped = $query->getGrammar()->wrap($column);
+
+        return match ($query->getConnection()->getDriverName()) {
+            'sqlite' => "strftime('%Y-%m-%d', {$wrapped})",
+            'pgsql' => "to_char({$wrapped}, 'YYYY-MM-DD')",
+            default => "DATE({$wrapped})",
+        };
+    }
+
+    private function sqlHourExpression(Builder $query, string $column): string
+    {
+        $wrapped = $query->getGrammar()->wrap($column);
+
+        return match ($query->getConnection()->getDriverName()) {
+            'sqlite' => "cast(strftime('%H', {$wrapped}) as integer)",
+            'pgsql' => "EXTRACT(HOUR FROM {$wrapped})",
+            default => "HOUR({$wrapped})",
+        };
     }
 }

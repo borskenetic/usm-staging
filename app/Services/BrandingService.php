@@ -231,48 +231,52 @@ final class BrandingService
     /** @return array<string, mixed> */
     public function active(): array
     {
-        $existing = Cache::get(self::CACHE_KEY);
-        if (is_array($existing) && ! array_key_exists('overrides', $existing)) {
-            Cache::forever(self::CACHE_KEY, $this->normalizeLegacyCachePayload($existing));
+        $cached = Cache::get(self::CACHE_KEY);
+
+        if (is_array($cached) && ! array_key_exists('overrides', $cached)) {
+            $cached = $this->normalizeLegacyCachePayload($cached);
+            Cache::forever(self::CACHE_KEY, $cached);
         }
 
-        $cached = Cache::rememberForever(self::CACHE_KEY, function (): array {
-            $defaults = $this->defaults();
-            $settings = $this->settings();
+        if (! is_array($cached)) {
+            $cached = Cache::rememberForever(self::CACHE_KEY, function (): array {
+                $defaults = $this->defaults();
+                $settings = $this->settings();
 
-            if (! $settings) {
+                if (! $settings) {
+                    return [
+                        'overrides' => [],
+                        'is_customized' => false,
+                        'updated_at' => null,
+                        'updated_by' => null,
+                    ];
+                }
+
+                $overrides = [];
+                foreach (array_keys($defaults) as $field) {
+                    if (filled($settings->{$field})) {
+                        $overrides[$field] = $settings->{$field};
+                    }
+                }
+
+                foreach (self::ASSET_FIELDS as $field) {
+                    if (
+                        isset($overrides[$field])
+                        && $overrides[$field] !== $defaults[$field]
+                        && ! Storage::disk('public')->exists((string) $overrides[$field])
+                    ) {
+                        unset($overrides[$field]);
+                    }
+                }
+
                 return [
-                    'overrides' => [],
-                    'is_customized' => false,
-                    'updated_at' => null,
-                    'updated_by' => null,
+                    'overrides' => $overrides,
+                    'is_customized' => $overrides !== [],
+                    'updated_at' => $settings->updated_at,
+                    'updated_by' => $settings->updater?->name,
                 ];
-            }
-
-            $overrides = [];
-            foreach (array_keys($defaults) as $field) {
-                if (filled($settings->{$field})) {
-                    $overrides[$field] = $settings->{$field};
-                }
-            }
-
-            foreach (self::ASSET_FIELDS as $field) {
-                if (
-                    isset($overrides[$field])
-                    && $overrides[$field] !== $defaults[$field]
-                    && ! Storage::disk('public')->exists((string) $overrides[$field])
-                ) {
-                    unset($overrides[$field]);
-                }
-            }
-
-            return [
-                'overrides' => $overrides,
-                'is_customized' => $overrides !== [],
-                'updated_at' => $settings->updated_at,
-                'updated_by' => $settings->updater?->name,
-            ];
-        });
+            });
+        }
 
         // Always start from current config defaults, then apply DB overrides only.
         $active = array_merge($this->defaults(), $cached['overrides'] ?? []);
@@ -281,6 +285,28 @@ final class BrandingService
             'is_customized' => (bool) ($cached['is_customized'] ?? false),
             'updated_at' => $cached['updated_at'] ?? null,
             'updated_by' => $cached['updated_by'] ?? null,
+        ];
+    }
+
+    /**
+     * Branding variables shared with every Blade view (resolved once per request).
+     *
+     * @return array<string, mixed>
+     */
+    public function viewShares(): array
+    {
+        $active = $this->active();
+
+        return [
+            'activeBranding' => $active,
+            'brandingBannerUrl' => $this->assetUrl('banner_path', $active),
+            'brandingOpacBannerUrl' => $this->assetUrl('opac_banner_path', $active),
+            'brandingOpacLogoUrl' => $this->assetUrl('opac_logo_path', $active),
+            'brandingOpacDefaultBookCoverUrl' => $this->assetUrl('opac_default_book_cover_path', $active),
+            'brandingSidebarLogoUrl' => $this->assetUrl('sidebar_logo_path', $active),
+            'brandingLoginModalLogoUrl' => $this->assetUrl('login_modal_logo_path', $active),
+            'brandingAttendanceRegisterLogoUrl' => $this->assetUrl('register_modal_attendance_logo_path', $active),
+            'brandingLibraryRegisterLogoUrl' => $this->assetUrl('register_modal_library_logo_path', $active),
         ];
     }
 
@@ -327,9 +353,11 @@ final class BrandingService
         return config('branding.defaults', []);
     }
 
-    public function assetUrl(string $field): string
+    /** @param  array<string, mixed>|null  $active */
+    public function assetUrl(string $field, ?array $active = null): string
     {
-        $path = (string) ($this->active()[$field] ?? $this->defaults()[$field] ?? '');
+        $active ??= $this->active();
+        $path = (string) ($active[$field] ?? $this->defaults()[$field] ?? '');
 
         return str_starts_with($path, 'branding/')
             ? '/branding-assets/'.substr($path, strlen('branding/'))

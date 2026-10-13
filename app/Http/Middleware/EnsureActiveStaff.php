@@ -15,6 +15,10 @@ final class EnsureActiveStaff
     {
         $user = $request->user();
 
+        if ($user) {
+            $user->loadMissing('roles');
+        }
+
         if ($user && ! $user->is_active) {
             Auth::guard('web')->logout();
             $request->session()->invalidate();

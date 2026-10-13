@@ -16,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(BrandingService::class);
     }
 
     /**
@@ -24,19 +24,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer('*', function ($view): void {
-            $branding = app(BrandingService::class);
-            $view->with([
-                'activeBranding' => $branding->active(),
-                'brandingBannerUrl' => $branding->assetUrl('banner_path'),
-                'brandingOpacBannerUrl' => $branding->assetUrl('opac_banner_path'),
-                'brandingOpacLogoUrl' => $branding->assetUrl('opac_logo_path'),
-                'brandingOpacDefaultBookCoverUrl' => $branding->assetUrl('opac_default_book_cover_path'),
-                'brandingSidebarLogoUrl' => $branding->assetUrl('sidebar_logo_path'),
-                'brandingLoginModalLogoUrl' => $branding->assetUrl('login_modal_logo_path'),
-                'brandingAttendanceRegisterLogoUrl' => $branding->assetUrl('register_modal_attendance_logo_path'),
-                'brandingLibraryRegisterLogoUrl' => $branding->assetUrl('register_modal_library_logo_path'),
-            ]);
+        // Share branding once per request. A composer('*') that re-resolves on every
+        // Blade include previously hammered database cache during sidebar dashboards.
+        View::composer('*', function (): void {
+            static $shared = false;
+            if ($shared) {
+                return;
+            }
+            $shared = true;
+
+            View::share(app(BrandingService::class)->viewShares());
         });
 
         // Set PHP's default timezone to Asia/Manila

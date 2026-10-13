@@ -16,10 +16,14 @@ use App\Models\RoomReservation;
 use App\Models\StudentEditRequest;
 use App\Models\User;
 use App\Services\Auth\ModuleAccessService;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 final class TopbarNotificationService
 {
+    private const CACHE_TTL_SECONDS = 30;
+
     public function __construct(private readonly ModuleAccessService $moduleAccess)
     {
     }
@@ -30,6 +34,20 @@ final class TopbarNotificationService
      * @return Collection<int, array{title: string, message: string, url: string}>
      */
     public function forUser(User $user): Collection
+    {
+        $payload = Cache::remember(
+            $this->cacheKey($user),
+            self::CACHE_TTL_SECONDS,
+            fn (): array => $this->buildForUser($user)->all(),
+        );
+
+        return collect($payload)->values();
+    }
+
+    /**
+     * @return Collection<int, array{title: string, message: string, url: string}>
+     */
+    private function buildForUser(User $user): Collection
     {
         $notifications = collect();
 
@@ -79,9 +97,10 @@ final class TopbarNotificationService
                 route('students.pending.requests'),
             );
 
+            $today = CarbonImmutable::today()->startOfDay();
             $overdueLoans = BookLog::query()
                 ->where('status', 'Checked Out')
-                ->whereDate('due_date', '<', today())
+                ->where('due_date', '<', $today)
                 ->count();
             $this->addCountNotification(
                 $notifications,
@@ -114,6 +133,11 @@ final class TopbarNotificationService
         }
 
         return $notifications->values();
+    }
+
+    private function cacheKey(User $user): string
+    {
+        return 'topbar.notifications.'.$user->id;
     }
 
     /** @param Collection<int, array{title: string, message: string, url: string}> $notifications */

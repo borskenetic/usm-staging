@@ -36,6 +36,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            $user?->loadMissing('roles');
 
             if (! $user->is_active) {
                 Auth::logout();
