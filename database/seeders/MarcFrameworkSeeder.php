@@ -73,8 +73,23 @@ class MarcFrameworkSeeder extends Seeder
             ['tag' => '655', 'subfield' => 'a', 'label' => 'Genre', 'book_column' => 'genre'],
 
             // Location/call
-            ['tag' => '852', 'subfield' => 'b', 'label' => 'Library Name', 'input_type' => 'select', 'options' => ['Basic Education', 'Academic Library'], 'book_column' => 'library_name'],
-            ['tag' => '852', 'subfield' => 'c', 'label' => 'Sublocation / shelving (local)', 'book_column' => 'section'],
+            ['tag' => '852', 'subfield' => 'b', 'label' => 'Library Name', 'input_type' => 'select', 'options' => [
+                'Kundo E. Pahm Learning Resource Center',
+                'College of Veterinary Medicine Library',
+                'College of Medicine Library',
+                'Institute of Middle East and Asian Studies Library',
+                'Graduate School Library',
+                'University Laboratory School Library',
+                'College of Agriculture Library',
+            ], 'book_column' => 'library_name'],
+            ['tag' => '852', 'subfield' => 'c', 'label' => 'Sublocation / shelving (local)', 'input_type' => 'select', 'options' => [
+                'Circulation',
+                'Filipiniana',
+                'Reference',
+                'Periodicals',
+                'Fiction',
+                'Reserve',
+            ], 'book_column' => 'section'],
             ['tag' => '852', 'subfield' => 'h', 'label' => 'Call Number', 'book_column' => 'call_number'],
 
             // Item identifiers

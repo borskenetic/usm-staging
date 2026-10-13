@@ -10,8 +10,8 @@ class BookSampleSeeder extends Seeder
 {
     public function run(): void
     {
-        $library = 'Academic Library';
-        $section = 'Main stacks';
+        $library = 'Kundo E. Pahm Learning Resource Center';
+        $section = 'Circulation';
 
         /**
          * Each entry is one physical copy. Duplicate titles share bibliographic fields.
@@ -172,7 +172,7 @@ class BookSampleSeeder extends Seeder
                 'call_number' => 'REF PE1628 .M47 2023',
                 'content_type' => 'Printed',
                 'curriculum' => 'general reference',
-                'library_name' => 'Academic Library',
+                'library_name' => 'Kundo E. Pahm Learning Resource Center',
                 'section' => 'Reference',
                 'program_codes' => ['BSCS', 'BSIT', 'BEED', 'BSED', 'BSBA', 'BSN'],
                 'course' => 'Purposive Communication',
@@ -189,7 +189,7 @@ class BookSampleSeeder extends Seeder
                 'call_number' => 'REF AY67 .W67 2024',
                 'content_type' => 'Printed',
                 'curriculum' => 'general reference',
-                'library_name' => 'Academic Library',
+                'library_name' => 'Kundo E. Pahm Learning Resource Center',
                 'section' => 'Reference',
                 'program_codes' => ['BSCS', 'BSIT', 'BEED', 'BSED', 'BSBA', 'BSN'],
                 'course' => 'The Contemporary World',
@@ -299,7 +299,7 @@ class BookSampleSeeder extends Seeder
                 'call_number' => 'REF NX572 .P5 E53 2015',
                 'content_type' => 'Printed',
                 'curriculum' => 'general reference',
-                'library_name' => 'Academic Library',
+                'library_name' => 'Kundo E. Pahm Learning Resource Center',
                 'section' => 'Reference',
                 'program_codes' => ['BSCS', 'BSIT', 'BEED', 'BSED', 'BSBA', 'BSN'],
                 'course' => 'Art Appreciation',
