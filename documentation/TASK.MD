@@ -23,6 +23,7 @@ Reference plan:
 - [x] Speed up post-login first load: share branding once per request, aggregate dashboard chart queries, short-cache topbar/sidebar counts, prefer file session/cache in .env.example.
 - [x] Set MARC 852 ‡b Library Name and 852 ‡c Sublocation / shelving as cataloging dropdowns (USM LRC + college libraries; Circulation/Filipiniana/Reference/Periodicals/Fiction/Reserve), and expose them on Catalog dropdown options for admin add/remove.
 - [x] Add Library student import template download and align `StudentsImport` to the client USM enrollment Excel (`ID Number`, `Full Name`, `Birth Date`, `Program`, `Year Level`, `Mobile No.`, `Home Address`).
+- [x] Fix Library student QR assignment so import and manual create continue from the highest `S-########` code instead of the newest row (avoids duplicate `S-00000001` when a later patron uses a non-S code).
 - [x] Restyle Library Prospectus Manager to green school branding with stats cards, add/search forms, and expanded year-column program cards.
 - [x] Port usm-main Library Holdings Report (CHED Report 1 + Report 2 Excel) under Library Utilities for all library staff, using `library_*` catalog tables.
 - [x] Fix Library Admin Dashboard blue primary actions/accents by greening shell branding defaults, clearing legacy branding cache/DB blues, and aligning static branding CSS.

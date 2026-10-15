@@ -16,16 +16,7 @@ class StudentsImport implements ToModel, WithHeadingRow, SkipsEmptyRows
 
     public function __construct()
     {
-        $lastStudent = Student::query()
-            ->whereNotNull('qrcode')
-            ->orderByDesc('id')
-            ->first();
-
-        $this->nextQrNumber = 1;
-
-        if ($lastStudent && preg_match('/S-(\d+)/', (string) $lastStudent->qrcode, $matches)) {
-            $this->nextQrNumber = (int) $matches[1] + 1;
-        }
+        $this->nextQrNumber = Student::nextQrSequenceStart();
     }
 
     public function model(array $row)
@@ -148,8 +139,10 @@ class StudentsImport implements ToModel, WithHeadingRow, SkipsEmptyRows
 
     private function nextQrCode(): string
     {
-        $code = 'S-'.str_pad((string) $this->nextQrNumber, 8, '0', STR_PAD_LEFT);
-        $this->nextQrNumber++;
+        do {
+            $code = Student::formatQrCode($this->nextQrNumber);
+            $this->nextQrNumber++;
+        } while (Student::query()->where('qrcode', $code)->exists());
 
         return $code;
     }

@@ -54,6 +54,28 @@ class Student extends Authenticatable
         ];
     }
 
+    /**
+     * Next unused S-######## sequence. Uses the highest existing S- code,
+     * not the newest row, so a later RFID or custom code cannot restart the sequence at 1.
+     */
+    public static function nextQrSequenceStart(): int
+    {
+        $max = 0;
+
+        foreach (static::query()->where('qrcode', 'like', 'S-%')->pluck('qrcode') as $qrcode) {
+            if (preg_match('/^S-(\d+)$/i', (string) $qrcode, $matches)) {
+                $max = max($max, (int) $matches[1]);
+            }
+        }
+
+        return $max + 1;
+    }
+
+    public static function formatQrCode(int $number): string
+    {
+        return 'S-'.str_pad((string) $number, 8, '0', STR_PAD_LEFT);
+    }
+
     public function needsPasswordChange(): bool
     {
         return ! $this->password_setup_completed || $this->force_password_reset;

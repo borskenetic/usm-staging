@@ -18,19 +18,16 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class StudentController extends Controller
 {
-    private function generateNextQrCode()
+    private function generateNextQrCode(): string
     {
-        $lastStudent = Student::whereNotNull('qrcode')
-            ->orderByDesc('id')
-            ->first();
+        $number = Student::nextQrSequenceStart();
 
-        $nextNumber = 1;
+        do {
+            $code = Student::formatQrCode($number);
+            $number++;
+        } while (Student::query()->where('qrcode', $code)->exists());
 
-        if ($lastStudent && preg_match('/S-(\d+)/', $lastStudent->qrcode, $matches)) {
-            $nextNumber = (int) $matches[1] + 1;
-        }
-
-        return 'S-'.str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+        return $code;
     }
 
     // Show all students
