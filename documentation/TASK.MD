@@ -34,6 +34,7 @@ Reference plan:
 - [x] Make OPAC/kiosk self-checkout always room use (in library, no due date) and show that event on the library admin bell and patron activity feed.
 - [x] Circulation Excel reports: transaction logs follow the on-screen filters, and Books in Circulation exports currently borrowed copies. Download actions use a solid green button.
 - [x] Email the patron after every circulation transaction (check out, room use, check in, and renewal) when `library_students.email` is a valid address. A mail failure does not block the transaction.
+- [x] Add email to the library student add/edit form and restyle those pages to match the patron list.
 - [x] Port usm-main Activity log under Library Utilities (patron/staff tabs, date filters, card feed, Open links) with patron-initiated audit events.
 - [x] Add branded web `403` error page with logo/brand colors and Back to dashboard link for unauthorized staff access.
 - [x] Upgrade `/library/attendance/logs` with green attendance-logs UI, filters, `Lastname, Firstname` search, PDF/Excel export, and no Section column.

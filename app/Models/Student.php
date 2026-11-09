@@ -33,6 +33,7 @@ class Student extends Authenticatable
         'failed_login_attempts',
         'locked_until',
         'mobile_number',
+        'email',
         'address',
         'emergency_person',
         'emergency_relationship',

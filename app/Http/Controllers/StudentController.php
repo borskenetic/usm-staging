@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
 class StudentController extends Controller
@@ -74,6 +75,8 @@ class StudentController extends Controller
     // Store new student
     public function store(Request $request)
     {
+        $request->merge(['email' => $this->nullableEmail($request->input('email'))]);
+
         $validated = $request->validate([
             'id_number' => 'required|string|max:255|unique:library_students,id_number',
             'firstname' => 'required|string|max:255',
@@ -83,6 +86,7 @@ class StudentController extends Controller
             'course' => 'required|string|max:255',
             'year' => 'required|string|max:255',
             'mobile_number' => 'nullable|string|max:255',
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('library_students', 'email')],
             'address' => 'nullable|string',
             'emergency_person' => 'nullable|string|max:255',
             'emergency_relationship' => 'nullable|string|max:255',
@@ -149,14 +153,17 @@ class StudentController extends Controller
     public function edit($id)
     {
         $student = Student::findOrFail($id);
+        $programs = Program::orderBy('program_name')->get();
 
-        return view('students.edit', compact('student'));
+        return view('students.edit', compact('student', 'programs'));
     }
 
     // Update student
     public function update(Request $request, $id)
     {
         $student = Student::findOrFail($id);
+
+        $request->merge(['email' => $this->nullableEmail($request->input('email'))]);
 
         $validated = $request->validate([
             'id_number' => 'nullable|string|unique:library_students,id_number,'.$id,
@@ -169,6 +176,7 @@ class StudentController extends Controller
             'year' => 'nullable|string|max:255',
 
             'mobile_number' => 'nullable|string|max:255',
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('library_students', 'email')->ignore($id)],
             'address' => 'nullable|string',
 
             'emergency_person' => 'nullable|string|max:255',
@@ -582,6 +590,7 @@ class StudentController extends Controller
             'Course',
             'Year',
             'Mobile Number',
+            'Email',
             'Address',
             'Emergency Person',
             'Emergency Relationship',
@@ -609,6 +618,7 @@ class StudentController extends Controller
                     $student->course,
                     $student->year,
                     $student->mobile_number,
+                    $student->email,
                     $student->address,
                     $student->emergency_person,
                     $student->emergency_relationship,
@@ -625,6 +635,13 @@ class StudentController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    private function nullableEmail(mixed $value): ?string
+    {
+        $email = strtolower(trim((string) $value));
+
+        return $email === '' ? null : $email;
     }
 
     public function import(Request $request)
