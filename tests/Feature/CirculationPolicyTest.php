@@ -34,6 +34,7 @@ class CirculationPolicyTest extends TestCase
             ->assertSee('Save policy');
 
         $response = $this->actingAs($admin)->post(route('circulation.policy.update'), [
+            'sublocation' => 'Circulation',
             'student_max' => 6,
             'employee_unlimited' => '0',
             'employee_max' => 12,
@@ -56,19 +57,72 @@ class CirculationPolicyTest extends TestCase
             $response->headers->get('Location')
         );
 
-        $this->assertSame(6, Setting::maxLoansForStudents());
-        $this->assertSame(12, Setting::maxLoansForEmployees());
-        $this->assertFalse(Setting::employeeLoansUnlimited());
-        $this->assertSame(2, Setting::maxRenewalsPerLoan());
-        $this->assertSame(5, Setting::reborrowCooldownDays());
-        $this->assertSame(3, Setting::reservationHoldDays());
-
-        $fine = FineSetting::query()->latest('id')->firstOrFail();
+        $fine = FineSetting::query()->where('sublocation', 'Circulation')->latest('id')->firstOrFail();
+        $this->assertSame(6, $fine->studentMaxLoans());
+        $this->assertSame(12, $fine->employeeMaxLoans());
+        $this->assertFalse($fine->employeeLoansUnlimited());
+        $this->assertSame(2, $fine->maxRenewals());
+        $this->assertSame(5, $fine->reborrowCooldownDays());
+        $this->assertSame(3, $fine->reservationHoldDays());
         $this->assertSame(10.0, (float) $fine->student_fine_per_day);
         $this->assertSame(8, (int) $fine->student_loan_duration_days);
         $this->assertSame(14, (int) $fine->employee_loan_duration_days);
         $this->assertSame(8, $fine->studentLoanDurationDays());
         $this->assertSame(14, $fine->employeeLoanDurationDays());
+
+        $this->assertSame(5, Setting::maxLoansForStudents());
+    }
+
+    public function test_sublocation_policies_are_saved_separately(): void
+    {
+        $admin = $this->staffUser('library_admin');
+        $shared = [
+            'employee_unlimited' => '0',
+            'employee_max' => 10,
+            'max_renewals' => 3,
+            'reborrow_cooldown_days' => 7,
+            'reservation_hold_days' => 7,
+            'student_fine_per_day' => 5,
+            'student_max_fine' => 500,
+            'student_grace_period_days' => 0,
+            'employee_fine_per_day' => 5,
+            'employee_max_fine' => 500,
+            'employee_grace_period_days' => 0,
+        ];
+
+        $this->actingAs($admin)->post(route('circulation.policy.update'), array_merge($shared, [
+            'sublocation' => 'Circulation',
+            'student_max' => 5,
+            'student_loan_duration_days' => 7,
+            'employee_loan_duration_days' => 14,
+        ]))->assertRedirect();
+
+        $this->actingAs($admin)->post(route('circulation.policy.update'), array_merge($shared, [
+            'sublocation' => 'Reserve',
+            'student_max' => 1,
+            'student_loan_duration_days' => 2,
+            'employee_loan_duration_days' => 3,
+            'max_renewals' => 0,
+        ]))->assertRedirect();
+
+        FineSetting::clearCache();
+
+        $circulation = FineSetting::forSection('Circulation');
+        $reserve = FineSetting::forSection('Reserve');
+
+        $this->assertSame(5, $circulation->studentMaxLoans());
+        $this->assertSame(7, $circulation->studentLoanDurationDays());
+        $this->assertSame(3, $circulation->maxRenewals());
+        $this->assertSame(1, $reserve->studentMaxLoans());
+        $this->assertSame(2, $reserve->studentLoanDurationDays());
+        $this->assertSame(0, $reserve->maxRenewals());
+
+        $this->actingAs($admin)
+            ->get(route('circulation.policy.edit', ['sublocation' => 'Reserve']))
+            ->assertOk()
+            ->assertSee('Sublocation / shelving')
+            ->assertSee('Showing the saved policy for')
+            ->assertSee('Reserve');
     }
 
     public function test_old_fines_edit_redirects_to_circulation_policy(): void

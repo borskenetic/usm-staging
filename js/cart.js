@@ -153,7 +153,7 @@ function confirmCopyCheckout() {
         .then((res) => res.json())
         .then((data) => {
             if (data.success) {
-                showToast('Checkout successful!', 'success');
+                showToast('Room use recorded. The book stays in the library.', 'success');
                 const modalEl = document.getElementById('studentCheckoutModal');
                 if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
                     bootstrap.Modal.getInstance(modalEl)?.hide();

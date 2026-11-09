@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\Mobile\Concerns\ResolvesMobileStudent;
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\BookReservation;
-use App\Models\Setting;
+use App\Models\FineSetting;
 use App\Models\StudentNotification;
 use App\Models\User;
 use App\Services\AdminActivityLogger;
@@ -188,7 +188,7 @@ class BookReservationController extends Controller
         }
 
         $now = Carbon::now('Asia/Manila');
-        $holdExpires = $now->copy()->addDays(Setting::reservationHoldDays());
+        $holdExpires = $now->copy()->addDays(FineSetting::forSection($returnedBook->section)->reservationHoldDays());
 
         app(CirculationService::class)->placeHold($returnedBook);
 

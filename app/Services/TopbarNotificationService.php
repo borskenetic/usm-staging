@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\AdminActivity;
 use App\Models\AttendancePendingEmployee;
 use App\Models\AttendancePendingStudent;
 use App\Models\BookLog;
@@ -24,9 +25,7 @@ final class TopbarNotificationService
 {
     private const CACHE_TTL_SECONDS = 30;
 
-    public function __construct(private readonly ModuleAccessService $moduleAccess)
-    {
-    }
+    public function __construct(private readonly ModuleAccessService $moduleAccess) {}
 
     /**
      * Return actionable notifications the user is authorized to open.
@@ -118,6 +117,18 @@ final class TopbarNotificationService
                 'feedback submission',
                 route('feedback.index'),
             );
+
+            $kioskRoomUses = AdminActivity::query()
+                ->where('type', AdminActivity::TYPE_SELF_CHECKOUT)
+                ->where('created_at', '>=', $today)
+                ->count();
+            $this->addCountNotification(
+                $notifications,
+                $kioskRoomUses,
+                'Kiosk room use',
+                'kiosk room use',
+                route('library.attendance.activities', ['category' => 'patron']),
+            );
         }
 
         if ($this->moduleAccess->hasAttendanceAdminAccess($user)) {
@@ -137,7 +148,9 @@ final class TopbarNotificationService
 
     private function cacheKey(User $user): string
     {
-        return 'topbar.notifications.'.$user->id;
+        $version = (int) Cache::get('topbar.notifications.version', 1);
+
+        return 'topbar.notifications.'.$version.'.'.$user->id;
     }
 
     /** @param Collection<int, array{title: string, message: string, url: string}> $notifications */

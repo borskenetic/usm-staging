@@ -86,6 +86,37 @@ class BookLog extends Model
             ->count();
     }
 
+    public static function countActiveLoansForStudentInSection(int $studentId, ?string $section): int
+    {
+        $latestIds = DB::table('library_book_logs')
+            ->select(DB::raw('MAX(id) as id'))
+            ->where('student_id', $studentId)
+            ->groupBy('book_id');
+
+        $normalized = trim((string) $section);
+
+        return (int) static::query()
+            ->whereIn('id', $latestIds)
+            ->where('status', 'Checked Out')
+            ->whereHas('book', function ($query) use ($normalized) {
+                if ($normalized === '') {
+                    $query->where(function ($inner) {
+                        $inner->whereNull('section')->orWhereRaw("TRIM(section) = ''");
+                    });
+
+                    return;
+                }
+
+                $query->whereRaw('LOWER(TRIM(section)) = ?', [mb_strtolower($normalized)]);
+            })
+            ->count();
+    }
+
+    public function applicableFineSetting(): FineSetting
+    {
+        return FineSetting::forSection($this->book?->section);
+    }
+
     public function book()
     {
         return $this->belongsTo(Book::class, 'book_id');
@@ -178,7 +209,7 @@ class BookLog extends Model
             return 0;
         }
 
-        $settings = self::cachedFineSettings();
+        $settings = $this->applicableFineSetting();
         $terms = $settings->patronTerms($this->employee_id !== null);
 
         $compareDate = $this->returned_date
@@ -213,7 +244,7 @@ class BookLog extends Model
             return 0;
         }
 
-        $settings = self::cachedFineSettings();
+        $settings = $this->applicableFineSetting();
         $terms = $settings->patronTerms($this->employee_id !== null);
 
         $fine = $this->days_overdue * $terms->fine_per_day;

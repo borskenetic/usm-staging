@@ -9,22 +9,29 @@ use App\Models\Setting;
 use App\Services\AdminActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 final class CirculationPolicyController extends Controller
 {
-    public function edit(): View
+    public function edit(Request $request): View
     {
-        $fineSettings = FineSetting::current();
-        $termsBase = $fineSettings ?? new FineSetting(FineSetting::defaultAttributes());
+        $sublocations = FineSetting::sublocationNames();
+        $requested = $request->old('sublocation', $request->query('sublocation'));
+        $selected = $this->selectedSublocation($requested, $sublocations);
+        $fineSettings = FineSetting::storedFor($selected);
+        $termsBase = $fineSettings ?? FineSetting::forSection($selected);
 
         return view('admin.circulation_policy', [
-            'studentMax' => Setting::maxLoansForStudents(),
-            'employeeUnlimited' => Setting::employeeLoansUnlimited(),
-            'employeeMax' => Setting::maxLoansForEmployees(),
-            'maxRenewals' => Setting::maxRenewalsPerLoan(),
-            'reborrowCooldownDays' => Setting::reborrowCooldownDays(),
-            'reservationHoldDays' => Setting::reservationHoldDays(),
+            'sublocations' => $sublocations,
+            'selectedSublocation' => $selected,
+            'hasSavedPolicy' => $fineSettings !== null,
+            'studentMax' => $termsBase->studentMaxLoans(),
+            'employeeUnlimited' => $termsBase->employeeLoansUnlimited(),
+            'employeeMax' => $termsBase->employeeMaxLoans(),
+            'maxRenewals' => $termsBase->maxRenewals(),
+            'reborrowCooldownDays' => $termsBase->reborrowCooldownDays(),
+            'reservationHoldDays' => $termsBase->reservationHoldDays(),
             'fineSettings' => $fineSettings,
             'studentTerms' => $termsBase->patronTerms(false),
             'employeeTerms' => $termsBase->patronTerms(true),
@@ -33,9 +40,11 @@ final class CirculationPolicyController extends Controller
 
     public function update(Request $request, AdminActivityLogger $activities): RedirectResponse
     {
+        $sublocations = FineSetting::sublocationNames();
         $employeeUnlimited = $request->input('employee_unlimited') === '1';
 
         $request->validate([
+            'sublocation' => ['required', 'string', Rule::in($sublocations)],
             'student_max' => 'required|integer|min:1|max:100',
             'employee_unlimited' => 'required|in:0,1',
             'employee_max' => $employeeUnlimited ? 'nullable|integer|min:1|max:100' : 'required|integer|min:1|max:100',
@@ -52,20 +61,16 @@ final class CirculationPolicyController extends Controller
             'employee_loan_duration_days' => 'required|integer|min:1|max:365',
         ]);
 
-        Setting::setBorrowLimits(
-            (int) $request->input('student_max'),
-            $employeeUnlimited,
-            (int) ($request->input('employee_max') ?: Setting::DEFAULT_MAX_LOANS_EMPLOYEES)
-        );
-
-        Setting::setLoanPolicies(
-            (int) $request->input('max_renewals'),
-            (int) $request->input('reborrow_cooldown_days')
-        );
-
-        Setting::setReservationHoldDays((int) $request->input('reservation_hold_days'));
+        $sublocation = (string) $request->input('sublocation');
 
         FineSetting::create([
+            'sublocation' => $sublocation,
+            'student_max_loans' => (int) $request->input('student_max'),
+            'employee_loans_unlimited' => $employeeUnlimited,
+            'employee_max_loans' => (int) ($request->input('employee_max') ?: Setting::DEFAULT_MAX_LOANS_EMPLOYEES),
+            'policy_max_renewals' => (int) $request->input('max_renewals'),
+            'policy_reborrow_cooldown_days' => (int) $request->input('reborrow_cooldown_days'),
+            'policy_reservation_hold_days' => (int) $request->input('reservation_hold_days'),
             'fine_per_day' => $request->student_fine_per_day,
             'max_fine' => $request->student_max_fine,
             'grace_period_days' => $request->student_grace_period_days,
@@ -88,15 +93,33 @@ final class CirculationPolicyController extends Controller
             'library',
             'settings.circulation_policy',
             'Circulation policy updated',
-            'Borrow limits, renewals, and fine settings changed',
+            $sublocation.' borrow limits, renewals, and fine settings changed',
             null,
-            route('circulation.policy.edit'),
+            route('circulation.policy.edit', ['sublocation' => $sublocation]),
             'bi-sliders',
         );
 
         return redirect()
-            ->route('circulation.policy.edit', [], 303)
-            ->with('success', 'Circulation policy updated successfully.')
+            ->route('circulation.policy.edit', ['sublocation' => $sublocation], 303)
+            ->with('success', $sublocation.' policy updated successfully.')
             ->withFragment('fines-pane');
+    }
+
+    /**
+     * @param  list<string>  $sublocations
+     */
+    private function selectedSublocation(mixed $requested, array $sublocations): string
+    {
+        $canonical = FineSetting::canonicalSection(is_string($requested) ? $requested : null);
+
+        if ($canonical !== null && in_array($canonical, $sublocations, true)) {
+            return $canonical;
+        }
+
+        if (in_array('Circulation', $sublocations, true)) {
+            return 'Circulation';
+        }
+
+        return $sublocations[0] ?? 'Circulation';
     }
 }

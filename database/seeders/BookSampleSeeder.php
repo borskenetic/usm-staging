@@ -333,12 +333,125 @@ class BookSampleSeeder extends Seeder
             $created++;
         }
 
-        $titleCount = collect($copies)->pluck('title_statement')->unique()->count();
+        $created += $this->seedCatalogTitles($library);
+
+        $titleCount = Book::query()
+            ->where('accession_no', 'like', 'GG-2024-%')
+            ->distinct()
+            ->count('title_statement');
 
         $withPrograms = Book::whereHas('programs')->count();
         $withCourse = Book::whereNotNull('course')->where('course', '!=', '')->count();
 
-        $this->command?->info("{$created} book copies seeded ({$titleCount} unique titles). Accession GG-2024-0001 … GG-2024-0018.");
+        $this->command?->info("{$created} book copies seeded ({$titleCount} unique titles).");
         $this->command?->info("{$withPrograms} copies linked to programs; {$withCourse} copies have a course set.");
+    }
+
+    private function seedCatalogTitles(string $library): int
+    {
+        $catalog = [
+            ['Calculus: Early Transcendentals', 'Stewart, James', 'Circulation', '2018', 'QA303 .S74 2018'],
+            ['Organic Chemistry', 'McMurry, John', 'Circulation', '2016', 'QD251.3 .M36 2016'],
+            ['University Physics', 'Young, Hugh D.', 'Circulation', '2020', 'QC21.3 .Y68 2020'],
+            ['Microbiology: An Introduction', 'Tortora, Gerard J.', 'Circulation', '2019', 'QR41.2 .T67 2019'],
+            ['Human Anatomy and Physiology', 'Marieb, Elaine N.', 'Circulation', '2019', 'QP34.5 .M265 2019'],
+            ['Principles of Economics', 'Mankiw, N. Gregory', 'Circulation', '2021', 'HB172 .M36 2021'],
+            ['Financial Accounting', 'Weygandt, Jerry J.', 'Circulation', '2018', 'HF5636 .W49 2018'],
+            ['Business Law', 'Clarkson, Kenneth W.', 'Circulation', '2017', 'KF889 .C55 2017'],
+            ['Organizational Behavior', 'Robbins, Stephen P.', 'Circulation', '2019', 'HD58.7 .R62 2019'],
+            ['Statistics for the Behavioral Sciences', 'Gravetter, Frederick J.', 'Circulation', '2017', 'BF39 .G72 2017'],
+            ['Noli Me Tangere', 'Rizal, Jose', 'Filipiniana', '2006', 'PQ8897 .R5 N6 2006'],
+            ['El Filibusterismo', 'Rizal, Jose', 'Filipiniana', '2006', 'PQ8897 .R5 E4 2006'],
+            ['Florante at Laura', 'Balagtas, Francisco', 'Filipiniana', '2010', 'PL6053 .B3 F5 2010'],
+            ['The Philippines: A Past Revisited', 'Constantino, Renato', 'Filipiniana', '1975', 'DS668 .C66 1975'],
+            ['History of the Filipino People', 'Agoncillo, Teodoro A.', 'Filipiniana', '1990', 'DS668 .A35 1990'],
+            ['Banaag at Sikat', 'Santos, Lope K.', 'Filipiniana', '2008', 'PL6053 .S26 B3 2008'],
+            ['Mga Ibong Mandaragit', 'Hernandez, Amado V.', 'Filipiniana', '2005', 'PL6053 .H47 I2 2005'],
+            ['Philippine History', 'Zaide, Gregorio F.', 'Filipiniana', '1999', 'DS668 .Z35 1999'],
+            ['To Kill a Mockingbird', 'Lee, Harper', 'Fiction', '2006', 'PS3562 .E353 T6 2006'],
+            ['The Little Prince', 'Saint-Exupery, Antoine de', 'Fiction', '2000', 'PQ2637 .A274 P413 2000'],
+            ['Nineteen Eighty-Four', 'Orwell, George', 'Fiction', '2003', 'PR6029 .R8 N49 2003'],
+            ['Pride and Prejudice', 'Austen, Jane', 'Fiction', '2008', 'PR4034 .P7 2008'],
+            ['The Alchemist', 'Coelho, Paulo', 'Fiction', '2014', 'PQ9698.13 .O3546 A413 2014'],
+            ['One Hundred Years of Solitude', 'Garcia Marquez, Gabriel', 'Fiction', '2006', 'PQ8180.17 .A73 C513 2006'],
+            ['The Hobbit', 'Tolkien, J. R. R.', 'Fiction', '2012', 'PR6039 .O32 H63 2012'],
+            ['Harry Potter and the Sorcerer\'s Stone', 'Rowling, J. K.', 'Fiction', '1998', 'PR6068 .O93 H37 1998'],
+            ['Oxford English Dictionary', 'Oxford University Press', 'Reference', '2010', 'REF PE1625 .O87 2010'],
+            ['Merriam-Webster Collegiate Dictionary', 'Merriam-Webster', 'Reference', '2020', 'REF PE1628 .M36 2020'],
+            ['Atlas of the World', 'National Geographic', 'Reference', '2019', 'REF G1021 .N38 2019'],
+            ['Encyclopedia Britannica Yearbook', 'Encyclopaedia Britannica', 'Reference', '2022', 'REF AE5 .E363 2022'],
+            ['Philippine Statistical Yearbook', 'Philippine Statistics Authority', 'Reference', '2023', 'REF HA1821 .P45 2023'],
+            ['Journal of Philippine Librarianship', 'University of the Philippines', 'Periodicals', '2022', 'PER Z671 .J68 2022'],
+            ['Philippine Journal of Science', 'Department of Science and Technology', 'Periodicals', '2021', 'PER Q1 .P45 2021'],
+            ['Time Magazine Bound Volume', 'Time Inc.', 'Periodicals', '2019', 'PER AP2 .T47 2019'],
+            ['National Geographic Collection', 'National Geographic Society', 'Periodicals', '2018', 'PER G1 .N27 2018'],
+            ['Educational Research Review', 'Elsevier', 'Periodicals', '2020', 'PER LB1028 .E38 2020'],
+            ['Reserve Readings in Biology', 'USM Faculty', 'Reserve', '2024', 'RES QH308 .U86 2024'],
+            ['Reserve Readings in Calculus', 'USM Faculty', 'Reserve', '2024', 'RES QA303 .U86 2024'],
+            ['Reserve Readings in Philippine Government', 'USM Faculty', 'Reserve', '2024', 'RES JQ1416 .U86 2024'],
+            ['Reserve Readings in Nursing', 'USM Faculty', 'Reserve', '2024', 'RES RT41 .U86 2024'],
+            ['Introduction to Psychology', 'Myers, David G.', 'Circulation', '2018', 'BF121 .M94 2018'],
+            ['Sociology: A Brief Introduction', 'Schaefer, Richard T.', 'Circulation', '2019', 'HM586 .S33 2019'],
+            ['Environmental Science', 'Miller, G. Tyler', 'Circulation', '2016', 'GE105 .M55 2016'],
+            ['Agricultural Extension', 'Swanson, Burton E.', 'Circulation', '2014', 'S544 .S93 2014'],
+            ['Veterinary Anatomy', 'Dyce, K. M.', 'Circulation', '2018', 'SF761 .D93 2018'],
+            ['Plant Physiology', 'Taiz, Lincoln', 'Circulation', '2015', 'QK711.2 .T35 2015'],
+            ['The Nature and Properties of Soils', 'Brady, Nyle C.', 'Circulation', '2017', 'S591 .B73 2017'],
+            ['Public Administration', 'Denhardt, Robert B.', 'Circulation', '2015', 'JF1351 .D46 2015'],
+            ['Information Literacy', 'American Library Association', 'Circulation', '2016', 'ZA3075 .A64 2016'],
+            ['PHP and MySQL Web Development', 'Welling, Luke', 'Circulation', '2017', 'QA76.73 .P224 W45 2017'],
+        ];
+
+        $extraCopyTitles = [
+            'Calculus: Early Transcendentals',
+            'Human Anatomy and Physiology',
+            'Noli Me Tangere',
+            'To Kill a Mockingbird',
+            'Oxford English Dictionary',
+            'Reserve Readings in Biology',
+            'Introduction to Psychology',
+        ];
+
+        $sequence = 101;
+        $created = 0;
+
+        foreach ($catalog as $row) {
+            [$title, $author, $section, $year, $callNumber] = $row;
+            $copyCount = in_array($title, $extraCopyTitles, true) ? 2 : 1;
+            if ($title === 'Noli Me Tangere') {
+                $copyCount = 3;
+            }
+
+            for ($copy = 1; $copy <= $copyCount; $copy++) {
+                $accession = sprintf('GG-2024-%04d', $sequence);
+                $sequence++;
+
+                Book::updateOrCreate(
+                    ['accession_no' => $accession],
+                    [
+                        'title_statement' => $title,
+                        'main_author' => $author,
+                        'publisher' => 'University Press',
+                        'pub_year' => $year,
+                        'call_number' => $copy === 1 ? $callNumber : $callNumber.' c.'.$copy,
+                        'content_type' => 'Printed',
+                        'cataloging_source_e' => 'rda',
+                        'library_name' => $library,
+                        'section' => $section,
+                        'availability' => 'Available',
+                        'barcode' => 'BC-'.$accession,
+                        'rfid' => 'RFID-'.$accession,
+                        'curriculum' => match ($section) {
+                            'Filipiniana' => 'filipiniana',
+                            'Reference' => 'general reference',
+                            default => 'gen ed',
+                        },
+                    ]
+                );
+                $created++;
+            }
+        }
+
+        return $created;
     }
 }

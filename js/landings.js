@@ -322,7 +322,7 @@ function markBorrowedInUi(bookId) {
     if (row) {
         const cells = row.querySelectorAll('td');
         if (cells.length >= 8) {
-            cells[7].textContent = 'Checked out';
+            cells[7].textContent = 'Room use';
         }
     }
 }
@@ -408,14 +408,14 @@ function confirmCheckout() {
                     window.printReceiptBulk();
                 }
 
-                showToast('Checkout successful!', 'success');
+                showToast('Room use recorded. The book stays in the library.', 'success');
 
                 if (window.opacDetailPayload && window.selectedBooks.length === 1) {
                     const id = window.selectedBooks[0].id;
                     const c = window.opacDetailPayload.copies.find((x) => Number(x.id) === Number(id));
                     if (c) {
                         c.availability = 'Borrowed';
-                        c.circulation_status = 'Checked out';
+                        c.circulation_status = 'Room use';
                     }
                 }
             } else {
@@ -468,7 +468,7 @@ window.printReceiptBulk = function printReceiptBulk() {
             lines += `${book.title}\n`;
             lines += `${book.author || ''}\n`;
             lines += `Barcode: ${book.barcode || ''}\n`;
-            lines += `Due Date: ${book.due_date || ''}\n`;
+            lines += 'Room use (in library)\n';
             lines += '--------------------------------\n';
         });
 
@@ -482,7 +482,7 @@ window.printReceiptBulk = function printReceiptBulk() {
             `${window.selectedStudent.name.toUpperCase()}\n`,
             `${window.selectedStudent.id_number}\n`,
             '\n',
-            "Today's Checkouts\n",
+            "Today's room use\n",
             '--------------------------------\n',
             lines,
             'Served By: ______________________\n',

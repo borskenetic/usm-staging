@@ -79,12 +79,14 @@ class BookLogController extends Controller
             return null;
         }
 
+        $section = Book::query()->whereKey($bookId)->value('section');
+        $cooldownDays = FineSetting::forSection(is_string($section) ? $section : null)->reborrowCooldownDays();
         $returnedAt = Carbon::parse($latestReturn)->timezone('Asia/Manila');
-        $allowedAt = $returnedAt->copy()->addDays(BookController::reborrowCooldownDays());
+        $allowedAt = $returnedAt->copy()->addDays($cooldownDays);
         $now = Carbon::now('Asia/Manila');
 
         if ($now->lt($allowedAt)) {
-            return 'This patron must wait '.BookController::reborrowCooldownDays().' days after returning this book before borrowing it again. (Available again on '.$allowedAt->format('M j, Y').')';
+            return 'This patron must wait '.$cooldownDays.' days after returning this book before borrowing it again. (Available again on '.$allowedAt->format('M j, Y').')';
         }
 
         return null;
@@ -238,12 +240,9 @@ class BookLogController extends Controller
                 return back()->with('error', $cooldownError);
             }
 
-            $active = BookLog::countActiveLoansForStudent((int) $student->id);
-            if ($active >= BookController::maxConcurrentLoansPerStudent()) {
-                return back()->with(
-                    'error',
-                    'This patron already has the maximum of '.BookController::maxConcurrentLoansPerStudent().' books on loan (including room use). Check one in first, or use check out only for books taken outside the library.'
-                );
+            $limit = FineSetting::forSection($book->section)->loanCapacityMessage((int) $student->id);
+            if ($limit !== null) {
+                return back()->with('error', $limit);
             }
         }
 
@@ -255,7 +254,7 @@ class BookLogController extends Controller
             $circulationType = BookLog::CIRCULATION_ROOM_USE;
         }
 
-        $settings = FineSetting::currentOrDefault();
+        $settings = FineSetting::forSection($book->section);
 
         $dueDate = null;
         $returnedDate = null;
@@ -317,13 +316,13 @@ class BookLogController extends Controller
             return back()->with('error', 'This loan has no due date to renew.');
         }
 
+        $policy = FineSetting::forSection($book->section);
         $renewCount = (int) ($lastLog->renew_count ?? 0);
-        if ($renewCount >= BookController::maxRenewalsPerLoan()) {
-            return back()->with('error', 'Renewal limit reached (max '.BookController::maxRenewalsPerLoan().' renewals).');
+        if ($renewCount >= $policy->maxRenewals()) {
+            return back()->with('error', 'Renewal limit reached (max '.$policy->maxRenewals().' renewals).');
         }
 
-        $settings = FineSetting::currentOrDefault();
-        $loanDays = (int) $settings->studentLoanDurationDays();
+        $loanDays = (int) $policy->studentLoanDurationDays();
 
         $base = Carbon::parse($lastLog->due_date, 'Asia/Manila');
         $newDue = $this->addBusinessDays($base, $loanDays);
@@ -333,7 +332,7 @@ class BookLogController extends Controller
         $lastLog->last_renewed_at = Carbon::now('Asia/Manila');
         $lastLog->save();
 
-        return back()->with('success', 'Loan renewed. New due date: '.$newDue->format('Y-m-d').'. ('.$lastLog->renew_count.'/'.BookController::maxRenewalsPerLoan().' renewals used)');
+        return back()->with('success', 'Loan renewed. New due date: '.$newDue->format('Y-m-d').'. ('.$lastLog->renew_count.'/'.$policy->maxRenewals().' renewals used)');
     }
 
     protected function patronDisplayLabel(Student $s): string

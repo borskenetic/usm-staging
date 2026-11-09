@@ -10,6 +10,20 @@
     #calendarError { display: none; }
     #calendarError.is-visible { display: block; }
     .policy-shell { max-width: 920px; }
+    .policy-sublocation {
+        background: #fff;
+        border: 1px solid #c9dfc4;
+        border-radius: 10px;
+        padding: 0.7rem 0.85rem 0.75rem;
+    }
+    .policy-sublocation .form-select {
+        border-color: #1b5e20;
+        font-weight: 600;
+    }
+    .policy-sublocation .form-select:focus {
+        border-color: #1b5e20;
+        box-shadow: 0 0 0 0.2rem rgba(27, 94, 32, 0.15);
+    }
 </style>
 @endsection
 
@@ -18,7 +32,7 @@
     <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2 circ-policy-page-head">
         <div>
             <h4 class="mb-0">Circulation Policy</h4>
-            <p class="text-muted mb-0 small">Borrow limits, renewals, fines, and holidays.</p>
+            <p class="text-muted mb-0 small">Choose a sublocation. Borrow limits, renewals, and fines follow that shelf.</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{{ route('logs.index') }}" class="btn btn-outline-secondary btn-sm">Circulation desk</a>
@@ -42,6 +56,23 @@
 
     <form method="POST" action="{{ route('circulation.policy.update') }}" id="circulationPolicyForm">
         @csrf
+
+        <div class="policy-sublocation mb-2">
+            <label for="policySublocation" class="form-label mb-1">Sublocation / shelving</label>
+            <select name="sublocation" id="policySublocation" class="form-select form-select-sm" data-current="{{ $selectedSublocation }}" required>
+                @foreach($sublocations as $name)
+                    <option value="{{ $name }}" @selected(old('sublocation', $selectedSublocation) === $name)>{{ $name }}</option>
+                @endforeach
+            </select>
+            <div class="form-text">
+                @if($hasSavedPolicy)
+                    Showing the saved policy for <strong>{{ $selectedSublocation }}</strong>.
+                @else
+                    <strong>{{ $selectedSublocation }}</strong> still uses the shared defaults. Save to give it its own policy.
+                @endif
+                Loan limits count only books in this sublocation. Holidays stay the same for every shelf.
+            </div>
+        </div>
 
         <ul class="nav nav-pills circ-policy-pills flex-wrap mb-2" id="policyTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -232,6 +263,7 @@
                             <span class="circ-section-badge" style="color:#dc3545;background:#fff1f2;border:1px solid #f5c2c7;">Calendar</span>
                             <h6 class="circ-section-title">Holidays</h6>
                         </div>
+                        <p class="text-muted small">Closed days apply to every sublocation. Switching the shelf above does not change this calendar.</p>
                         @include('admin.partials.holiday_calendar_panel')
                     </div>
                 </div>
@@ -283,7 +315,7 @@
         </div>
 
         <div class="circ-policy-save-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <span class="text-muted small mb-0">Applies to circulation desk &amp; self-checkout.</span>
+            <span class="text-muted small mb-0">Saves the <strong>{{ $selectedSublocation }}</strong> policy for the desk, self-checkout, and renewals.</span>
             <button type="submit" class="btn btn-primary btn-sm px-3">Save policy</button>
         </div>
     </form>
@@ -300,6 +332,27 @@ document.addEventListener('DOMContentLoaded', function () {
     const maxField = document.getElementById('employeeMaxField');
     const maxInput = document.getElementById('employeeMax');
     const tabButtons = document.querySelectorAll('#policyTabs button[data-bs-toggle="tab"]');
+    const sublocation = document.getElementById('policySublocation');
+    const policyForm = document.getElementById('circulationPolicyForm');
+    let policyDirty = false;
+
+    policyForm.addEventListener('input', function (event) {
+        if (event.target === sublocation) {
+            return;
+        }
+        policyDirty = true;
+    });
+
+    sublocation.addEventListener('change', function () {
+        if (policyDirty && !window.confirm('Switch sublocation? Unsaved policy changes on this page will be discarded.')) {
+            sublocation.value = sublocation.dataset.current;
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('sublocation', sublocation.value);
+        window.location.assign(url.toString());
+    });
 
     function syncEmployeeMaxField() {
         const isUnlimited = unlimited.checked;

@@ -111,4 +111,6 @@
     <div class="d-flex justify-content-center mt-3">
         {{ $copies->links('pagination::bootstrap-5') }}
     </div>
+
+    <script src="{{ asset('js/books-row-actions.js') }}"></script>
 @endsection

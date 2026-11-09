@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AdminActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
 class AdminActivityLogger
@@ -22,7 +23,7 @@ class AdminActivityLogger
             return null;
         }
 
-        return AdminActivity::query()->create([
+        $activity = AdminActivity::query()->create([
             'user_id' => Auth::id(),
             'module' => $module,
             'type' => $type,
@@ -33,6 +34,10 @@ class AdminActivityLogger
             'subject_type' => $subject?->getMorphClass(),
             'subject_id' => $subject?->getKey(),
         ]);
+
+        Cache::increment('topbar.notifications.version');
+
+        return $activity;
     }
 
     public function patronRegistration(string $kind, string $name, string $idNumber): ?AdminActivity
@@ -100,18 +105,30 @@ class AdminActivityLogger
         );
     }
 
-    public function selfCheckout(string $studentLabel, int $bookCount): ?AdminActivity
+    /**
+     * @param  list<string>  $bookTitles
+     */
+    public function selfCheckout(string $studentLabel, int $bookCount, array $bookTitles = []): ?AdminActivity
     {
         $bookWord = $bookCount === 1 ? 'book' : 'books';
+        $titles = collect($bookTitles)
+            ->map(fn ($title) => trim((string) $title))
+            ->filter()
+            ->take(5)
+            ->implode('; ');
+        $body = "{$studentLabel} started room use for {$bookCount} {$bookWord}";
+        if ($titles !== '') {
+            $body .= ': '.$titles;
+        }
 
         return $this->log(
             'library',
             AdminActivity::TYPE_SELF_CHECKOUT,
-            'Self check-out',
-            "{$studentLabel} checked out {$bookCount} {$bookWord}",
+            'Kiosk room use',
+            $body,
             null,
-            route('logs.index'),
-            'bi-box-arrow-right',
+            route('logs.index', ['circulation_type' => 'room_use']),
+            'bi-book',
         );
     }
 }

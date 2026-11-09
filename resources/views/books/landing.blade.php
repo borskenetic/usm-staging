@@ -428,7 +428,8 @@
         <div class="modal-content">
             <span class="close" onclick="closeStudentModal()">&times;</span>
 
-            <h4>Self Check-Out</h4>
+            <h4>Room use</h4>
+            <p class="text-muted small">These copies stay in the library. They are not checked out for outside use.</p>
 
             <div class="mb-3">
                 <label for="studentIdInput" class="form-label"><strong>Student ID</strong></label>
@@ -436,7 +437,7 @@
             </div>
 
             <button type="button" class="btn btn-primary mt-3" onclick="confirmCheckout()">
-                Confirm Checkout
+                Confirm room use
             </button>
 
             <p id="studentError" class="text-danger mt-2" style="display:none;"></p>
@@ -453,8 +454,8 @@
             <span class="close" onclick="closeCartModal()">&times;</span>
 
             <div class="cart-header">
-                <h2>Borrow Cart</h2>
-                <p>Maximum of 5 books allowed</p>
+                <h2>Room-use cart</h2>
+                <p>Maximum of 5 books. For use inside the library only.</p>
             </div>
 
             <div id="cartBody" class="cart-body">
@@ -471,7 +472,7 @@
                 </div>
 
                 <button type="button" class="btn btn-dark px-5" onclick="openStudentModalFromCart()">
-                    Proceed to Checkout
+                    Use in the library
                 </button>
             </div>
         </div>

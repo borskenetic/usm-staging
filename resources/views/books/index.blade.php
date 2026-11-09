@@ -405,6 +405,7 @@
 
 </div>
 
+<script src="{{ asset('js/books-row-actions.js') }}"></script>
 <script>
     document.querySelector('[name="year_filter"]')?.addEventListener('change', function () {
         const el = document.getElementById('year2Field');

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Http\Controllers\Api\Mobile\BookReservationController;
-use App\Http\Controllers\BookController;
 use App\Models\Book;
 use App\Models\BookLog;
 use App\Models\BookReservation;
@@ -47,10 +46,10 @@ class CirculationService
             return $cooldown;
         }
 
-        $currentLoans = BookLog::countActiveLoansForStudent((int) $student->id);
-        if ($currentLoans >= BookController::maxConcurrentLoansPerStudent()) {
-            return 'Checkout blocked: patron may have at most '
-                .BookController::maxConcurrentLoansPerStudent().' books on loan at a time.';
+        $policy = FineSetting::forSection($book->section);
+        $limit = $policy->loanCapacityMessage((int) $student->id);
+        if ($limit !== null) {
+            return $limit;
         }
 
         return null;
@@ -63,7 +62,7 @@ class CirculationService
             throw new \RuntimeException($reason);
         }
 
-        $fineSetting = FineSetting::currentOrDefault();
+        $fineSetting = FineSetting::forSection($book->section);
         $borrowedAt = Carbon::now('Asia/Manila');
         $patronName = "{$student->lastname}, {$student->firstname}";
         $dueDate = $this->addBusinessDays($borrowedAt, (int) $fineSetting->studentLoanDurationDays());
@@ -115,7 +114,7 @@ class CirculationService
             throw new \RuntimeException('Checkout blocked: student has overdue book(s).');
         }
 
-        $fineSetting = FineSetting::currentOrDefault();
+        $fineSetting = FineSetting::forSection($book->section);
         $borrowedAt = Carbon::now('Asia/Manila');
         $patronName = "{$student->lastname}, {$student->firstname}";
         $dueDate = $this->addBusinessDays($borrowedAt, (int) $fineSetting->studentLoanDurationDays());
@@ -177,7 +176,7 @@ class CirculationService
             throw new \RuntimeException('Patron must match the student who has this book.');
         }
 
-        $settings = FineSetting::currentOrDefault();
+        $settings = FineSetting::forSection($book->section);
         $returnedDate = Carbon::now('Asia/Manila');
         $dueDate = $lastLog->due_date;
         $fineIncurred = null;
@@ -306,8 +305,10 @@ class CirculationService
             return null;
         }
 
+        $section = Book::query()->whereKey($bookId)->value('section');
+        $cooldownDays = FineSetting::forSection(is_string($section) ? $section : null)->reborrowCooldownDays();
         $returnedAt = Carbon::parse($latestReturn)->timezone('Asia/Manila');
-        $allowedAt = $returnedAt->copy()->addDays(BookController::reborrowCooldownDays());
+        $allowedAt = $returnedAt->copy()->addDays($cooldownDays);
 
         if (Carbon::now('Asia/Manila')->lt($allowedAt)) {
             return 'Re-borrow cooldown active until '.$allowedAt->format('Y-m-d').'.';

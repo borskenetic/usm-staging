@@ -113,8 +113,8 @@ class LibraryActivityLogTest extends TestCase
         app(AdminActivityLogger::class)->selfCheckout('DOE, JOHN', 2);
 
         $activity = AdminActivity::query()->where('type', AdminActivity::TYPE_SELF_CHECKOUT)->firstOrFail();
-        $this->assertSame('Self check-out', $activity->title);
-        $this->assertStringContainsString('checked out 2 books', (string) $activity->body);
+        $this->assertSame('Kiosk room use', $activity->title);
+        $this->assertStringContainsString('room use for 2 books', (string) $activity->body);
         $this->assertNotEmpty($activity->action_url);
     }
 

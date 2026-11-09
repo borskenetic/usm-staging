@@ -697,9 +697,12 @@
     color: white;
 }
 
-/* Show dropdown on hover */
-.dropdown1:hover .dropdown1-content {
+/* Opened from script so the menu is not clipped by the single-row table scroller. */
+.dropdown1-content.is-open,
+.dropdown1:hover .dropdown1-content.is-open {
   display: block;
+  position: fixed;
+  z-index: 3000;
 }
 
 /* Books index table: preserve readable columns and scroll horizontally when needed. */

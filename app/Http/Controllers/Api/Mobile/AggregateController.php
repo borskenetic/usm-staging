@@ -9,6 +9,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\Controller;
 use App\Models\Book;
 use App\Models\BookLog;
+use App\Models\FineSetting;
 use App\Models\Program;
 use App\Models\Room;
 use App\Models\RoomReservation;
@@ -283,6 +284,7 @@ class AggregateController extends Controller
             'fine_settings_configured' => $fineSetting->exists,
             'loan_duration_days' => $fineSetting->studentLoanDurationDays(),
             'grace_period_days' => $fineSetting->grace_period_days,
+            'sublocation_policies' => FineSetting::sublocationPolicyPayload((int) $student->id),
         ];
     }
 

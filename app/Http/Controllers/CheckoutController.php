@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\BookLog;
 use App\Models\FineSetting;
-use App\Models\Holiday;
 use App\Models\Student;
 use App\Services\AdminActivityLogger;
 use Carbon\Carbon;
@@ -84,18 +83,16 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            $currentLoans = BookLog::countActiveLoansForStudent((int) $student->id);
-            if ($currentLoans + count($availableIds) > BookController::maxConcurrentLoansPerStudent()) {
+            $checkoutBooks = Book::query()->whereIn('id', $availableIds)->get();
+            $capacityError = FineSetting::capacityErrorForBooks((int) $student->id, $checkoutBooks);
+            if ($capacityError !== null) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Checkout blocked: patron may have at most '.BookController::maxConcurrentLoansPerStudent().' books on loan at a time (including room use).',
+                    'message' => $capacityError,
                 ]);
             }
 
-            $fineSetting = FineSetting::currentOrDefault();
-
             $borrowedAt = Carbon::now();
-            $dueDate = null;
             $processedBooks = [];
 
             foreach ($availableIds as $bookId) {
@@ -105,56 +102,22 @@ class CheckoutController extends Controller
                     continue;
                 }
 
-                $latestReturn = BookLog::query()
-                    ->where('student_id', $student->id)
-                    ->where('book_id', $book->id)
-                    ->where('status', 'Checked In')
-                    ->whereNotNull('returned_date')
-                    ->orderByDesc('returned_date')
-                    ->value('returned_date');
-
-                if ($latestReturn) {
-                    $returnedAt = Carbon::parse($latestReturn)->timezone('Asia/Manila');
-                    $allowedAt = $returnedAt->copy()->addDays(BookController::reborrowCooldownDays());
-                    $nowManila = Carbon::now('Asia/Manila');
-                    if ($nowManila->lt($allowedAt)) {
-                        continue;
-                    }
+                $issued = $this->issueRoomUse($student, $book, $patronLegacyName, $borrowedAt);
+                if ($issued === null) {
+                    continue;
                 }
 
-                $dueDate = $this->addBusinessDays($borrowedAt, $fineSetting->studentLoanDurationDays());
-
-                BookLog::create([
-                    'book_id' => $book->id,
-                    'student_id' => $student->id,
-                    'patron_name' => $patronLegacyName,
-                    'status' => 'Checked Out',
-                    'circulation_type' => BookLog::CIRCULATION_CHECKOUT,
-                    'renew_count' => 0,
-                    'timestamp' => $borrowedAt,
-                    'due_date' => $dueDate,
-                    'fine_incurred' => 0,
-                ]);
-
-                $book->update(['availability' => 'Borrowed']);
-
-                $processedBooks[] = [
-                    'id' => $book->id,
-                    'title' => $book->title_statement,
-                    'author' => $book->main_author,
-                    'barcode' => $book->barcode,
-                    'due_date' => $dueDate->format('Y-m-d'),
-                ];
+                $processedBooks[] = $issued;
             }
 
             if ($processedBooks === []) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No available copies could be checked out (some may be blocked by the 1-week re-borrow cooldown).',
+                    'message' => 'No available copies could be used in the library (some may be blocked by the re-borrow cooldown).',
                 ]);
             }
 
-            app(AdminActivityLogger::class)->selfCheckout($patronLegacyName, count($processedBooks));
+            $this->notifyKioskRoomUse($patronLegacyName, $processedBooks);
 
             return response()->json([
                 'success' => true,
@@ -177,29 +140,6 @@ class CheckoutController extends Controller
                 'message' => 'An unexpected error occurred: '.$e->getMessage(),
             ], 500);
         }
-    }
-
-    protected function addBusinessDays(Carbon $start, int $days)
-    {
-        $holidays = Holiday::pluck('holiday_date')->map(function ($d) {
-            return Carbon::parse($d)->startOfDay()->toDateString();
-        });
-
-        $date = $start->copy()->startOfDay();
-        $added = 0;
-
-        while ($added < $days) {
-            $date->addDay();
-
-            $isWeekend = $date->isWeekend();
-            $isHoliday = $holidays->contains($date->toDateString());
-
-            if (! $isWeekend && ! $isHoliday) {
-                $added++;
-            }
-        }
-
-        return $date;
     }
 
     public function bulk(Request $request)
@@ -235,8 +175,6 @@ class CheckoutController extends Controller
             ]);
         }
 
-        $fineSetting = FineSetting::currentOrDefault();
-
         $availableIds = [];
         foreach ($request->book_ids as $bookId) {
             $book = Book::find($bookId);
@@ -249,11 +187,12 @@ class CheckoutController extends Controller
             return response()->json(['success' => false, 'message' => 'No available copies could be checked out.']);
         }
 
-        $currentLoans = BookLog::countActiveLoansForStudent((int) $student->id);
-        if ($currentLoans + count($availableIds) > BookController::maxConcurrentLoansPerStudent()) {
+        $checkoutBooks = Book::query()->whereIn('id', $availableIds)->get();
+        $capacityError = FineSetting::capacityErrorForBooks((int) $student->id, $checkoutBooks);
+        if ($capacityError !== null) {
             return response()->json([
                 'success' => false,
-                'message' => 'Checkout blocked: patron may have at most '.BookController::maxConcurrentLoansPerStudent().' books on loan at a time.',
+                'message' => $capacityError,
             ]);
         }
 
@@ -267,53 +206,19 @@ class CheckoutController extends Controller
                 continue;
             }
 
-            $latestReturn = BookLog::query()
-                ->where('student_id', $student->id)
-                ->where('book_id', $book->id)
-                ->where('status', 'Checked In')
-                ->whereNotNull('returned_date')
-                ->orderByDesc('returned_date')
-                ->value('returned_date');
-
-            if ($latestReturn) {
-                $returnedAt = Carbon::parse($latestReturn)->timezone('Asia/Manila');
-                $allowedAt = $returnedAt->copy()->addDays(BookController::reborrowCooldownDays());
-                $nowManila = Carbon::now('Asia/Manila');
-                if ($nowManila->lt($allowedAt)) {
-                    continue;
-                }
+            $issued = $this->issueRoomUse($student, $book, $patronLegacyName, $borrowedAt);
+            if ($issued === null) {
+                continue;
             }
 
-            $dueDate = $this->addBusinessDays($borrowedAt, $fineSetting->studentLoanDurationDays());
-
-            BookLog::create([
-                'book_id' => $book->id,
-                'student_id' => $student->id,
-                'patron_name' => $patronLegacyName,
-                'status' => 'Checked Out',
-                'circulation_type' => BookLog::CIRCULATION_CHECKOUT,
-                'renew_count' => 0,
-                'timestamp' => $borrowedAt,
-                'due_date' => $dueDate,
-                'fine_incurred' => 0,
-            ]);
-
-            $book->update(['availability' => 'Borrowed']);
-
-            $results[] = [
-                'id' => $book->id,
-                'title' => $book->title_statement,
-                'author' => $book->main_author,
-                'barcode' => $book->barcode,
-                'due_date' => $dueDate->format('Y-m-d'),
-            ];
+            $results[] = $issued;
         }
 
         if ($results === []) {
             return response()->json(['success' => false, 'message' => 'No available copies could be checked out.']);
         }
 
-        app(AdminActivityLogger::class)->selfCheckout($patronLegacyName, count($results));
+        $this->notifyKioskRoomUse($patronLegacyName, $results);
 
         return response()->json([
             'success' => true,
@@ -323,5 +228,71 @@ class CheckoutController extends Controller
             ],
             'books' => $results,
         ]);
+    }
+
+    /**
+     * Kiosk loans stay in the library: no due date and no outside-loan fine term.
+     *
+     * @return array{id: int, title: ?string, author: ?string, barcode: ?string, due_date: null}|null
+     */
+    private function issueRoomUse(Student $student, Book $book, string $patronName, Carbon $borrowedAt): ?array
+    {
+        if ($book->availability !== Book::AVAILABILITY_AVAILABLE) {
+            return null;
+        }
+
+        $latestReturn = BookLog::query()
+            ->where('student_id', $student->id)
+            ->where('book_id', $book->id)
+            ->where('status', 'Checked In')
+            ->whereNotNull('returned_date')
+            ->orderByDesc('returned_date')
+            ->value('returned_date');
+
+        if ($latestReturn) {
+            $policy = FineSetting::forSection($book->section);
+            $allowedAt = Carbon::parse($latestReturn)->timezone('Asia/Manila')->addDays($policy->reborrowCooldownDays());
+            if (Carbon::now('Asia/Manila')->lt($allowedAt)) {
+                return null;
+            }
+        }
+
+        BookLog::create([
+            'book_id' => $book->id,
+            'student_id' => $student->id,
+            'patron_name' => $patronName,
+            'status' => 'Checked Out',
+            'circulation_type' => BookLog::CIRCULATION_ROOM_USE,
+            'renew_count' => 0,
+            'timestamp' => $borrowedAt,
+            'due_date' => null,
+            'fine_incurred' => 0,
+        ]);
+
+        $book->update(['availability' => Book::AVAILABILITY_BORROWED]);
+
+        return [
+            'id' => $book->id,
+            'title' => $book->title_statement,
+            'author' => $book->main_author,
+            'barcode' => $book->barcode,
+            'due_date' => null,
+        ];
+    }
+
+    /**
+     * @param  list<array{title?: ?string}>  $books
+     */
+    private function notifyKioskRoomUse(string $patronName, array $books): void
+    {
+        $titles = [];
+        foreach ($books as $book) {
+            $title = trim((string) ($book['title'] ?? ''));
+            if ($title !== '') {
+                $titles[] = $title;
+            }
+        }
+
+        app(AdminActivityLogger::class)->selfCheckout($patronName, count($books), $titles);
     }
 }

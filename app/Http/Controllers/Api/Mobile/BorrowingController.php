@@ -96,6 +96,7 @@ class BorrowingController extends Controller
                 'fine_settings_configured' => FineSetting::current() !== null,
                 'loan_duration_days' => $fineSetting->studentLoanDurationDays(),
                 'grace_period_days' => $fineSetting->grace_period_days,
+                'sublocation_policies' => FineSetting::sublocationPolicyPayload((int) $student->id),
             ],
         ]);
     }

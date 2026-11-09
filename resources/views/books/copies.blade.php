@@ -24,7 +24,7 @@
         Copies of: <strong>{{ $title }}</strong><br>
         <small>{{ $author }} — {{ $year }}</small>
     </h3>
-    <p class="text-muted small mb-0">Add a specific copy to your cart, then use <strong>Back to OPAC</strong> to browse and check out everything together (cart is saved in this browser).</p>
+    <p class="text-muted small mb-0">Add a specific copy to your cart, then use <strong>Back to OPAC</strong> to record room use for everything together. Copies stay in the library.</p>
 
     <table class="table table-bordered table-striped mt-3">
         <thead>
@@ -57,7 +57,7 @@
                             type="button"
                             class="btn btn-primary btn-sm"
                             onclick="openStudentCheckout({{ $copy->id }})">
-                            Self Check-Out
+                            Room use
                         </button>
                         <button
                             type="button"
@@ -85,13 +85,14 @@
         <div class="modal-content rounded-4 shadow-lg">
 
             <div class="modal-header">
-                <h5 class="modal-title">Self Check-Out</h5>
+                <h5 class="modal-title">Room use</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
                 <input type="hidden" id="selectedCopyId" value="">
 
+                <p class="text-muted small">This copy stays in the library.</p>
                 <label class="form-label">Student ID</label>
                 <input type="text" id="copyStudentId" class="form-control">
 
@@ -100,7 +101,7 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" onclick="confirmCopyCheckout()">
-                    Confirm Checkout
+                    Confirm room use
                 </button>
             </div>
 
@@ -113,8 +114,8 @@
         <span class="close" onclick="closeCartModal()">&times;</span>
 
         <div class="cart-header">
-            <h2>Borrow Cart</h2>
-            <p>Maximum of 5 books allowed</p>
+            <h2>Room-use cart</h2>
+            <p>Maximum of 5 books. For use inside the library only.</p>
         </div>
 
         <div id="cartBody" class="cart-body">
@@ -131,7 +132,7 @@
             </div>
 
             <button type="button" class="btn btn-dark px-5" onclick="openStudentModalFromCart()">
-                Proceed to Checkout
+                Use in the library
             </button>
         </div>
     </div>
@@ -148,7 +149,8 @@
     <div class="modal-content">
         <span class="close" onclick="closeStudentModal()">&times;</span>
 
-        <h4>Self Check-Out</h4>
+        <h4>Room use</h4>
+        <p class="text-muted small">These copies stay in the library. They are not checked out for outside use.</p>
 
         <div class="mb-3">
             <label for="studentIdInput" class="form-label"><strong>Student ID</strong></label>
@@ -156,7 +158,7 @@
         </div>
 
         <button type="button" class="btn btn-primary mt-3" onclick="confirmCheckout()">
-            Confirm Checkout
+            Confirm room use
         </button>
 
         <p id="studentError" class="text-danger mt-2" style="display:none;"></p>
