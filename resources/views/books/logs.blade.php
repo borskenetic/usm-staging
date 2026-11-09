@@ -2,6 +2,7 @@
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('css/books/logs.css') }}">
+<link rel="stylesheet" href="{{ asset('css/books/circulation-report.css') }}">
 @endsection
 
 @section('content')
@@ -76,9 +77,15 @@
     </section>
 
     <section class="circulation-card">
-        <div class="circulation-card__head">
-            <h2 class="circulation-card__title">Transaction logs</h2>
-            <p class="circulation-card__hint text-muted mb-0">Search by patron or book title; narrow by date and loan type.</p>
+        <div class="circulation-card__head circulation-card__head--split">
+            <div>
+                <h2 class="circulation-card__title">Transaction logs</h2>
+                <p class="circulation-card__hint text-muted mb-0">Search by patron or book title; narrow by date and loan type. The report uses these filters.</p>
+            </div>
+            <button type="submit" form="logFilterForm" formaction="{{ route('transactions.export') }}" formmethod="get" class="circulation-download">
+                <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
+                Download Excel report
+            </button>
         </div>
         <form method="GET" action="{{ route('logs.index') }}" id="logFilterForm" class="circulation-card__body">
             <div class="row g-3">
@@ -247,7 +254,10 @@
 
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 border-top">
             {{ $logs->withQueryString()->links('pagination::bootstrap-5') }}
-            <a href="{{ route('transactions.export') }}" class="btn btn-outline-secondary btn-sm">Download report</a>
+            <button type="submit" form="logFilterForm" formaction="{{ route('transactions.export') }}" formmethod="get" class="circulation-download">
+                <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
+                Download Excel report
+            </button>
         </div>
     </section>
 </div>

@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BookLog;
 use App\Services\AdminActivityLogger;
+use App\Services\CirculationReportService;
 use App\Services\CirculationService;
 use Illuminate\Http\Request;
 
@@ -16,6 +17,11 @@ class ActiveCheckoutController extends Controller
         $loans = $circulation->activeCheckoutLoans();
 
         return view('checkout.active', compact('loans'));
+    }
+
+    public function export(CirculationService $circulation, CirculationReportService $reports)
+    {
+        return $reports->downloadActiveLoans($circulation->activeCheckoutLoans());
     }
 
     public function confirmReturn(Request $request, int $id, CirculationService $circulation)

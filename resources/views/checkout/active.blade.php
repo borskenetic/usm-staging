@@ -1,9 +1,21 @@
 @extends('layouts.sidebar')
 
+@section('styles')
+<link rel="stylesheet" href="{{ asset('css/books/circulation-report.css') }}">
+@endsection
+
 @section('content')
 <div class="container py-4">
-    <h1 class="h3 mb-3">Books in circulation</h1>
-    <p class="text-muted mb-4">Currently borrowed books. Confirm a return when the student brings the copy back to the desk.</p>
+    <div class="circulation-report-head">
+        <div>
+            <h1 class="h3 mb-1">Books in circulation</h1>
+            <p class="text-muted mb-0">Currently borrowed books. Confirm a return when the student brings the copy back to the desk.</p>
+        </div>
+        <a href="{{ route('checkouts.export') }}" class="circulation-download">
+            <i class="bi bi-file-earmark-excel" aria-hidden="true"></i>
+            Download Excel report
+        </a>
+    </div>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>

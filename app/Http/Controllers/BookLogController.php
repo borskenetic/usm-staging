@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\BookLog;
 use App\Models\FineSetting;
 use App\Models\Student;
+use App\Services\CirculationReportService;
 use App\Services\CirculationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -92,66 +93,9 @@ class BookLogController extends Controller
         return null;
     }
 
-    public function index(Request $request)
+    public function index(Request $request, CirculationReportService $reports)
     {
-        $logs = BookLog::with(['book', 'student']);
-
-        if ($request->filled('student_id')) {
-            $student = Student::find($request->student_id);
-            if ($student) {
-                $legacyComma = "{$student->lastname}, {$student->firstname}";
-                $legacySpace = trim("{$student->firstname} {$student->lastname}");
-                $logs->where(function ($q) use ($student, $legacyComma, $legacySpace) {
-                    $q->where('student_id', $student->id)
-                        ->orWhere('patron_name', $legacyComma)
-                        ->orWhere('patron_name', $legacySpace);
-                });
-            }
-        } elseif ($request->filled('filter_patron')) {
-            $term = trim((string) $request->filter_patron);
-            if ($term !== '') {
-                $logs->where(function ($q) use ($term) {
-                    $q->where('patron_name', 'like', '%'.$term.'%')
-                        ->orWhereHas('student', function ($s) use ($term) {
-                            $s->where('firstname', 'like', '%'.$term.'%')
-                                ->orWhere('lastname', 'like', '%'.$term.'%')
-                                ->orWhere('id_number', 'like', '%'.$term.'%')
-                                ->orWhereRaw(
-                                    'LOWER(CONCAT(firstname, \' \', lastname)) LIKE ?',
-                                    ['%'.strtolower($term).'%']
-                                );
-                        });
-                });
-            }
-        }
-
-        if ($request->filled('book_title')) {
-            $titleTerm = trim((string) $request->book_title);
-            $logs->whereHas('book', function ($query) use ($titleTerm) {
-                $query->where('title_statement', 'like', '%'.$titleTerm.'%');
-            });
-        }
-
-        if ($request->filled('start_date')) {
-            $logs->whereDate('timestamp', '>=', $request->start_date);
-        }
-
-        if ($request->filled('end_date')) {
-            $logs->whereDate('timestamp', '<=', $request->end_date);
-        }
-
-        if ($request->filled('circulation_type') && in_array($request->circulation_type, ['checkout', 'room_use'], true)) {
-            if ($request->circulation_type === 'room_use') {
-                $logs->where('circulation_type', BookLog::CIRCULATION_ROOM_USE);
-            } else {
-                $logs->where(function ($q) {
-                    $q->where('circulation_type', BookLog::CIRCULATION_CHECKOUT)
-                        ->orWhereNull('circulation_type');
-                });
-            }
-        }
-
-        $logs = $logs->latest()->paginate(10);
+        $logs = $reports->transactionQuery($request)->latest()->paginate(10);
 
         $prefillPatronLabel = '';
         if ($request->filled('student_id')) {

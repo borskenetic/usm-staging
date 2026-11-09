@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
-use App\Models\BookLog;
+use App\Services\CirculationReportService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use Spatie\SimpleExcel\SimpleExcelWriter;
 
 class ExportController extends Controller
 {
@@ -99,30 +98,8 @@ class ExportController extends Controller
         return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
     }
 
-    public function exportTransactions()
+    public function exportTransactions(Request $request, CirculationReportService $reports)
     {
-        $fileName = 'transactions_'.Carbon::now()->format('Y-m-d_H-i-s').'.xlsx';
-        $filePath = storage_path('app/'.$fileName);
-
-        $writer = SimpleExcelWriter::create($filePath);
-        $writer->addRow(['Downloaded At' => Carbon::now()->format('Y-m-d H:i:s')]);
-        $writer->addHeader(['Patron Name', 'Barcode', 'Book Title', 'Author', 'RFID', 'Status', 'Loan type', 'Timestamp']);
-
-        BookLog::with(['book', 'student'])->chunk(500, fn ($logs) => collect($logs)->each(fn ($log) => $writer->addRow([
-            'Patron Name' => $log->patronLabel(),
-            'Barcode' => $log->book->barcode ?? 'N/A',
-            'Book Title' => $log->book->title_statement ?? 'Unknown',
-            'Author' => $log->book->main_author ?? 'Unknown',
-            'RFID' => $log->book->rfid ?? 'N/A',
-            'Status' => $log->status,
-            'Loan type' => $log->circulationLabel(),
-            'Timestamp' => $log->timestamp
-                ? Carbon::parse($log->timestamp)->format('Y-m-d H:i:s')
-                : '',
-        ])
-        )
-        );
-
-        return response()->download($filePath)->deleteFileAfterSend(true);
+        return $reports->downloadTransactions($request);
     }
 }

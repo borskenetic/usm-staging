@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\BookLog;
+use App\Observers\BookLogObserver;
 use App\Services\BrandingService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
@@ -24,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        BookLog::observe(BookLogObserver::class);
+
         // Share branding once per request. A composer('*') that re-resolves on every
         // Blade include previously hammered database cache during sidebar dashboards.
         View::composer('*', function (): void {

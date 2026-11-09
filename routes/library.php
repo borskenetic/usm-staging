@@ -129,6 +129,7 @@ Route::middleware(['auth', 'library.admin'])->group(function (): void {
     Route::post('/logs', [BookLogController::class, 'store'])->name('logs.store');
     Route::post('/logs/{book}/renew', [BookLogController::class, 'renew'])->name('logs.renew');
     Route::get('/checkouts/active', [ActiveCheckoutController::class, 'index'])->name('checkouts.active');
+    Route::get('/checkouts/active/export', [ActiveCheckoutController::class, 'export'])->name('checkouts.export');
     Route::post('/checkouts/{id}/confirm-return', [ActiveCheckoutController::class, 'confirmReturn'])->name('checkouts.confirm_return');
     Route::get('/library/attendance/logs', [LibraryAttendanceController::class, 'logs'])->name('library.attendance.logs');
     Route::get('/library/attendance/logs/export/pdf', [LibraryAttendanceController::class, 'exportPdf'])->name('library.attendance.logs.export.pdf');

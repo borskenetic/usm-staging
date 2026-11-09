@@ -1,0 +1,40 @@
+.circulation-card__head--split,
+.circulation-report-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.circulation-report-head {
+    margin-bottom: 1.25rem;
+}
+
+.circulation-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #1b5e20;
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    padding: 0.7rem 1.15rem;
+    border: 0;
+    border-radius: 10px !important;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(27, 94, 32, 0.35);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.circulation-download:hover,
+.circulation-download:focus {
+    background: #145218;
+    color: #fff !important;
+}
+
+.circulation-download .bi {
+    font-size: 1.15rem;
+}
