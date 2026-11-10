@@ -8,6 +8,7 @@ use App\Mail\CirculationTransactionMail;
 use App\Models\Book;
 use App\Models\BookLog;
 use App\Models\Student;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -45,6 +46,39 @@ class CirculationTransactionMailTest extends TestCase
         Mail::assertSent(CirculationTransactionMail::class, fn (CirculationTransactionMail $mail) => $mail->kind() === 'Room use');
         Mail::assertSent(CirculationTransactionMail::class, fn (CirculationTransactionMail $mail) => $mail->kind() === 'Check in');
         Mail::assertSent(CirculationTransactionMail::class, fn (CirculationTransactionMail $mail) => $mail->renewal && $mail->kind() === 'Renewal');
+    }
+
+    public function test_check_in_emails_the_patron_and_says_so_on_the_desk(): void
+    {
+        Mail::fake();
+        $staff = User::factory()->create(['role' => 'admin']);
+        $student = $this->student('return@example.com');
+        $book = $this->book('Returned title');
+        $book->update(['accession_no' => 'ACC-RET-1', 'availability' => Book::AVAILABILITY_BORROWED]);
+
+        BookLog::query()->create([
+            'book_id' => $book->id,
+            'student_id' => $student->id,
+            'patron_name' => 'Jaafar, Kaironsalam',
+            'status' => 'Checked Out',
+            'circulation_type' => BookLog::CIRCULATION_CHECKOUT,
+            'timestamp' => Carbon::now()->subDay(),
+            'due_date' => Carbon::now()->addDay(),
+            'renew_count' => 0,
+            'fine_incurred' => 0,
+        ]);
+
+        $this->actingAs($staff)
+            ->post(route('logs.store'), [
+                'copy_identifier' => 'ACC-RET-1',
+                'status' => 'checked_in',
+                'student_id' => $student->id,
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('circulation_mail', 'A copy was emailed to return@example.com.');
+
+        Mail::assertSent(CirculationTransactionMail::class, fn (CirculationTransactionMail $mail) => $mail->hasTo('return@example.com')
+            && $mail->kind() === 'Check in');
     }
 
     public function test_patrons_without_a_usable_email_are_skipped(): void

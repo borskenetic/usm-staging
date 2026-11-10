@@ -32,6 +32,9 @@
     @if(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
+    @if(session('circulation_mail'))
+        <div class="alert alert-info">{{ session('circulation_mail') }}</div>
+    @endif
     @error('student_id')
         <div class="alert alert-danger">{{ $message }}</div>
     @enderror

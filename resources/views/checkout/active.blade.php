@@ -23,6 +23,9 @@
     @if(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
+    @if(session('circulation_mail'))
+        <div class="alert alert-info">{{ session('circulation_mail') }}</div>
+    @endif
 
     @if($loans->isEmpty())
         <div class="alert alert-info mb-0">No books are currently checked out.</div>
