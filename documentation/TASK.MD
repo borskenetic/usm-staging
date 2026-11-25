@@ -19,6 +19,8 @@ Reference plan:
 
 ## Active Work
 
+- [x] Fix library visit scanner rapid IN/OUT spam: 15s server cooldown with row locks, stronger USM physical-ID QR resolve (`26-#####,NAME,COURSE,...`), and kiosk/client debounce (in-flight guard + multiline quiet period).
+- [x] Add `UsmIdQrParser` multi-strategy resolve for inconsistent ARO QR dialects (tab ID+name, ID-first comma, name-only comma, SR/JR stripping, lastname typo/transposition fuzzy match, course tie-break).
 - [x] Export books using Library Holdings template columns (Call Number, Barcode, Title/Subtitle, Author, Edition, Publication Year, Publisher, Sublocation, Library Name, Status).
 - [x] Speed up post-login first load: share branding once per request, aggregate dashboard chart queries, short-cache topbar/sidebar counts, prefer file session/cache in .env.example.
 - [x] Set MARC 852 ‡b Library Name and 852 ‡c Sublocation / shelving as cataloging dropdowns (USM LRC + college libraries; Circulation/Filipiniana/Reference/Periodicals/Fiction/Reserve), and expose them on Catalog dropdown options for admin add/remove.

@@ -27,28 +27,71 @@
     </main>
 
     <script>
-        document.getElementById('scan-form').addEventListener('submit', async function (event) {
-            event.preventDefault();
-            const form = event.currentTarget;
+        (() => {
+            const form = document.getElementById('scan-form');
             const result = document.getElementById('scan-result');
-            const data = new FormData(form);
+            const input = form.qrcode;
+            let isBusy = false;
+            let cooldown = false;
+            let bufferTimer = null;
+            const CLIENT_COOLDOWN_MS = 2500;
+            const MULTILINE_QUIET_MS = 300;
 
-            const response = await fetch(@json(route('library.attendance.scan')), {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': data.get('_token'),
-                },
-                body: data,
+            async function submitScan(rawValue) {
+                const token = String(rawValue || '').trim().replace(/\r/g, '');
+                form.reset();
+                input.focus();
+
+                if (!token || isBusy || cooldown) {
+                    return;
+                }
+
+                isBusy = true;
+                cooldown = true;
+
+                const data = new FormData();
+                data.append('qrcode', token);
+                data.append('_token', form.querySelector('[name=_token]').value);
+
+                try {
+                    const response = await fetch(@json(route('library.attendance.scan')), {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': data.get('_token'),
+                        },
+                        body: data,
+                    });
+                    const payload = await response.json();
+                    result.className = 'alert mt-3 ' + (response.ok ? 'alert-success' : 'alert-danger');
+                    if (response.ok) {
+                        const note = payload.duplicate ? ' (already recorded)' : '';
+                        result.textContent = `${payload.patron.firstname} ${payload.patron.lastname}: ${payload.status}${note}`;
+                    } else {
+                        result.textContent = payload.message || 'Scan failed.';
+                    }
+                } catch (err) {
+                    console.error(err);
+                    result.className = 'alert mt-3 alert-danger';
+                    result.textContent = 'Scan failed.';
+                } finally {
+                    isBusy = false;
+                    setTimeout(() => { cooldown = false; }, CLIENT_COOLDOWN_MS);
+                    input.focus();
+                }
+            }
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                if (isBusy || cooldown) {
+                    form.reset();
+                    input.focus();
+                    return;
+                }
+                clearTimeout(bufferTimer);
+                bufferTimer = setTimeout(() => submitScan(input.value), MULTILINE_QUIET_MS);
             });
-            const payload = await response.json();
-            result.className = 'alert mt-3 ' + (response.ok ? 'alert-success' : 'alert-danger');
-            result.textContent = response.ok
-                ? `${payload.patron.firstname} ${payload.patron.lastname}: ${payload.status}`
-                : (payload.message || 'Scan failed.');
-            form.reset();
-            form.qrcode.focus();
-        });
+        })();
     </script>
 </body>
 </html>

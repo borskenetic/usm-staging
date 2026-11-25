@@ -199,15 +199,24 @@
         }, 500);
       }
 
-      input.addEventListener('keypress', function (e) {
-        if (e.key !== 'Enter') return;
-        e.preventDefault();
-        if (isCooldown) return;
+      let isBusy = false;
+      let bufferTimer = null;
+      const CLIENT_COOLDOWN_MS = 2500;
+      const MULTILINE_QUIET_MS = 300;
+
+      function submitScan(rawValue) {
+        const token = String(rawValue || '').trim().replace(/\r/g, '');
+        input.value = '';
+
+        if (!token || isBusy || isCooldown) {
+          return;
+        }
+
+        isBusy = true;
         isCooldown = true;
-        setTimeout(() => { isCooldown = false; }, 100);
 
         const formData = new FormData();
-        formData.append('qrcode', input.value.trim().replace(/\r/g, ''));
+        formData.append('qrcode', token);
         formData.append('_token', '{{ csrf_token() }}');
 
         fetch("{{ route('attendance.process') }}", {
@@ -241,7 +250,8 @@
               sidebar.appendChild(div);
 
               const feedbackOn = data.logout_feedback_enabled ?? LOGOUT_FEEDBACK_ENABLED;
-              if (data.status.toLowerCase() === 'out' && feedbackOn) {
+              // Duplicate/cooldown rescans keep the same status — don't reopen feedback.
+              if (data.status.toLowerCase() === 'out' && feedbackOn && !data.duplicate) {
                 showLogoutFeedback();
               } else {
                 scheduleClear(2000);
@@ -269,10 +279,28 @@
               sidebar.appendChild(div);
               scheduleClear(2000);
             }
-
-            input.value = '';
           })
-          .catch(err => console.error(err));
+          .catch(err => console.error(err))
+          .finally(() => {
+            isBusy = false;
+            setTimeout(() => { isCooldown = false; }, CLIENT_COOLDOWN_MS);
+            input.focus();
+          });
+      }
+
+      input.addEventListener('keypress', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (isBusy || isCooldown) {
+          input.value = '';
+          return;
+        }
+
+        // Wait briefly so multiline QR payloads (line + Enter + line) can finish.
+        clearTimeout(bufferTimer);
+        bufferTimer = setTimeout(() => {
+          submitScan(input.value);
+        }, MULTILINE_QUIET_MS);
       });
 
       function updateDateTime() {

@@ -63,7 +63,9 @@ class AttendanceController extends Controller
         $result = $scanner->record($student, $employee, $request->input('section'));
 
         if ($student) {
-            $this->maybeSendScanSms($student, $result['status']);
+            if (! ($result['duplicate'] ?? false)) {
+                $this->maybeSendScanSms($student, $result['status']);
+            }
 
             return response()->json([
                 'type' => 'student',
@@ -74,6 +76,7 @@ class AttendanceController extends Controller
                     'profile_picture' => $student->profile_picture,
                 ],
                 'status' => $result['status'],
+                'duplicate' => (bool) ($result['duplicate'] ?? false),
                 'logout_feedback_enabled' => $this->libraryFeedbackEnabled(),
                 'log' => [
                     'scanned_at' => $result['log']->scanned_at->format('Y-m-d h:i:s A'),
@@ -90,6 +93,7 @@ class AttendanceController extends Controller
                 'profile_picture' => $employee->formal_picture,
             ],
             'status' => $result['status'],
+            'duplicate' => (bool) ($result['duplicate'] ?? false),
             'logout_feedback_enabled' => $this->libraryFeedbackEnabled(),
             'log' => [
                 'scanned_at' => $result['log']->scanned_at->format('Y-m-d h:i:s A'),

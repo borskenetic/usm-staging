@@ -7,14 +7,12 @@ use App\Models\LibraryAttendanceFeedback;
 use App\Models\LibraryAttendanceLog;
 use App\Models\LibraryAttendanceSetting;
 use App\Models\LibraryEmployee;
-use App\Models\LibraryStudent;
 use App\Models\Program;
 use App\Models\Student;
 use App\Services\LibraryPatronVisitReportService;
 use App\Services\LibraryVisitScanService;
 use App\Support\PatronNameSearch;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -63,6 +61,7 @@ class LibraryAttendanceController extends Controller
                 'profile_picture' => $student?->profile_picture ?? $employee?->formal_picture,
             ],
             'status' => $result['status'],
+            'duplicate' => (bool) ($result['duplicate'] ?? false),
             'logout_feedback_enabled' => $this->feedbackEnabled(),
             'log' => [
                 'scanned_at' => $result['log']->scanned_at->format('Y-m-d h:i:s A'),
