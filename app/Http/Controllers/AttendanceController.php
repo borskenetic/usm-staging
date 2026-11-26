@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\LibraryAttendanceSetting;
-use App\Models\LibraryStudent;
 use App\Models\Setting;
 use App\Services\LibraryVisitScanService;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -63,10 +61,6 @@ class AttendanceController extends Controller
         $result = $scanner->record($student, $employee, $request->input('section'));
 
         if ($student) {
-            if (! ($result['duplicate'] ?? false)) {
-                $this->maybeSendScanSms($student, $result['status']);
-            }
-
             return response()->json([
                 'type' => 'student',
                 'student_id' => $student->id,
@@ -99,31 +93,6 @@ class AttendanceController extends Controller
                 'scanned_at' => $result['log']->scanned_at->format('Y-m-d h:i:s A'),
             ],
         ]);
-    }
-
-    private function maybeSendScanSms(LibraryStudent $student, string $status): void
-    {
-        if (empty($student->mobile_number)) {
-            return;
-        }
-
-        $template = Setting::where('key', 'scan_sms')->value('value')
-            ?? 'Hello {name}, you scanned {status} at the library at {time}.';
-
-        $message = str_replace(
-            ['{name}', '{status}', '{time}'],
-            [
-                trim($student->firstname.' '.$student->lastname),
-                $status,
-                Carbon::now('Asia/Manila')->format('h:i A'),
-            ],
-            $template
-        );
-
-        app(SMSController::class)->sendDirect(
-            $student->mobile_number,
-            $message
-        );
     }
 
     private function libraryFeedbackEnabled(): bool

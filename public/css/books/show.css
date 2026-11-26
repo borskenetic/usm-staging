@@ -195,6 +195,13 @@
 }
 
 /* MARC accordion */
+/* Tailwind's `.collapse { visibility: collapse }` utility collides with Bootstrap's
+   collapse class and hides the panel once the open transition finishes. */
+.book-show__accordion .accordion-collapse.collapse.show,
+.book-show__accordion .accordion-collapse.collapsing {
+    visibility: visible;
+}
+
 .book-show__accordion .accordion-item {
     border: 1px solid #e2e8f0;
     border-radius: 8px !important;
